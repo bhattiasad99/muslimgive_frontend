@@ -9,12 +9,12 @@ type IProps = React.InputHTMLAttributes<HTMLInputElement> & {
     placeholder?: string
 }
 
-export const TextFieldComponent: FC<IProps> = ({ type = "text", label, placeholder, id, ...otherProps }) => {
+export const TextFieldComponent: FC<IProps> = ({ type = "text", name, label, placeholder, id }) => {
     const getId = id ? id : randomUUID()
     return (
         <div className="flex flex-col w-full items-center gap-1">
             {label ? <Label className="w-full text-sm" htmlFor={getId}>{label}</Label> : null}
-            <Input className="w-full border-[#dee1e4]" type={type} id={getId} placeholder={placeholder ?? ""} />
+            <Input name={name} className="w-full border-[#dee1e4]" type={type} id={getId} placeholder={placeholder ?? ""} />
         </div>
     )
 }

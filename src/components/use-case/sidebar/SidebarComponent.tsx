@@ -2,6 +2,9 @@ import { ImageComponent } from "@/components/common/ImageComponent";
 import { Item, SidebarGroupComponent } from "./SidebarGroupComponent";
 import { PAGES, PageType } from "./pages";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import SignOut from "./pages_icons/SignOut";
+import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar";
 
 type MenuItemType = {
     title: string,
@@ -36,14 +39,16 @@ const SideBarComponent = () => {
                     <div className="pt-5 px-3" >
                         <ImageComponent source="/logo__white.png" alt="MuslimGive Logo" height={30} width={120} />
                     </div>
-                    {menu.map(eachMenuItem => {
-                        return <SidebarGroupComponent key={eachMenuItem.title} label={eachMenuItem.title} options={eachMenuItem.items} />
-                    })}
+                    <div className="flex flex-col gap-2 grow">
+                        {menu.map(eachMenuItem => {
+                            return <SidebarGroupComponent key={eachMenuItem.title} label={eachMenuItem.title} options={eachMenuItem.items} />
+                        })}
+                    </div>
+                    <SignOutBtnInSidebar />
                 </SidebarContent>
             </Sidebar >
         </SidebarProvider>
     )
 }
 
-export default SideBarComponent
-
+export default SideBarComponent;

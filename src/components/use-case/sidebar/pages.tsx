@@ -20,13 +20,6 @@ export const selectPageByName = (name: string): Page | undefined => {
 
 export const PAGES: Page[] = [
     {
-        name: 'dashboard',
-        path: "/dashboard",
-        heading: 'Dashboard',
-        icon: <Dashboard />,
-        type: 'menu'
-    },
-    {
         name: 'charities',
         path: "/charities",
         heading: 'Charities',

@@ -1,3 +1,4 @@
+'use client'
 import LinkComponent from "@/components/common/LinkComponent";
 import {
     SidebarGroup,
@@ -7,6 +8,8 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 import type { FC } from "react";
 
 // Menu items.
@@ -37,15 +40,19 @@ type SidebarGroupProps = {
 }
 
 export const SidebarGroupComponent: FC<SidebarGroupProps> = ({ label, options }) => {
+    const pathname = usePathname();
+    const paths = pathname.split('/');
+    const firstPath = paths[1];
     return <SidebarGroup>
         <SidebarGroupLabel>{label}</SidebarGroupLabel>
         <SidebarGroupContent>
             <SidebarMenu className="flex flex-col gap-3">
                 {options.map((item) => {
+                    const isActive = item.name === firstPath;
                     if (item.action.type === 'button') {
                         return (
                             <SidebarMenuItem key={item.name}>
-                                <SidebarMenuButton className="flex gap-3" variant={"outline"} onClick={() => {
+                                <SidebarMenuButton className={cn("flex gap-3", isActive ? "font-bold text-primary" : "")} variant={"default"} onClick={() => {
                                     if (item.action.type === 'button')
                                         item.action.clickHandler()
                                 }} >
@@ -56,10 +63,11 @@ export const SidebarGroupComponent: FC<SidebarGroupProps> = ({ label, options })
                         )
                     }
                     if (item.action.type === 'url') {
+                        console.log({ test: item })
                         return (
                             <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton variant={"outline"} asChild>
-                                    <LinkComponent className="flex gap-3" to={item.action.target}>
+                                <SidebarMenuButton variant={"default"} asChild>
+                                    <LinkComponent className={cn("flex gap-3", isActive ? "font-bold text-primary" : "")} to={item.action.target}>
                                         <span>{item.icon}</span>
                                         <span>{item.title}</span>
                                     </LinkComponent>

@@ -1,21 +1,100 @@
+'use client'
+import { signIn } from '@/app/actions/auth'
+import { FormState } from '@/app/lib/definitions'
 import LinkComponent from '@/components/common/LinkComponent'
-import { TextFieldComponent } from '@/components/common/TextFieldComponent'
+import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import { Button } from '@/components/ui/button'
 import AuthScreenLayoutComponent from '@/components/use-case/AuthScreenLayoutComponent'
-import React from 'react'
+import React, { useActionState, useState, useEffect } from 'react'
 
 const Login = () => {
+    const [state, action, pending] = useActionState(signIn, {} as FormState);
+
+    // local form state
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const isDisabled = !email || !password;
+
+    const [showErrors, setShowErrors] = useState(false);
+
+    useEffect(() => {
+        if (!!state?.errors || !!state?.message) {
+            setShowErrors(true);
+        } else {
+            setShowErrors(false);
+        }
+
+    }, [state])
     return (
         <AuthScreenLayoutComponent
-            heading='Log in to your account'
-            subHeading='Welcome back! Please enter your details'
+            action={action}
+            heading="Log in to your account"
+            subHeading="Welcome back! Please enter your details"
         >
-            <TextFieldComponent type="email" label="Email" placeholder='Enter Your Email' />
-            <TextFieldComponent type="password" label="Password" placeholder='Enter Your Password' />
-            <LinkComponent to="forgot-password" className="text-xs w-full text-left underline">Forgot Password?</LinkComponent>
-            <Button className='w-full' variant={'primary'}>Login</Button>
+            <div className="flex flex-col gap-1  w-full">
+                <ControlledTextFieldComponent
+                    type="email"
+                    id="login__email"
+                    name="login__email"
+                    label="Email"
+                    placeholder="Enter Your Email"
+                    value={email}
+                    onChange={(e) => {
+                        setEmail(e.target.value)
+                        setShowErrors(false)
+                    }}
+                />
+                {showErrors ? state?.errors?.email && <p className='text-red-500 text-xs text-left w-full'>{state.errors.email}</p> : null}
+            </div>
+            <div className="flex flex-col gap-1  w-full">
+                <ControlledTextFieldComponent
+                    type="password"
+                    id="login__password"
+                    name="login__password"
+                    label="Password"
+                    placeholder="Enter Your Password"
+                    value={password}
+                    onChange={(e) => {
+                        setPassword(e.target.value)
+                        setShowErrors(false)
+                    }}
+                />
+                {showErrors ? state?.errors?.password && <p className='text-red-500 text-xs text-left w-full'>{state.errors.password}</p> : null}
+                {/* {showErrors ? state?.errors?.password && (
+                    <div className='text-red-500 text-xs text-left w-full'>
+                        <p>Password must:</p>
+                        <ul>
+                            {state.errors.password.map((error) => (
+                                <li key={error}>- {error}</li>
+                            ))}
+                        </ul>
+                    </div>
+                ) : null} */}
+            </div>
+
+            <LinkComponent
+                to="forgot-password"
+                className="text-xs w-full text-left underline"
+            >
+                Forgot Password?
+            </LinkComponent>
+            {showErrors && state?.message && (
+                <div className="w-full text-sm text-red-600 border border-red-200 bg-red-50 rounded p-2">
+                    {state.message}
+                </div>
+            )}
+            <Button
+                className="w-full"
+                variant={'primary'}
+                type="submit"
+                disabled={isDisabled || pending} // disable if empty OR during submission
+                loading={pending}
+            >
+                Login
+            </Button>
         </AuthScreenLayoutComponent>
     )
 }
 
-export default Login
+export default Login;
