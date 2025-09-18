@@ -3,7 +3,7 @@ import { Item, SidebarGroupComponent } from "./SidebarGroupComponent";
 import { PAGES, PageType } from "./pages";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import SignOut from "./pages_icons/SignOut";
+import SignOut from "../../common/IconComponents/pages_icons/SignOut";
 import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar";
 
 type MenuItemType = {

@@ -1,7 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import React, { useTransition } from 'react'
-import SignOut from '../sidebar/pages_icons/SignOut'
+import SignOut from '../../common/IconComponents/pages_icons/SignOut'
 import { signOut } from '@/app/actions/auth'
 
 const SignOutBtnInSidebar = () => {

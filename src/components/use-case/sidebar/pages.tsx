@@ -1,7 +1,7 @@
-import Dashboard from "./pages_icons/Dashboard"
-import Charities from "./pages_icons/Charities"
-import Profile from "./pages_icons/Profile"
-import AccessControl from "./pages_icons/AccessControl"
+import Dashboard from "../../common/IconComponents/pages_icons/Dashboard"
+import Charities from "../../common/IconComponents/pages_icons/Charities"
+import Profile from "../../common/IconComponents/pages_icons/Profile"
+import AccessControl from "../../common/IconComponents/pages_icons/AccessControl"
 
 export type PageType = 'menu' | 'admin'
 
