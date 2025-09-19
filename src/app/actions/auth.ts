@@ -3,7 +3,6 @@ import { parse as parseSetCookie } from 'set-cookie-parser'
 import { AUTH_COOKIE_LABEL, FormState, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema } from '../lib/definitions'
 import { clearAuthCookies, getCookies, setJwtCookie } from '../lib/cookies'
 import { redirect } from 'next/navigation'
-import { _post } from '../lib/methods'
 
 const setCookiesFn = async (res: Response) => {
     const setCookies = res.headers.getSetCookie?.() // Node 18+ fetch polyfills may support this
@@ -53,8 +52,10 @@ export async function signIn(
 
         await setCookiesFn(res)
     } catch (e) {
+        console.error(e)
         return { message: 'Server unreachable. Try again.' }
     }
+    console.info(state)
     redirect('/')
 }
 export async function signOut() {
@@ -80,6 +81,5 @@ export async function signOut() {
         // Always clear local Next.js cookies so UI/auth state resets deterministically
         await clearAuthCookies()
     }
-
     redirect('/')
 }

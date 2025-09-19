@@ -1,5 +1,4 @@
 'use server'
-import { redirect } from "next/navigation";
 import { ResponseType } from "../lib/definitions";
 import { _get } from "../lib/methods";
 

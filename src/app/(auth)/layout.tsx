@@ -1,4 +1,3 @@
-import { ImageComponent } from '@/components/common/ImageComponent';
 import React from 'react'
 
 export default function AuthScreensLayout({

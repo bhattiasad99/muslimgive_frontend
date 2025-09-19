@@ -1,12 +1,16 @@
-import LinkComponent from '@/components/common/LinkComponent'
 import { TextFieldComponent } from '@/components/common/TextFieldComponent'
 import { Button } from '@/components/ui/button'
 import AuthScreenLayoutComponent from '@/components/use-case/AuthScreenLayoutComponent'
 import React from 'react'
 
+const resetPassAction = async () => {
+
+}
+
 const ResetPassword = () => {
     return (
         <AuthScreenLayoutComponent
+            action={resetPassAction}
             heading='Reset Password'
             subHeading='Please enter new password'
         >

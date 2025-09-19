@@ -1,4 +1,3 @@
-import Dashboard from "../../common/IconComponents/pages_icons/Dashboard"
 import Charities from "../../common/IconComponents/pages_icons/Charities"
 import Profile from "../../common/IconComponents/pages_icons/Profile"
 import AccessControl from "../../common/IconComponents/pages_icons/AccessControl"

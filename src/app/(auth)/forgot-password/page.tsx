@@ -4,9 +4,15 @@ import { Button } from '@/components/ui/button'
 import AuthScreenLayoutComponent from '@/components/use-case/AuthScreenLayoutComponent'
 import React from 'react'
 
+const forgetPasswordAction = async () => {
+    'use server'
+
+}
+
 const ForgotPassword = () => {
     return (
         <AuthScreenLayoutComponent
+            action={forgetPasswordAction}
             heading='Forgot Your Password?'
             subHeading='Please enter email to recover Password'
         >
