@@ -4,7 +4,7 @@ import AuthScreenLayoutComponent from '@/components/use-case/AuthScreenLayoutCom
 import React from 'react'
 
 const resetPassAction = async () => {
-
+    'use server'
 }
 
 const ResetPassword = () => {
