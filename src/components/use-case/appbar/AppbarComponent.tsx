@@ -16,9 +16,9 @@ const AppbarComponent = () => {
             <TypographyComponent variant='h1' className='w-full'>
                 {pageTitle}
             </TypographyComponent>
-            <div className="flex gap-1 items-center">
+            <div className="flex gap-2 items-center">
                 <NotificationNavbar />
-                <div className="rounded-full bg-gray-600 w-[35px] h-[35px] text-white flex justify-center items-center">MG</div>
+                <div className="rounded-full bg-gray-300 w-[35px] text-xs  h-[35px] text-gray-600 flex justify-center items-center">MG</div>
             </div>
         </div>
     )

@@ -63,7 +63,6 @@ export const SidebarGroupComponent: FC<SidebarGroupProps> = ({ label, options })
                         )
                     }
                     if (item.action.type === 'url') {
-                        console.log({ test: item })
                         return (
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton variant={"default"} asChild>

@@ -38,6 +38,7 @@
   --sidebar-border: oklch(0.9276 0.0058 264.5313);
   --sidebar-ring: oklch(0.5482 0.1723 258.3244);
   --font-sans: Lato, ui-sans-serif, sans-serif, system-ui;
+  --font-code: Kanit, ui-sans-serif, sans-serif, system-ui;
   --font-serif: Source Serif 4, serif;
   --font-mono: JetBrains Mono, monospace;
   --radius: 0.375rem;
@@ -93,6 +94,7 @@
   --sidebar-border: oklch(0.3715 0 0);
   --sidebar-ring: oklch(0.7686 0.1647 70.0804);
   --font-sans: Lato, ui-sans-serif, sans-serif, system-ui;
+  --font-code: Kanit, ui-sans-serif, sans-serif, system-ui;
   --font-serif: Source Serif 4, serif;
   --font-mono: JetBrains Mono, monospace;
   --radius: 0.375rem;

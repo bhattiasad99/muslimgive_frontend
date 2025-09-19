@@ -11,7 +11,7 @@ export const TypographyComponent: FC<IProps> = ({ variant = 'body1', children, c
     const commonClassNames = ''
     const classes = {
         h1: clsx('text-2xl font-semibold', commonClassNames, className),
-        h2: clsx('text-3xl font-semibold', commonClassNames, className),
+        h2: clsx('text-xl font-semibold', commonClassNames, className),
         h3: clsx('text-2xl font-semibold', commonClassNames, className),
         h4: clsx('text-[20px] font-semibold', commonClassNames, className),
         h5: clsx('text-lg font-semibold', commonClassNames, className),
