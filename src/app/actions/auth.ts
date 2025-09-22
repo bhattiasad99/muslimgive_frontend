@@ -5,21 +5,24 @@ import { clearAuthCookies, getCookies, setJwtCookie } from '../lib/cookies'
 import { redirect } from 'next/navigation'
 
 const setCookiesFn = async (res: Response) => {
-    const setCookies = res.headers.getSetCookie?.() // Node 18+ fetch polyfills may support this
-    // If not available, keep using axios ONLY to read raw set-cookie headers.
-
+    const setCookies = res.headers.getSetCookie?.()
     const parsed = parseSetCookie(setCookies, { map: true })
-
     const access = parsed['Authentication']?.value ?? parsed['accessToken']?.value
     const refresh = parsed['Refresh']?.value ?? parsed['refreshToken']?.value
-
-    if (!access || !refresh) {
-        console.log('ERR::Expected auth cookies not present', parsed)
-        return { message: 'Internal Server Error, contact admin' }
-    }
-
+    if (!access || !refresh) return { message: 'Internal Server Error, contact admin' }
     await setJwtCookie(AUTH_COOKIE_LABEL, access)
     await setJwtCookie(REFRESH_COOKIE_LABEL, refresh)
+}
+
+// tiny guard to avoid open redirect
+function safeInternalRedirect(dest: unknown, fallback = '/') {
+    if (typeof dest !== 'string') return fallback
+    try {
+        // allow only same-origin relative paths
+        return dest.startsWith('/') && !dest.startsWith('//') ? dest : fallback
+    } catch {
+        return fallback
+    }
 }
 
 export async function signIn(
@@ -34,6 +37,7 @@ export async function signIn(
         return { errors: parsed.error.flatten().fieldErrors }
     }
 
+    const continueTo = formData.get('continue')
     const { email, password } = parsed.data;
 
     try {
@@ -55,31 +59,28 @@ export async function signIn(
         console.error(e)
         return { message: 'Server unreachable. Try again.' }
     }
-    console.info(state)
-    redirect('/')
+
+    // redirect to intended destination (safe)
+    redirect(safeInternalRedirect(continueTo, '/'))
 }
-export async function signOut() {
+
+export async function signOut(): Promise<{ ok: boolean; redirectTo: string }> {
     const { accessToken } = await getCookies()
 
     try {
-        // Call your NestJS logout to revoke the server-side session.
-        // Use absolute URL + proper scheme + Authorization header.
         await fetch(new URL('auth/logout', serverUrl).toString(), {
             method: 'POST',
             headers: {
                 ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
                 Accept: 'application/json',
             },
-            // If your Nest side uses its own httpOnly cookies (same domain),
-            // include credentials. For cross-site, ensure CORS + credentials set up.
             credentials: 'include',
             cache: 'no-store',
-        }).catch(() => {
-            // swallow network errors; we still clear local cookies in finally
-        })
+        }).catch(() => { }) // swallow network issues; we still clear local cookies
     } finally {
-        // Always clear local Next.js cookies so UI/auth state resets deterministically
         await clearAuthCookies()
     }
-    redirect('/')
+
+    // don't call redirect() here in dev
+    return { ok: true, redirectTo: '/login' }
 }

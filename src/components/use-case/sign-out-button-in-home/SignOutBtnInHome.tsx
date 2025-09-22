@@ -12,7 +12,9 @@ const SignOutBtnInHome: FC<IProps> = ({ children }) => {
     return (
         <Button loading={pending} variant={"outline"} onClick={() => {
             // sign out
-            start(() => signOut())
+            start(() => {
+                signOut()
+            })
         }}> {children}</Button >
     )
 }

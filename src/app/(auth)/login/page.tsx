@@ -1,100 +1,15 @@
-'use client'
-import { signIn } from '@/app/actions/auth'
-import { FormState } from '@/app/lib/definitions'
-import LinkComponent from '@/components/common/LinkComponent'
-import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
-import { Button } from '@/components/ui/button'
-import AuthScreenLayoutComponent from '@/components/use-case/AuthScreenLayoutComponent'
-import React, { useActionState, useState, useEffect } from 'react'
+// optional: ensure this page never gets statically prerendered
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-const Login = () => {
-    const [state, action, pending] = useActionState(signIn, {} as FormState);
+import LoginPageComponent from '@/components/use-case/LoginPageComponent';
 
-    // local form state
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+type Search = { continue?: string };
 
-    const isDisabled = !email || !password;
-
-    const [showErrors, setShowErrors] = useState(false);
-
-    useEffect(() => {
-        if (!!state?.errors || !!state?.message) {
-            setShowErrors(true);
-        } else {
-            setShowErrors(false);
-        }
-
-    }, [state])
-    return (
-        <AuthScreenLayoutComponent
-            action={action}
-            heading="Log in to your account"
-            subHeading="Welcome back! Please enter your details"
-        >
-            <div className="flex flex-col gap-1  w-full">
-                <ControlledTextFieldComponent
-                    type="email"
-                    id="login__email"
-                    name="login__email"
-                    label="Email"
-                    placeholder="Enter Your Email"
-                    value={email}
-                    onChange={(e) => {
-                        setEmail(e.target.value)
-                        setShowErrors(false)
-                    }}
-                />
-                {showErrors ? state?.errors?.email && <p className='text-red-500 text-xs text-left w-full'>{state.errors.email}</p> : null}
-            </div>
-            <div className="flex flex-col gap-1  w-full">
-                <ControlledTextFieldComponent
-                    type="password"
-                    id="login__password"
-                    name="login__password"
-                    label="Password"
-                    placeholder="Enter Your Password"
-                    value={password}
-                    onChange={(e) => {
-                        setPassword(e.target.value)
-                        setShowErrors(false)
-                    }}
-                />
-                {showErrors ? state?.errors?.password && <p className='text-red-500 text-xs text-left w-full'>{state.errors.password}</p> : null}
-                {/* {showErrors ? state?.errors?.password && (
-                    <div className='text-red-500 text-xs text-left w-full'>
-                        <p>Password must:</p>
-                        <ul>
-                            {state.errors.password.map((error) => (
-                                <li key={error}>- {error}</li>
-                            ))}
-                        </ul>
-                    </div>
-                ) : null} */}
-            </div>
-
-            <LinkComponent
-                to="forgot-password"
-                className="text-xs w-full text-left underline"
-            >
-                Forgot Password?
-            </LinkComponent>
-            {showErrors && state?.message && (
-                <div className="w-full text-sm text-red-600 border border-red-200 bg-red-50 rounded p-2">
-                    {state.message}
-                </div>
-            )}
-            <Button
-                className="w-full"
-                variant={'primary'}
-                type="submit"
-                disabled={isDisabled || pending} // disable if empty OR during submission
-                loading={pending}
-            >
-                Login
-            </Button>
-        </AuthScreenLayoutComponent>
-    )
+export default function Page({ searchParams }: { searchParams: Search }) {
+    const cont = typeof searchParams.continue === 'string' ? searchParams.continue : '/';
+    // small open-redirect hardening: allow only internal paths
+    const safe = cont.startsWith('/') && !cont.startsWith('//') ? cont : '/';
+    return <LoginPageComponent continueTo={safe} />;
 }
 
-export default Login;
