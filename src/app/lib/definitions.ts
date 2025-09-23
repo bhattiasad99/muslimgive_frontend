@@ -11,9 +11,21 @@ export const SignInFormSchema = z.object({
 export type ResponseType<K = any> = {
     ok: boolean;
     unauthenticated: boolean;
-    payload: K;
+    payload: ApiResponse<K>;
     message?: string
 }
+
+export type ApiResponse<T> = {
+    appName: string;
+    path: string;
+    statusCode: number;
+    data: T;
+    apiVersion: string;
+    message: string;
+    error: string | null;
+    userId: string | null;
+};
+
 
 export type FormState =
     | {
@@ -29,3 +41,7 @@ export const serverUrl = process.env.SERVER!
 
 export const AUTH_COOKIE_LABEL = 'Authentication';
 export const REFRESH_COOKIE_LABEL = 'Refresh'
+export const IS_ADMIN_COOKIE_LABEL = 'IsAdmin'
+
+export const AUTH_ROUTES = ["/charities", "/my-profile", "/users", "/access-control"];
+export const ADMIN_ROUTES = ["/users", "/access-control"];

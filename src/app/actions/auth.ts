@@ -1,10 +1,10 @@
 'use server'
 import { parse as parseSetCookie } from 'set-cookie-parser'
-import { AUTH_COOKIE_LABEL, FormState, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema } from '../lib/definitions'
+import { AUTH_COOKIE_LABEL, FormState, IS_ADMIN_COOKIE_LABEL, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema } from '../lib/definitions'
 import { clearAuthCookies, getCookies, setJwtCookie } from '../lib/cookies'
 import { redirect } from 'next/navigation'
 
-const setCookiesFn = async (res: Response) => {
+const setCookiesFn = async (res: Response, data?: any) => {
     const setCookies = res.headers.getSetCookie?.()
     const parsed = parseSetCookie(setCookies, { map: true })
     const access = parsed['Authentication']?.value ?? parsed['accessToken']?.value
@@ -54,7 +54,7 @@ export async function signIn(
             return { message: msg }
         }
 
-        await setCookiesFn(res)
+        await setCookiesFn(res, data)
     } catch (e) {
         console.error(e)
         return { message: 'Server unreachable. Try again.' }

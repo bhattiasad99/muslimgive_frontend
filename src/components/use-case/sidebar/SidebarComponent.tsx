@@ -3,13 +3,25 @@ import { Item, SidebarGroupComponent } from "./SidebarGroupComponent";
 import { PAGES, PageType } from "./pages";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar";
+import { getCookies } from "@/app/lib/cookies";
+import { jwtDecode } from "jwt-decode";
+import { redirect } from "next/navigation";
+import { signOut } from "@/app/actions/auth";
 
 type MenuItemType = {
     title: string,
     items: Item[]
 }
 
-const SideBarComponent = () => {
+
+const SideBarComponent = async () => {
+    const { accessToken } = await getCookies();
+    if (!accessToken) {
+        await signOut()
+        redirect('/login')
+    }
+    const decoded: any = jwtDecode(accessToken); // decode only, no verify here
+    const isAdmin = decoded?.isAdmin ?? false;
     const buildPages = (name: PageType) => PAGES.filter(eachPage => eachPage.type === name).map(page => ({
         name: page.name,
         title: page.heading,
@@ -21,15 +33,20 @@ const SideBarComponent = () => {
     }));
     const menu: MenuItemType[] = [
         {
-            title: 'Menu',
-            items: buildPages('menu')
+            title: "Menu",
+            items: buildPages("menu"),
         },
-        {
-            title: 'Admin',
-            items: buildPages('admin')
-        },
+        // only push Admin menu if admin
+        ...(isAdmin
+            ? [
+                {
+                    title: "Admin",
+                    items: buildPages("admin"),
+                },
+            ]
+            : []),
+    ];
 
-    ]
     return (
         <SidebarProvider>
             <Sidebar>

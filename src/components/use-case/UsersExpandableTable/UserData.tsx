@@ -28,7 +28,7 @@ const UserData: FC<IProps> = ({
     return (
         <div className='p-4 flex gap-5'>
             <div className="min-w-[342px] flex flex-col gap-4">
-                <AvatarComponent fallback={`${firstName[0]}${lastName[0]}`} />
+                <AvatarComponent fallback={`${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`} />
                 <span className='text-2xl font-semibold'>{capitalizeWords(firstName)} {capitalizeWords(lastName)}</span>
                 <span className='text-[#666E76] '>{email}</span>
                 <div className="flex gap-4 items-center">
@@ -92,9 +92,11 @@ const UserData: FC<IProps> = ({
                         <div className="flex flex-col gap-2">
                             <div className="text-xs font-normal text-[#666E76]">Roles</div>
                             <div className="flex gap-2">
-                                {roles.map(eachRole => <p key={eachRole} className={cn("min-w-[50px] text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
-                                    {capitalizeWords(eachRole)}
-                                </p>)}
+                                {roles.length === 0 ? <>No Role Assigned</> : <>
+                                    {roles.map(eachRole => <p key={eachRole} className={cn("min-w-[50px] text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
+                                        {capitalizeWords(eachRole)}
+                                    </p>)}
+                                </>}
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">

@@ -1,24 +1,78 @@
+// middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { baseEndPoint } from "./app/actions/general";
+import { jwtDecode } from "jwt-decode";
+import { ADMIN_ROUTES, AUTH_COOKIE_LABEL, AUTH_ROUTES } from "./app/lib/definitions";
+
+
+
+// tiny helper to preserve the intended dest
+function makeLoginUrl(req: NextRequest) {
+    const url = new URL("/login", req.url);
+    const dest = req.nextUrl.pathname + req.nextUrl.search;
+    url.searchParams.set("continue", dest);
+    return url;
+}
 
 export default async function middleware(req: NextRequest) {
-    // only guard /charities/*; your matcher handles scope
-    const { ok, unauthenticated } = await baseEndPoint();
+    const { pathname } = req.nextUrl;
+    const needsAuth = AUTH_ROUTES.some((p) => pathname.startsWith(p));
+    const needsAdmin = ADMIN_ROUTES.some((p) => pathname.startsWith(p));
 
-    if (unauthenticated || !ok) {
-        const loginUrl = new URL("/login", req.url);
+    if (!needsAuth) return NextResponse.next();
 
-        // preserve full path + query
-        const dest = req.nextUrl.pathname + req.nextUrl.search;
-        loginUrl.searchParams.set("continue", dest);
+    const token = req.cookies.get(`${AUTH_COOKIE_LABEL}`)?.value;
+    if (!token) {
+        // unauthenticated → go to login with ?continue=
+        return NextResponse.redirect(makeLoginUrl(req));
+    }
 
-        return NextResponse.redirect(loginUrl);
+    if (needsAdmin) {
+        try {
+            const decoded: any = jwtDecode(token); // decode only, no verify here
+            if (!decoded?.isAdmin) {
+                // logged-in but not admin → unauthorized
+                return NextResponse.redirect(new URL("/unauthorized", req.url));
+            }
+        } catch {
+            // bad/expired token → treat like unauthenticated
+            return NextResponse.redirect(makeLoginUrl(req));
+        }
     }
 
     return NextResponse.next();
 }
 
-// apply only to /charities and its children
+// Scope the middleware to only the paths we actually guard
 export const config = {
-    matcher: ["/charities/:path*", "/access-control/:path*", "/charities/:path*", '/profile/:path*', "/users/:path*"],
+    matcher: [
+        "/charities/:path*",
+        "/my-profile/:path*",
+        "/users/:path*",
+        "/access-control/:path*",
+    ],
 };
+
+// import { NextRequest, NextResponse } from "next/server";
+// import { baseEndPoint } from "./app/actions/general";
+
+// export default async function middleware(req: NextRequest) {
+//     // only guard /charities/*; your matcher handles scope
+//     const { ok, unauthenticated } = await baseEndPoint();
+
+//     if (unauthenticated || !ok) {
+//         const loginUrl = new URL("/login", req.url);
+
+//         // preserve full path + query
+//         const dest = req.nextUrl.pathname + req.nextUrl.search;
+//         loginUrl.searchParams.set("continue", dest);
+
+//         return NextResponse.redirect(loginUrl);
+//     }
+
+//     return NextResponse.next();
+// }
+
+// // apply only to /charities and its children
+// export const config = {
+//     matcher: ["/charities/:path*", "/access-control/:path*", "/charities/:path*", '/profile/:path*', "/users/:path*"],
+// };

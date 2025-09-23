@@ -5,16 +5,20 @@ import { cookies } from "next/headers"
 import { AUTH_COOKIE_LABEL, REFRESH_COOKIE_LABEL } from "./definitions";
 
 export const setJwtCookie = async (label: string, value: string) => {
-    const jar = await cookies();
+    try {
+        const jar = await cookies();
 
-    jar.set({
-        name: label,
-        value: value,
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        expires: new Date(jwtDecode(value).exp! * 1000),
-        sameSite: 'lax'
-    })
+        jar.set({
+            name: label,
+            value: value,
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+            expires: new Date(jwtDecode(value).exp! * 1000),
+            sameSite: 'lax'
+        })
+    } catch (err: any) {
+        throw new Error(err?.message as string)
+    }
 }
 
 export const getCookies = async () => {

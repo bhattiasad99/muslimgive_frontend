@@ -1,4 +1,7 @@
-export function capitalizeWords(input: string): string {
+export function capitalizeWords(input: string | undefined): string {
+    if (!input) {
+        return ''
+    }
     return input
         .split(" ")
         .map(
