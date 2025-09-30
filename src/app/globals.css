@@ -7,6 +7,7 @@
 :root {
   --background: oklch(97.614% 0.00011 271.152);
   --foreground: oklch(0.2433 0.0409 252.4173);
+  --foreground-light: oklch(0.5342 0.0159 248.13);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2433 0.0409 252.4173);
   --popover: oklch(1 0 0);
@@ -63,6 +64,7 @@
 .dark {
   --background: oklch(0.2046 0 0);
   --foreground: oklch(0.9219 0 0);
+  
   --card: oklch(0.2686 0 0);
   --card-foreground: oklch(0.9219 0 0);
   --popover: oklch(0.2686 0 0);
@@ -117,6 +119,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-foreground-light: var(--foreground-light)
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -190,3 +193,30 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.scrollbar-sleek::-webkit-scrollbar {
+  width: 2px;
+  transition: all 0.2s ease-in;
+}
+
+/* Track */
+.scrollbar-sleek::-webkit-scrollbar-track {
+  background: transparent; 
+}
+ 
+/* Handle */
+.scrollbar-sleek::-webkit-scrollbar-thumb {
+  background: #cbcbcb; 
+  border-radius: 9999px;
+}
+
+/* Handle on hover */
+.scrollbar-sleek::-webkit-scrollbar-thumb:hover {
+  background: #999999; 
+}
+
+/* Firefox
+.scrollbar-sleek {
+  scrollbr-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+} */

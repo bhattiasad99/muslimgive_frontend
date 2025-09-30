@@ -13,6 +13,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Switch } from '@/components/ui/switch'
 import Fuse from 'fuse.js'
+import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 
 type PaginationType = {
     show: 10 | 20 | 30
@@ -146,7 +147,6 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
         () => filteredRows.slice(startIndex, endIndex),
         [filteredRows, startIndex, endIndex]
     )
-
     const goPrev = () =>
         setOpt((s) => ({ ...s, pageNumber: Math.max(1, s.pageNumber - 1) }))
 
@@ -251,24 +251,19 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                         </div>
                     </PopoverContent>
                 </Popover>
-
-                <TextFieldComponent
-                    className="w-full"
-                    placeholder="Search Users by Name"
-                    value={queryInput}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setQueryInput(e.target.value)
-                    }}
-                    icon={{ direction: 'left', component: <SearchIcon /> }}
+                <ControlledSearchBarComponent setQuery={(query: string) => {
+                    setQueryInput(query)
+                }}
+                    query={queryInput}
+                    placeholder='Search Users by Name'
                 />
+
             </div>
 
             <div className="flex flex-col gap-2">
-                <UsersExpandableTable rows={pageRows} />
-
+                <UsersExpandableTable rows={pageRows.filter(eachRow => eachRow.firstName !== "")} />
                 <div className="w-full flex justify-end items-center text-xs gap-2">
                     <span>Rows per page:</span>
-
                     <select
                         name="pagination-setting"
                         value={opt.show}

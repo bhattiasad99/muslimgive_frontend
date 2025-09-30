@@ -10,7 +10,7 @@ const DashboardLayoutComponent: FC<IProps> = ({ children }) => {
     return (
         <main className='bg-white min-h-screen flex'>
             <SideBarComponent />
-            <div className="flex flex-col gap-2 w-full">
+            <div className="flex flex-col gap-2 w-[calc(100%-16rem)]">
                 <AppbarComponent />
                 <div className="px-4">
                     {children}
