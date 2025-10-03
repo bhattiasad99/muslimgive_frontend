@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 import { ADMIN_ROUTES, AUTH_COOKIE_LABEL, AUTH_ROUTES } from "./app/lib/definitions";
 
-
-
 // tiny helper to preserve the intended dest
 function makeLoginUrl(req: NextRequest) {
     const url = new URL("/login", req.url);
