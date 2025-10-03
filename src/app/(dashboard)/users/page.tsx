@@ -8,7 +8,7 @@ const UsersPage = async () => {
     if (!ok) {
         return <div>{message}</div>
     }
-    const users = payload.data
+    const users = payload?.data || []
     return (
         <UsersPageComponent usersArr={users} />
     )

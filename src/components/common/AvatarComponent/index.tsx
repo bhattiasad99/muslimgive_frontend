@@ -5,7 +5,7 @@ import { User } from 'lucide-react'
 type IProps = {
     fallback: string,
     source?: string,
-    sizePx: number
+    sizePx?: number
 }
 
 const AvatarComponent: FC<IProps> = ({ fallback, source = null, sizePx = 148 }) => {

@@ -11,7 +11,7 @@ export const SignInFormSchema = z.object({
 export type ResponseType<K = any> = {
     ok: boolean;
     unauthenticated: boolean;
-    payload: ApiResponse<K>;
+    payload: ApiResponse<K> | null;
     message?: string
 }
 
