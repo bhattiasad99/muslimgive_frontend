@@ -1,22 +1,45 @@
 'use client'
-import React, { useActionState, useEffect, useState } from 'react'
+import React, { FC, useActionState, useEffect, useMemo, useState } from 'react'
 import AuthScreenLayoutComponent from '../AuthScreenLayoutComponent'
 import { SetPasswordFormState } from '@/app/lib/definitions';
 import { setPasswordAction } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent';
+import { useRouter } from 'next/navigation';
 
-const SetPasswordComponent = () => {
+type IProps = {
+    token: string
+}
+
+const SetPasswordComponent: FC<IProps> = ({ token }) => {
     const [state, action, pending] = useActionState(setPasswordAction, {} as SetPasswordFormState);
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const isDisabled = !password || !confirmPassword;
+    // compute disabled
+    const noErrors = Object.keys(state?.errors || {}).length === 0;
+    const isDisabled = useMemo(() => {
+        if (!noErrors) return true // lock UI after success
+        if (pending) return true
+        if (!password || !confirmPassword) return true
+        if (password !== confirmPassword) return true
+        return false
+    }, [noErrors, pending, password, confirmPassword])
     const [showErrors, setShowErrors] = useState(false);
 
     useEffect(() => {
         setShowErrors(!!state?.errors || !!state?.message);
     }, [state]);
+    const router = useRouter();
+    useEffect(() => {
+        if (noErrors && state?.message) {
+            setPassword('');
+            setConfirmPassword('');
+
+            const t = setTimeout(() => router.replace('/login'), 1200)
+            return () => clearTimeout(t)
+        }
+    }, [noErrors, state?.message]);
 
     return (
         <AuthScreenLayoutComponent
@@ -24,6 +47,7 @@ const SetPasswordComponent = () => {
             heading='Create Password'
             subHeading='Please enter new password'
         >
+            <input type="hidden" name="token" value={token} />
             <ControlledTextFieldComponent
                 name="set_password__password"
                 type="password"
@@ -47,7 +71,13 @@ const SetPasswordComponent = () => {
             {showErrors ? state?.errors?.confirmPassword && (
                 <p className='text-red-500 text-xs text-left w-full'>{state.errors.confirmPassword}</p>
             ) : null}
-            {showErrors && state?.message && (
+            {/* success banner */}
+            {noErrors && state?.message && (
+                <div className="w-full text-sm text-green-700 border border-green-200 bg-green-50 rounded p-2">
+                    {state.message}
+                </div>
+            )}
+            {!noErrors && showErrors && state?.message && (
                 <div className="w-full text-sm text-red-600 border border-red-200 bg-red-50 rounded p-2">
                     {state.message}
                 </div>

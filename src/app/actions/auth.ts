@@ -1,8 +1,9 @@
 'use server'
 import { parse as parseSetCookie } from 'set-cookie-parser'
-import { AUTH_COOKIE_LABEL, LoginFormState, IS_ADMIN_COOKIE_LABEL, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema } from '../lib/definitions'
+import { AUTH_COOKIE_LABEL, LoginFormState, IS_ADMIN_COOKIE_LABEL, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema, ResponseType } from '../lib/definitions'
 import { clearAuthCookies, getCookies, setJwtCookie } from '../lib/cookies'
 import { redirect } from 'next/navigation'
+import { _get, _patch } from '../lib/methods'
 
 const setCookiesFn = async (res: Response, data?: any) => {
     const setCookies = res.headers.getSetCookie?.()
@@ -89,6 +90,11 @@ export async function setPasswordAction(
     state: SetPasswordFormState,
     formData: FormData
 ): Promise<SetPasswordFormState> {
+    const tokenRaw = formData.get("token");
+    if (typeof tokenRaw !== "string" || !tokenRaw) {
+        return { message: "Missing or invalid token" };
+    }
+
     const parsed = SetPasswordFormSchema.safeParse({
         password: formData.get('set_password__password'),
         confirmPassword: formData.get('set_password__confirmPassword'),
@@ -102,4 +108,38 @@ export async function setPasswordAction(
     if (password !== confirmPassword) {
         return { errors: { confirmPassword: ['Passwords do not match'] } }
     }
+
+    try {
+        const url = new URL(`users/redeem/${encodeURIComponent(tokenRaw)}`, serverUrl).toString();
+        const res = await fetch(url, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+        });
+
+        const data = await res.json()
+
+        if (!res.ok || data?.error) {
+            const msg = res.status === 401 ? 'Invalid credentials' : 'Internal Server Error, Please contact Admin'
+            return { message: msg }
+        }
+
+        safeInternalRedirect('/login', '/login');
+        return {
+            message: 'Password set successfully. Redirecting to login...',
+        };
+
+    } catch (err) {
+        return { errors: {}, message: "Network or server error while setting password" };
+    }
+}
+
+export const verifyToken = async (token: string): Promise<ResponseType> => {
+    const profileRes = await _patch<null>(`password-token/verify/${token}`, null, false);
+    return profileRes;
+}
+
+export const redeemToken = async (token: string, password: string): Promise<ResponseType> => {
+    const profileRes = await _patch<null>(`password-token/redeem/${token}`, null, false);
+    return profileRes;
 }

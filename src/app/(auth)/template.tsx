@@ -1,7 +1,7 @@
 // app/(dashboard)/template.tsx
-import AuthSkeleton from '@/components/use-case/AuthSkeleton';
+import DashboardSkeleton from '@/components/use-case/DashboardSkeleton';
 import { Suspense } from 'react';
 
 export default function DashboardTemplate({ children }: { children: React.ReactNode }) {
-    return <Suspense fallback={<AuthSkeleton />}>{children}</Suspense>;
+    return <Suspense fallback={<DashboardSkeleton />}>{children}</Suspense>;
 }
