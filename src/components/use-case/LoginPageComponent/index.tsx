@@ -1,6 +1,6 @@
 'use client'
 import { signIn } from '@/app/actions/auth'
-import { FormState } from '@/app/lib/definitions'
+import { LoginFormState } from '@/app/lib/definitions'
 import LinkComponent from '@/components/common/LinkComponent'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import AuthScreenLayoutComponent from '@/components/use-case/AuthScreenLayoutCom
 import React, { useActionState, useEffect, useState } from 'react'
 
 export default function LoginPageComponent({ continueTo = '/' }: { continueTo?: string }) {
-    const [state, action, pending] = useActionState(signIn, {} as FormState);
+    const [state, action, pending] = useActionState(signIn, {} as LoginFormState);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

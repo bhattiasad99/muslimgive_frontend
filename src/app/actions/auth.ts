@@ -1,6 +1,6 @@
 'use server'
 import { parse as parseSetCookie } from 'set-cookie-parser'
-import { AUTH_COOKIE_LABEL, FormState, IS_ADMIN_COOKIE_LABEL, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema } from '../lib/definitions'
+import { AUTH_COOKIE_LABEL, LoginFormState, IS_ADMIN_COOKIE_LABEL, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema } from '../lib/definitions'
 import { clearAuthCookies, getCookies, setJwtCookie } from '../lib/cookies'
 import { redirect } from 'next/navigation'
 
@@ -26,9 +26,9 @@ function safeInternalRedirect(dest: unknown, fallback = '/') {
 }
 
 export async function signIn(
-    state: FormState,
+    state: LoginFormState,
     formData: FormData
-): Promise<FormState> {
+): Promise<LoginFormState> {
     const parsed = SignInFormSchema.safeParse({
         email: formData.get('login__email'),
         password: formData.get('login__password'),
@@ -83,4 +83,23 @@ export async function signOut(): Promise<{ ok: boolean; redirectTo: string }> {
 
     // don't call redirect() here in dev
     return { ok: true, redirectTo: '/login' }
+}
+
+export async function setPasswordAction(
+    state: SetPasswordFormState,
+    formData: FormData
+): Promise<SetPasswordFormState> {
+    const parsed = SetPasswordFormSchema.safeParse({
+        password: formData.get('set_password__password'),
+        confirmPassword: formData.get('set_password__confirmPassword'),
+    })
+    if (!parsed.success) {
+        return { errors: parsed.error.flatten().fieldErrors }
+    }
+
+    const { password, confirmPassword } = parsed.data;
+
+    if (password !== confirmPassword) {
+        return { errors: { confirmPassword: ['Passwords do not match'] } }
+    }
 }

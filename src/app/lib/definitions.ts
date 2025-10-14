@@ -8,6 +8,15 @@ export const SignInFormSchema = z.object({
         .trim(),
 })
 
+export const SetPasswordFormSchema = z.object({
+    password: z
+        .string("Password is required")
+        .trim(),
+    confirmPassword: z
+        .string("Confirm Password is required")
+        .trim(),
+})
+
 export type ResponseType<K = any> = {
     ok: boolean;
     unauthenticated: boolean;
@@ -27,11 +36,21 @@ export type ApiResponse<T> = {
 };
 
 
-export type FormState =
+export type LoginFormState =
     | {
         errors?: {
             email?: string[]
             password?: string[]
+        }
+        message?: string
+    }
+    | undefined
+
+export type SetPasswordFormState =
+    | {
+        errors?: {
+            password?: string[]
+            confirmPassword?: string[]
         }
         message?: string
     }
