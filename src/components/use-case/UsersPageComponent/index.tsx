@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch'
 import Fuse from 'fuse.js'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
+import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 
 type PaginationType = {
     show: 10 | 20 | 30
@@ -169,13 +170,17 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
     const switchId = (label: string) =>
         `filter_switch__${label.toLowerCase().replace(/\s+/g, '_')}`
 
+    const [openNewUserModal, setOpenNewUserModal] = useState(false);
+
     return (
         <CardComponent>
             <div className="flex items-center">
                 <TypographyComponent variant="h2" className="w-full">
                     Manage Users
                 </TypographyComponent>
-                <Button variant="primary">
+                <Button variant="primary" onClick={() => {
+                    setOpenNewUserModal(true);
+                }}>
                     <span>
                         <AddUserIcon />
                     </span>
@@ -305,6 +310,9 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                     </span>
                 </div>
             </div>
+            <ModelComponentWithExternalControl open={openNewUserModal} onOpenChange={setOpenNewUserModal} title='Add New User'>
+                hello there
+            </ModelComponentWithExternalControl>
         </CardComponent>
     )
 }
