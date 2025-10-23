@@ -4,8 +4,6 @@ import CardComponent from '@/components/common/CardComponent'
 import UsersExpandableTable, { Data } from '@/components/use-case/UsersExpandableTable'
 import AddUserIcon from '@/components/common/IconComponents/AddUserIcon'
 import FilterIcon from '@/components/common/IconComponents/FilterIcon'
-import SearchIcon from '@/components/common/IconComponents/SearchIcon'
-import { TextFieldComponent } from '@/components/common/TextFieldComponent'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { Button } from '@/components/ui/button'
 import React, { FC, useEffect, useMemo, useState } from 'react'
@@ -15,6 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import Fuse from 'fuse.js'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
+import AddUserModel from './AddUserModel'
 
 type PaginationType = {
     show: 10 | 20 | 30
@@ -310,8 +309,8 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                     </span>
                 </div>
             </div>
-            <ModelComponentWithExternalControl open={openNewUserModal} onOpenChange={setOpenNewUserModal} title='Add New User'>
-                hello there
+            <ModelComponentWithExternalControl dialogContentClassName='md:!w-[50vw] md:!max-w-[50vw] w-[90vw] max-w-[90vw]' open={openNewUserModal} onOpenChange={setOpenNewUserModal} title='Add new MG Member'>
+                <AddUserModel />
             </ModelComponentWithExternalControl>
         </CardComponent>
     )

@@ -22,7 +22,7 @@ const SideBarComponent = async () => {
     }
     const decoded: any = jwtDecode(accessToken); // decode only, no verify here
     const isAdmin = decoded?.isAdmin ?? false;
-    const buildPages = (name: PageType) => PAGES.filter(eachPage => eachPage.type === name).map(page => ({
+    const buildPages = (name: PageType) => PAGES.filter(eachPage => eachPage.show).filter(eachPage => eachPage.type === name).map(page => ({
         name: page.name,
         title: page.heading,
         action: {

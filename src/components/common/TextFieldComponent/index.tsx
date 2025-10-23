@@ -10,7 +10,7 @@ type Icon = {
     component: React.ReactNode;
 };
 
-type IProps = React.InputHTMLAttributes<HTMLInputElement> & {
+export type IProps = React.InputHTMLAttributes<HTMLInputElement> & {
     label?: string;
     id?: string;
     icon?: Icon;

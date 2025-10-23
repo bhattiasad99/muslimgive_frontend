@@ -9,9 +9,9 @@ export type Page = {
     heading: string,
     icon: React.ReactNode,
     name: string,
-    type: PageType
+    type: PageType,
+    show: boolean
 }
-
 
 export const selectPageByName = (name: string): Page | undefined => {
     return PAGES.find((page) => page.name === name);
@@ -23,27 +23,39 @@ export const PAGES: Page[] = [
         path: "/charities",
         heading: 'Charities',
         icon: <Charities />,
-        type: 'menu'
+        type: 'menu',
+        show: true
+    },
+    {
+        name: 'charities',
+        path: "/charities",
+        heading: 'Charities',
+        icon: <Charities />,
+        type: 'menu',
+        show: true
     },
     {
         name: 'profile',
         path: "/profile",
         heading: 'My Profile',
         icon: <Profile />,
-        type: 'menu'
+        type: 'menu',
+        show: true
     },
     {
         name: 'users',
         path: "/users",
         heading: 'Users',
         icon: <Profile />,
-        type: 'admin'
+        type: 'admin',
+        show: true
     },
     {
         name: 'access-control',
         path: "/access-control",
         heading: 'Access Control',
         icon: <AccessControl />,
-        type: 'admin'
+        type: 'admin',
+        show: true
     },
 ]

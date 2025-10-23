@@ -1,6 +1,6 @@
-import DashboardSkeleton from "@/components/use-case/DashboardSkeleton";
+import AuthSkeleton from "@/components/use-case/AuthSkeleton";
 
 export default function Loading() {
     // This renders in the content area while child segments fetch.
-    return <DashboardSkeleton />;
+    return <AuthSkeleton />;
 }

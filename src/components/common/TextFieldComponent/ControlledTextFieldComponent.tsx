@@ -12,7 +12,7 @@ type IProps = React.InputHTMLAttributes<HTMLInputElement> & {
     onBlur?: () => void;
 }
 
-export const ControlledTextFieldComponent: FC<IProps> = ({ type = "text", value, onChange, name, label, placeholder, id, onBlur }) => {
+export const ControlledTextFieldComponent: FC<IProps> = ({ type = "text", value, onChange, name, label, placeholder, id, onBlur, ...rest }) => {
     const getId = id ? id : randomUUID()
     return (
         <div className="flex flex-col w-full items-center gap-1">
@@ -21,7 +21,9 @@ export const ControlledTextFieldComponent: FC<IProps> = ({ type = "text", value,
                 if (onBlur) {
                     onBlur()
                 }
-            }} name={name} value={value} onChange={onChange} className="w-full border-[#dee1e4]" type={type} id={getId} placeholder={placeholder ?? ""} />
+            }} name={name} value={value} onChange={onChange} className="w-full " type={type} id={getId} placeholder={placeholder ?? ""}
+                {...rest}
+            />
         </div>
     )
 }
