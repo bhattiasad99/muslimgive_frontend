@@ -15,6 +15,8 @@ type Member = {
     profilePicture: string | null
 }
 
+export type StatusType = 'pending-eligibility' | 'unassigned' | 'open-to-review' | 'pending-admin-review' | 'approved' | 'ineligible'
+
 export type SingleCardType = {
     id: string
     charityTitle: string
@@ -23,7 +25,7 @@ export type SingleCardType = {
     members: Member[]
     comments: number
     auditsCompleted: 0 | 1 | 2 | 3 | 4
-    status: string
+    status: StatusType
 }
 
 type IProps = {
@@ -33,14 +35,14 @@ type IProps = {
 const KanbanView: FC<IProps> = ({ charities }) => {
     const COLS: KanbanColType[] = [
         {
-            color: '#F25CD4',
-            title: 'Unassigned',
-            id: 'unassigned',
-        },
-        {
             color: '#F25F5C',
             title: 'Pending Eligibility Review',
             id: 'pending-eligibility',
+        },
+        {
+            color: '#F25CD4',
+            title: 'Unassigned',
+            id: 'unassigned',
         },
         {
             color: '#5CD9F2',
@@ -65,21 +67,24 @@ const KanbanView: FC<IProps> = ({ charities }) => {
     ]
 
     return (
-        <KanbanEffect>
-            {COLS.map(eachCol => {
-                const charitiesAgainstStatus = [...charities.filter(eachCharity => {
-                    return eachCharity.status === eachCol.id
-                })];
-                return (
-                    <KanbanColumn
-                        key={eachCol.id}
-                        color={eachCol.color}
-                        title={eachCol.title}
-                        cards={charitiesAgainstStatus}
-                    />
-                )
-            })}
-        </KanbanEffect>
+        <div className="max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-sleek">
+            <KanbanEffect>
+                {COLS.map(eachCol => {
+                    const charitiesAgainstStatus = [...charities.filter(eachCharity => {
+                        return eachCharity.status === eachCol.id
+                    })];
+                    return (
+                        <KanbanColumn
+                            key={eachCol.id}
+                            color={eachCol.color}
+                            title={eachCol.title}
+                            cards={charitiesAgainstStatus}
+                        />
+                    )
+                })}
+            </KanbanEffect>
+        </div>
+
     )
 }
 

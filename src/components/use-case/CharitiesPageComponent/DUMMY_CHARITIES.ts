@@ -36,7 +36,7 @@ export const DUMMY_CHARITIES: SingleCardType[] = [
         ],
         "comments": 1,
         "auditsCompleted": 0,
-        "status": "pending-eligibility"
+        "status": "unassigned"
     },
     {
         "id": "c3",

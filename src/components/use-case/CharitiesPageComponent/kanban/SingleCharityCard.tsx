@@ -10,8 +10,11 @@ import OpenInNewTab from '@/components/common/IconComponents/OpenInNewTab'
 import CardChatIcon from '@/components/common/IconComponents/CardChatIcon'
 import DocumentIcon from '@/components/common/IconComponents/DocumentIcon'
 import AvatarGroupComponent from '@/components/common/AvatarGroupComponent'
+import { Button } from '@/components/ui/button'
+import AssignUserIcon from '@/components/common/IconComponents/AssignUserIcon'
+import LightButtonComponent from '@/components/common/LightButtonComponent'
 
-type IProps = Omit<SingleCardType, 'status'>
+type IProps = SingleCardType
 
 const SingleCharityCard: FC<IProps> = ({
     auditsCompleted,
@@ -20,12 +23,14 @@ const SingleCharityCard: FC<IProps> = ({
     charityTitle,
     comments,
     id,
-    members
+    members,
+    status
 }) => {
     const truncatedDesc =
         charityDesc.length > 100
             ? charityDesc.slice(0, 100) + '...'
             : charityDesc
+    console.log({ status })
     return (
         <Card className='p-4 flex flex-col gap-2 shadow-none bg-white'>
             <div className="flex flex-col gap-1 relative">
@@ -74,6 +79,7 @@ const SingleCharityCard: FC<IProps> = ({
                         <span><DocumentIcon /></span><span>{auditsCompleted}/4 Audits Completed</span>
                     </div>
                 </div>
+                {status === 'unassigned' ? <LightButtonComponent className='w-fit mt-2' icon={<AssignUserIcon />}>Assign Project Manager</LightButtonComponent> : null}
             </div>
         </Card>
     )

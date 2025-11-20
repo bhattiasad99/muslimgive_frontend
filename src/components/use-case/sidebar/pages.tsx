@@ -27,14 +27,6 @@ export const PAGES: Page[] = [
         show: true
     },
     {
-        name: 'charities',
-        path: "/charities",
-        heading: 'Charities',
-        icon: <Charities />,
-        type: 'menu',
-        show: true
-    },
-    {
         name: 'profile',
         path: "/profile",
         heading: 'My Profile',

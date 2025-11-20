@@ -13,7 +13,6 @@ type MenuItemType = {
     items: Item[]
 }
 
-
 const SideBarComponent = async () => {
     const { accessToken } = await getCookies();
     if (!accessToken) {
