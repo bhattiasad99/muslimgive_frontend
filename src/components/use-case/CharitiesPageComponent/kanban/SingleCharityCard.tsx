@@ -1,6 +1,6 @@
 'use client'
 import React, { FC } from 'react'
-import { SingleCardType } from './KanbanView'
+import { SingleCharityType } from './KanbanView'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { Card } from '@/components/ui/card'
 import IconDropdownMenuComponent from '@/components/common/IconDropdownMenuComponent'
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import AssignUserIcon from '@/components/common/IconComponents/AssignUserIcon'
 import LightButtonComponent from '@/components/common/LightButtonComponent'
 
-type IProps = SingleCardType
+type IProps = SingleCharityType
 
 const SingleCharityCard: FC<IProps> = ({
     auditsCompleted,
@@ -30,7 +30,6 @@ const SingleCharityCard: FC<IProps> = ({
         charityDesc.length > 100
             ? charityDesc.slice(0, 100) + '...'
             : charityDesc
-    console.log({ status })
     return (
         <Card className='p-4 flex flex-col gap-2 shadow-none bg-white'>
             <div className="flex flex-col gap-1 relative">

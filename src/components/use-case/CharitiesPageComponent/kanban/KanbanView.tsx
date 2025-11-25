@@ -6,7 +6,7 @@ export type KanbanColType = {
     color: string
     title: string
     id: string
-    cards?: SingleCardType[]
+    cards?: SingleCharityType[]
 }
 
 type Member = {
@@ -17,7 +17,7 @@ type Member = {
 
 export type StatusType = 'pending-eligibility' | 'unassigned' | 'open-to-review' | 'pending-admin-review' | 'approved' | 'ineligible'
 
-export type SingleCardType = {
+export type SingleCharityType = {
     id: string
     charityTitle: string
     charityOwnerName: string
@@ -29,7 +29,7 @@ export type SingleCardType = {
 }
 
 type IProps = {
-    charities: SingleCardType[]
+    charities: SingleCharityType[]
 }
 
 const KanbanView: FC<IProps> = ({ charities }) => {

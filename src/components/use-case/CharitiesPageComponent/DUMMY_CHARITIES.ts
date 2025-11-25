@@ -1,6 +1,6 @@
-import { SingleCardType } from "./kanban/KanbanView";
+import { SingleCharityType } from "./kanban/KanbanView";
 
-export const DUMMY_CHARITIES: SingleCardType[] = [
+export const DUMMY_CHARITIES: SingleCharityType[] = [
     {
         "id": "c1",
         "charityTitle": "Books For Change",

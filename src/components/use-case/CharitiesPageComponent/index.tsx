@@ -5,15 +5,18 @@ import { Button } from '@/components/ui/button'
 import React, { useEffect, useMemo, useState } from 'react'
 import KanbanTabularToggle, { ViewsType } from '../KanbanTabularToggle'
 import EmailIcon from '@/components/common/IconComponents/EmailIcon'
-import KanbanView, { SingleCardType } from './kanban/KanbanView'
+import KanbanView, { SingleCharityType } from './kanban/KanbanView'
 import TabularView from './tabular/TabularView'
 import { DUMMY_CHARITIES } from './DUMMY_CHARITIES'
 import Fuse from 'fuse.js'
+import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
+import BulkEmailModal from './BulkEmailModal'
 
 const CharitiesPageComponent = () => {
     const [queryInput, setQueryInput] = useState('')
     const [searchQuery, setSearchQuery] = useState('');
     const [view, setView] = useState<ViewsType>('kanban');
+    const [openBulkEmailModal, setOpenBulkEmailModal] = useState(false)
     const charities = DUMMY_CHARITIES
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -32,13 +35,13 @@ const CharitiesPageComponent = () => {
             keys: [
                 {
                     name: 'charityTitle',
-                    getFn: (u: SingleCardType) => `${u.charityTitle}`.trim(),
+                    getFn: (u: SingleCharityType) => `${u.charityTitle}`.trim(),
                 },
                 // You can add more fields if needed:
                 // 'email', 'location', 'postalCode'
                 {
                     name: 'charityOwnerName',
-                    getFn: (u: SingleCardType) => `${u.charityOwnerName}`.trim(),
+                    getFn: (u: SingleCharityType) => `${u.charityOwnerName}`.trim(),
                 }
             ],
         })
@@ -66,7 +69,7 @@ const CharitiesPageComponent = () => {
                     <Button size={"icon"} variant={"primary"}>
                         <AddIcon />
                     </Button>
-                    <Button variant={"primary"}>
+                    <Button variant={"primary"} onClick={() => setOpenBulkEmailModal(true)}>
                         <EmailIcon />
                         Send Bulk Email
                     </Button>
@@ -77,6 +80,19 @@ const CharitiesPageComponent = () => {
                 {view === "kanban" ? <KanbanView charities={searchedRows} /> : null}
                 {view === "tabular" ? <TabularView /> : null}
             </div>
+            <ModelComponentWithExternalControl
+                dialogContentClassName='max-w-[90vw] md:min-w-[800px] max-h-[90vh] overflow-y-auto'
+                open={openBulkEmailModal}
+                onOpenChange={setOpenBulkEmailModal}
+                title='Send Bulk Email'
+                description='Email will be sent to the charities visible in your current view.'
+            >
+                <BulkEmailModal
+                    charities={DUMMY_CHARITIES.map(({ members, charityDesc, ...rest }) => rest)}
+                    onClose={() => setOpenBulkEmailModal(false)}
+                    recipientsCount={searchedRows.length}
+                />
+            </ModelComponentWithExternalControl>
         </div>
     )
 }

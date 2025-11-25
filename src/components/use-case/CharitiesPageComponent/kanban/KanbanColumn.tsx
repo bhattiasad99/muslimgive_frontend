@@ -2,15 +2,14 @@
 import { Card } from '@/components/ui/card'
 import React, { FC } from 'react'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
-import { KanbanColType, SingleCardType } from './KanbanView'
+import { KanbanColType, SingleCharityType } from './KanbanView'
 import SingleCharityCard from './SingleCharityCard'
 
 type IProps = Omit<KanbanColType, 'id'> & {
-    cards: SingleCardType[]
+    cards: SingleCharityType[]
 }
 
 const KanbanColumn: FC<IProps> = ({ color, title, cards }) => {
-    console.log({ cards })
     return (
         <Card className='min-w-[328px] border border-[rgba(0,0,0,0.1)] bg-accent p-6 rounded-2xl flex flex-col gap-6 h-135'>
             <div className="flex gap-2 items-center">
