@@ -19,6 +19,7 @@ type DatePickerProps = {
     label?: string;
     placeholder?: string;
     disabled?: boolean;
+    disabledFutureDates?: boolean;
 
     // allow custom formatting and parsing for other locales or formats
     format?: (date: Date | undefined) => string;
@@ -46,12 +47,18 @@ const DatePicker: React.FC<DatePickerProps> = ({
     label,
     placeholder = "June 01, 2025",
     disabled,
+    disabledFutureDates = false,
     format = defaultFormat,
     parse = defaultParse,
 }) => {
     const [open, setOpen] = React.useState(false);
     const [month, setMonth] = React.useState<Date | undefined>(value);
     const [input, setInput] = React.useState<string>(format(value));
+    const latestAllowedDate = React.useMemo(() => {
+        const d = new Date();
+        d.setHours(23, 59, 59, 999);
+        return d;
+    }, []);
 
     // keep UI mirrors in sync when parent value changes
     React.useEffect(() => {
@@ -78,6 +85,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
                     setInput(text);
                     const parsed = parse(text);
                     if (parsed) {
+                        if (disabledFutureDates && parsed > latestAllowedDate) {
+                            return;
+                        }
                         onChange(parsed);
                         setMonth(parsed);
                     }
@@ -119,6 +129,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                         captionLayout="dropdown"
                         month={month}
                         onMonthChange={setMonth}
+                        disabled={disabledFutureDates ? { after: latestAllowedDate } : undefined}
                         onSelect={(d) => {
                             onChange(d);
                             setInput(format(d));

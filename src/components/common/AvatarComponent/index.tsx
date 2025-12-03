@@ -1,20 +1,22 @@
 import React, { FC } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 type IProps = {
     fallback: string,
     source?: string,
-    sizePx?: number
+    sizePx?: number,
+    className?: string,
 }
 
-const AvatarComponent: FC<IProps> = ({ fallback, source = null, sizePx = 148 }) => {
+const AvatarComponent: FC<IProps> = ({ fallback, source = null, sizePx = 148, className = '' }) => {
     const dim = {
         width: `${sizePx}px`,
         height: `${sizePx}px`,
     }
     return (
-        <Avatar style={dim} className='border border-gray-300'>
+        <Avatar style={dim} className={cn("rounded-full bg-gray-100", className)}>
             {source ? <><AvatarImage src={source ?? ''} />
                 <AvatarFallback>{fallback}</AvatarFallback></> : <AvatarFallback>
                 <User style={dim} color='#e9e9e9' />

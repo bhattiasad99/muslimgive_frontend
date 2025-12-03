@@ -16,7 +16,7 @@ type ModelComponentWithExternalControlProps = {
     title: string,
     description?: string,
     children: ReactNode,
-    dialogContentClassName?: string
+    dialogContentClassName?: string,
 }
 
 const ModelComponentWithExternalControl: FC<ModelComponentWithExternalControlProps> = ({ open, onOpenChange, title, description, children, dialogContentClassName }) => {

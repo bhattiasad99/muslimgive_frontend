@@ -12,6 +12,19 @@ export function capitalizeWords(input: string | undefined): string {
         .join(" ");
 }
 
+export function kebabToTitle(input: string): string {
+    const sep = String.fromCharCode(45) // hyphen
+    const tokens = input
+        .trim()
+        .split(new RegExp(`[${sep}_\\s]+`, "g"))
+        .filter(Boolean)
+
+    return tokens
+        .map(t => t.toLowerCase())
+        .map(t => t.charAt(0).toUpperCase() + t.slice(1))
+        .join(" ")
+}
+
 export function formatLabel(key: string): string {
     return key
         // insert space before capital letters

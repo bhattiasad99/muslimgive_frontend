@@ -7,7 +7,7 @@ import KanbanTabularToggle, { ViewsType } from '../KanbanTabularToggle'
 import EmailIcon from '@/components/common/IconComponents/EmailIcon'
 import KanbanView, { SingleCharityType } from './kanban/KanbanView'
 import TabularView from './tabular/TabularView'
-import { DUMMY_CHARITIES } from './DUMMY_CHARITIES'
+import { DUMMY_CHARITIES } from '@/DUMMY_CHARITIES'
 import Fuse from 'fuse.js'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import BulkEmailModal from './BulkEmailModal'
@@ -90,7 +90,6 @@ const CharitiesPageComponent = () => {
                 <BulkEmailModal
                     charities={DUMMY_CHARITIES.map(({ members, charityDesc, ...rest }) => rest)}
                     onClose={() => setOpenBulkEmailModal(false)}
-                    recipientsCount={searchedRows.length}
                 />
             </ModelComponentWithExternalControl>
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { kanit, lato } from "./fonts";
+import { Toaster } from "@/components/ui/sonner";
 
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
         className={`${lato.variable} ${kanit.variable} antialiased`}
       >
         {children}
+        <Toaster />
       </body>
     </html>
   );

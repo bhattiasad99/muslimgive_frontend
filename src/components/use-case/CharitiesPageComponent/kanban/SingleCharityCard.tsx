@@ -13,8 +13,12 @@ import AvatarGroupComponent from '@/components/common/AvatarGroupComponent'
 import { Button } from '@/components/ui/button'
 import AssignUserIcon from '@/components/common/IconComponents/AssignUserIcon'
 import LightButtonComponent from '@/components/common/LightButtonComponent'
+import { useRouter } from 'next/navigation'
+import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
+import { toast } from 'sonner'
+import AssignProjectManager from '../../SingleCharityPageComponent/models/AssignProjectManager'
 
-type IProps = SingleCharityType
+type IProps = Omit<SingleCharityType, 'category'>
 
 const SingleCharityCard: FC<IProps> = ({
     auditsCompleted,
@@ -26,6 +30,14 @@ const SingleCharityCard: FC<IProps> = ({
     members,
     status
 }) => {
+    const [assignPMModelOpen, setAssignPMModelOpen] = React.useState<null | string>(null)
+    const handleOpenModel = (modelName: string) => {
+        setAssignPMModelOpen(modelName)
+    }
+    const handleCloseModel = () => {
+        setAssignPMModelOpen(null)
+    }
+    const router = useRouter()
     const truncatedDesc =
         charityDesc.length > 100
             ? charityDesc.slice(0, 100) + '...'
@@ -43,7 +55,9 @@ const SingleCharityCard: FC<IProps> = ({
                         },
                         {
                             value: 'open-charity',
-                            label: <div className='flex gap-1 items-center'><OpenInNewTab /><span>Open Charity</span></div>
+                            label: <div onClick={() => {
+                                router.push(`/charities/${id}`)
+                            }} className='flex gap-1 items-center cursor-pointer'><OpenInNewTab /><span>Open Charity</span></div>
                         },
                     ]}
                 />
@@ -78,8 +92,39 @@ const SingleCharityCard: FC<IProps> = ({
                         <span><DocumentIcon /></span><span>{auditsCompleted}/4 Audits Completed</span>
                     </div>
                 </div>
-                {status === 'unassigned' ? <LightButtonComponent className='w-fit mt-2' icon={<AssignUserIcon />}>Assign Project Manager</LightButtonComponent> : null}
+                {status === 'unassigned' ? <LightButtonComponent onClick={() => handleOpenModel('assign-project-manager')} className='w-fit mt-2' icon={<AssignUserIcon />}>Assign Project Manager</LightButtonComponent> : null}
             </div>
+            <ModelComponentWithExternalControl title="Assign Project Manager"
+                onOpenChange={(choice: boolean) => {
+                    if (!choice) {
+                        handleCloseModel()
+                    } else {
+                        handleOpenModel('assign-project-manager')
+                    }
+                }}
+                open={!!assignPMModelOpen}
+            >
+                <AssignProjectManager onSelection={() => {
+                    toast.success('Project manager assigned successfully!', {
+                        duration: 2000,
+                        // actionButtonStyle: {
+                        //     backgroundColor: '#2563EB',
+                        //     color: '#FFFFFF',
+                        // },
+                        // action: {
+                        //     label: 'Go to Charities',
+                        //     onClick: () => {
+                        //         console.log("clicked")
+                        //     }
+                        // }
+                    });
+                    router.refresh();
+                    handleCloseModel();
+
+                }} onCancel={() => {
+                    handleCloseModel()
+                }} />
+            </ModelComponentWithExternalControl>
         </Card>
     )
 }

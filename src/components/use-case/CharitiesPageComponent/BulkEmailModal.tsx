@@ -1,69 +1,140 @@
 'use client'
 
-import React, { FC, useMemo, useState } from 'react'
-import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+import React, { FC, useMemo, useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { TableComponent } from '@/components/common/TableComponent'
 import { ColumnDef } from '@tanstack/react-table'
 import { SingleCharityType, StatusType } from './kanban/KanbanView'
-import { DUMMY_CHARITIES } from './DUMMY_CHARITIES'
+import { Checkbox } from '@/components/ui/checkbox'
+import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 
 export type CharityWithoutMembersAndDesc = Omit<SingleCharityType, 'members' | 'charityDesc'>
 
+type StatusTypeCompProps = {
+    status: StatusType
+}
+
+export const StatusTypeComp: FC<StatusTypeCompProps> = ({ status }) => {
+    const statusColors: Record<StatusType, string> = {
+        'pending-eligibility': 'bg-red-500 text-white font-normal',
+        'unassigned': 'bg-pink-400 text-white font-normal',
+        'open-to-review': 'bg-sky-400 text-white font-normal',
+        'pending-admin-review': 'bg-blue-600 text-white font-normal',
+        'approved': 'bg-green-400 text-white font-normal',
+        'ineligible': 'bg-gray-800 text-white font-normal',
+    }
+
+    return (
+        <div className="flex items-center justify-center">
+            <span
+                className={`px-2 inline-flex text-xs leading-5 rounded-full ${statusColors[status]}`}
+            >
+                {formatStatus(status)}
+            </span>
+        </div>
+    )
+}
+
 type BulkEmailModalProps = {
-    recipientsCount?: number
-    onClose?: () => void,
+    onClose?: () => void
     charities?: CharityWithoutMembersAndDesc[]
 }
 
 const formatStatus = (status: StatusType) => {
-    const separator = String.fromCharCode(45) // ascii for the dash in your status values
+    const separator = String.fromCharCode(45)
     return status
         .split(separator)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ')
 }
 
-export const cols: ColumnDef<CharityWithoutMembersAndDesc>[] = [
-    {
-        accessorKey: "charityTitle",
-        header: "Charity Name",
-        cell: ({ row }) => row.original.charityTitle,
-    },
-    {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-            const label = formatStatus(row.original.status)
-            return <span>{label}</span>
+const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) => {
+    const [queryInput, setQueryInput] = useState('')
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCharities, setSelectedCharities] = useState<string[]>([])
+
+    const allIds = useMemo(() => charities.map(c => c.id), [charities])
+    const allSelected = selectedCharities.length > 0 && selectedCharities.length === allIds.length
+    const partiallySelected = selectedCharities.length > 0 && !allSelected
+
+    useEffect(() => {
+        setSelectedCharities(prev => prev.filter(id => allIds.includes(id)))
+    }, [allIds])
+
+    const selectSingleCharity = (charityId: string, checked: boolean) => {
+        setSelectedCharities(prev => {
+            if (checked) {
+                if (prev.includes(charityId)) return prev
+                return [...prev, charityId]
+            }
+            return prev.filter(id => id !== charityId)
+        })
+    }
+
+    const cols: ColumnDef<CharityWithoutMembersAndDesc>[] = [
+        {
+            id: 'select',
+            header: () => (
+                <Checkbox
+                    checked={allSelected ? true : partiallySelected ? 'indeterminate' : false}
+                    onCheckedChange={checked => {
+                        if (checked) {
+                            setSelectedCharities(allIds)
+                        } else {
+                            setSelectedCharities([])
+                        }
+                    }}
+                />
+            ),
+            cell: ({ row }) => {
+                const charityId = row.original.id
+                const isChecked = selectedCharities.includes(charityId)
+                return (
+                    <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={checked => selectSingleCharity(charityId, Boolean(checked))}
+                    />
+                )
+            },
+            enableSorting: false,
+            enableColumnFilter: false,
         },
-    },
-    {
-        accessorKey: "charityOwnerName",
-        header: "Owner's Name",
-        cell: ({ row }) => row.original.charityOwnerName,
-    },
-    {
-        accessorKey: "auditsCompleted",
-        header: "Audit's Completed",
-        cell: ({ row }) => `${row.original.auditsCompleted}/4`,
-    },
-]
+        {
+            accessorKey: 'charityTitle',
+            header: 'Charity Name',
+            cell: ({ row }) => row.original.charityTitle,
+        },
+        {
+            accessorKey: 'status',
+            header: () => (
+                <div className='text-center'>Status</div>
+            ),
+            cell: ({ row }) => <StatusTypeComp status={row.original.status} />,
+        },
+        {
+            accessorKey: 'charityOwnerName',
+            header: () => {
+                return <div className="text-center">Owner's Name</div>
+            },
+            cell: ({ row }) => <div className="text-center">{row.original.charityOwnerName}</div>,
+        },
+        {
 
-
-const BulkEmailModal: FC<BulkEmailModalProps> = ({ recipientsCount = 0, onClose, charities = [] }) => {
-    const [subject, setSubject] = useState('')
-    const [message, setMessage] = useState('')
-    const [includeOwners, setIncludeOwners] = useState(true)
-    const [includeManagers, setIncludeManagers] = useState(true)
+            accessorKey: 'auditsCompleted',
+            header: () => {
+                return <div className="text-center">Audits Completed</div>
+            },
+            cell: ({ row }) => (
+                <div className="text-center">{`${row.original.auditsCompleted}/4`}</div>
+            ),
+        },
+    ]
 
     const audienceCopy = useMemo(() => {
-        if (recipientsCount === 0) return 'No charities match the current filters.'
-        if (recipientsCount === 1) return 'Email will be sent to 1 charity from the current view.'
-        return `Email will be sent to ${recipientsCount} charities from the current view.`
-    }, [recipientsCount])
+        if (selectedCharities.length === 0) return 'No charities match the current filters.'
+        if (selectedCharities.length === 1) return 'Email will be sent to 1 charity from the current view.'
+        return `Email will be sent to ${selectedCharities.length} charities from the current view.`
+    }, [selectedCharities])
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -71,52 +142,42 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ recipientsCount = 0, onClose,
     }
 
     return (
-        <form className='flex flex-col gap-4' onSubmit={onSubmit}>
+        <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             <div className="text-sm text-[#3A3F45] bg-[#F5F6F7] border border-[#E3E5E7] rounded-md p-3">
                 {audienceCopy}
             </div>
-            <ControlledTextFieldComponent
-                label='Subject'
-                placeholder='Add a subject'
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                id='bulk-email-subject'
-            />
-            <TableComponent<CharityWithoutMembersAndDesc> cols={cols} data={charities} />
-            <div className="flex flex-col gap-2">
-                <Label className='text-sm' htmlFor="bulk-email-message">Message</Label>
-                <textarea
-                    id="bulk-email-message"
-                    className='w-full min-h-[160px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-                    placeholder="Write a concise update for the selected charities"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+            <div className="w-full">
+                <ControlledSearchBarComponent setQuery={(query: string) => {
+                    setQueryInput(query)
+                }}
+                    query={queryInput}
+                    placeholder="Search Charities by Title or Charity Owner's Name"
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label className='flex items-center justify-between rounded-md border border-[#E3E5E7] p-3 text-sm text-[#3A3F45]'>
-                    <div className="flex flex-col">
-                        <span>Send to Charity Owners</span>
-                        <span className='text-[11px] text-[#666E76]'>Use the primary owner email</span>
-                    </div>
-                    <Switch checked={includeOwners} onCheckedChange={setIncludeOwners} />
-                </label>
-                <label className='flex items-center justify-between rounded-md border border-[#E3E5E7] p-3 text-sm text-[#3A3F45]'>
-                    <div className="flex flex-col">
-                        <span>Send to Project Managers</span>
-                        <span className='text-[11px] text-[#666E76]'>Include assigned MG managers</span>
-                    </div>
-                    <Switch checked={includeManagers} onCheckedChange={setIncludeManagers} />
-                </label>
-            </div>
+            <TableComponent<CharityWithoutMembersAndDesc>
+                enabledPagination={true}
+                initialPageSize={5}
+                pageSizeOptions={[5, 10, 15]}
+                cols={cols}
+                data={charities}
+                onRowClick={row => {
+                    const charityId = row.original.id
+                    const isChecked = selectedCharities.includes(charityId)
+                    selectSingleCharity(charityId, !isChecked)
+                }}
+            />
 
             <div className="flex justify-end gap-2">
-                <Button type='button' variant={'outline'} onClick={onClose}>
+                <Button type="button" variant={'outline'} onClick={onClose}>
                     Cancel
                 </Button>
-                <Button type='submit' variant={'primary'} disabled={!subject || !message || (!includeOwners && !includeManagers)}>
-                    Send Email
+                <Button
+                    type="submit"
+                    variant={'primary'}
+                    disabled={selectedCharities.length === 0}
+                >
+                    {selectedCharities.length === 0 ? <>Select Charities to Send Email</> : <>Send Email to {selectedCharities.length} Charities</>}
                 </Button>
             </div>
         </form>

@@ -9,13 +9,65 @@ export type KanbanColType = {
     cards?: SingleCharityType[]
 }
 
+export type BaseRoles = 'project-manager' | 'finance-auditor' | 'zakat-auditor' | 'admin'
+
+export enum RolesEnum {
+    'project-manager' = 'Project Manager',
+    'finance-auditor' = 'Finance Auditor',
+    'zakat-auditor' = 'Zakat Auditor',
+    'admin' = 'Admin'
+}
+
 type Member = {
     name: string
     id: string
-    profilePicture: string | null
+    profilePicture: string | null,
+    role: BaseRoles
 }
 
 export type StatusType = 'pending-eligibility' | 'unassigned' | 'open-to-review' | 'pending-admin-review' | 'approved' | 'ineligible'
+
+/**
+ * categories:
+ * International Relief
+Overseas aid, emergency response, food, water, and shelter.
+
+Local Relief
+Support for local communities, food banks, homelessness, family aid.
+
+Education
+Schools, scholarships, Islamic learning, youth and skills development.
+
+Masjid & Community Projects
+Mosques, community centres, dawah, funeral services.
+
+Health & Medical Aid
+Hospitals, medical treatment, mental health, disability support.
+
+Environment & Sustainability
+Climate action, clean water, agriculture, and conservation.
+
+Advocacy & Human Rights
+Social justice, awareness, and legal support.
+
+
+ */
+
+export enum CategoryEnum {
+    'international-relief' = 'International Relief',
+    'local-relief' = 'Local Relief',
+    'education' = 'Education',
+    'masjid-community-projects' = 'Masjid & Community Projects',
+    'health-medical-aid' = 'Health & Medical Aid',
+    'environment-sustainability' = 'Environment & Sustainability',
+    'advocacy-human-rights' = 'Advocacy & Human Rights',
+}
+
+export enum CountryEnum {
+    'usa' = 'United States',
+    'uk' = 'United Kingdom',
+    'ca' = "Canada",
+}
 
 export type SingleCharityType = {
     id: string
@@ -25,7 +77,13 @@ export type SingleCharityType = {
     members: Member[]
     comments: number
     auditsCompleted: 0 | 1 | 2 | 3 | 4
-    status: StatusType
+    status: StatusType,
+    category: keyof typeof CategoryEnum,
+    country?: keyof typeof CountryEnum,
+    totalDuration?: string,
+    website?: string,
+    isThisMuslimCharity?: boolean,
+    doTheyPayZakat?: boolean,
 }
 
 type IProps = {
