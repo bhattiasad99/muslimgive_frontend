@@ -396,7 +396,7 @@ export const DUMMY_TASKS: TaskType[] = [
     },
     {
         id: 'core-area-2',
-        title: 'Perform Financial Accountability Core Area 2 audit',
+        title: 'Perform Financial Accountability (Core Area 2) audit',
         icon: <TestIcon />
     },
     {

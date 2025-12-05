@@ -3,7 +3,7 @@ import ArrowIcon from '@/components/common/IconComponents/ArrowIcon'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-import React, { FC, useState } from 'react'
+import React, { FC, useEffect, useState, useTransition } from 'react'
 import { SingleCharityType } from '../CharitiesPageComponent/kanban/KanbanView'
 import ThreeDotIcon from '@/components/common/IconComponents/ThreeDotIcon'
 import IconDropdownMenuComponent from '@/components/common/IconDropdownMenuComponent'
@@ -19,6 +19,7 @@ import AssignProjectManager from './models/AssignProjectManager'
 import EligibilityTest from './models/EligibilityTest'
 import { toast } from 'sonner'
 import { capitalizeWords } from '@/lib/helpers'
+import { useRouteLoader } from '@/components/common/route-loader-provider'
 
 type IProps = SingleCharityType;
 
@@ -30,7 +31,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     charityDesc,
     charityOwnerName,
     charityTitle,
-    id,
+    id: charityId,
     members,
     status,
     comments,
@@ -44,6 +45,10 @@ const SingleCharityPageComponent: FC<IProps> = ({
 }) => {
     const router = useRouter();
     const [modelState, setModelState] = useState<ModelControl>({ nameOfModel: null });
+    const { startNavigation } = useRouteLoader()
+    const [isBackPending, startBackTransition] = useTransition()
+    const [isTaskPending, startTaskTransition] = useTransition()
+    const [pendingTaskId, setPendingTaskId] = useState<TaskIds | null>(null)
 
     const handleOpenModel = (nameOfModel: TaskIds) => {
         setModelState(prevState => ({ ...prevState, nameOfModel }));
@@ -53,10 +58,36 @@ const SingleCharityPageComponent: FC<IProps> = ({
         setModelState({ nameOfModel: null });
     }
 
+    useEffect(() => {
+        if (!isTaskPending) {
+            setPendingTaskId(null)
+        }
+    }, [isTaskPending])
+
+    const modalTaskIds: TaskIds[] = ['assign-project-manager', 'eligibility']
+
+    const handleTask = (taskId: TaskIds) => {
+        if (modalTaskIds.includes(taskId)) {
+            handleOpenModel(taskId)
+            return
+        }
+        setPendingTaskId(taskId)
+        startNavigation()
+        startTaskTransition(() => router.push(`/charities/${charityId}/audits/${taskId}`))
+    }
+
     return (
         <div className="flex flex-col gap-5">
             <div>
-                <Button onClick={() => router.push('/charities')} variant="secondary" className="border-0 text-primary">
+                <Button
+                    onClick={() => {
+                        startNavigation()
+                        startBackTransition(() => router.push('/charities'))
+                    }}
+                    variant="secondary"
+                    className="border-0 text-primary"
+                    loading={isBackPending}
+                >
                     <ArrowIcon />
                     Back to All Charities
                 </Button>
@@ -128,21 +159,21 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 <div className="flex flex-col gap-4 mb-4">
                     <TypographyComponent variant='h2'>Pending Actions</TypographyComponent>
                     <div className='h-[1px] w-full bg-[rgba(178,178,178,0.4)]'>&nbsp;</div>
-                    {DUMMY_TASKS.map(({ icon, id, title }) => {
-                        const handleBtnClick = (nameOfBtn: TaskIds) => {
-                            handleOpenModel(nameOfBtn);
-                        }
-                        return <div key={id} className='flex items-center gap-4 w-[630px]'>
+                    {DUMMY_TASKS.map(({ icon, id: taskId, title }) => (
+                        <div key={taskId} className='flex items-center gap-4 w-[630px]'>
                             <div className='border border-[#EFF2F6] rounded-full w-9 h-9 flex justify-center items-center'>{icon}</div>
                             <div className='grow'>{title}</div>
-                            <Button onClick={() => {
-                                const modelStates: TaskIds[] = ['assign-project-manager', 'eligibility'];
-                                if (modelStates.includes(id)) {
-                                    handleBtnClick(id)
-                                }
-                            }} size={"icon"} variant={'outline'} className='bg-[#F7F7F7]'><SendIcon /></Button>
+                            <Button
+                                onClick={() => handleTask(taskId)}
+                                size={"icon"}
+                                variant={'outline'}
+                                className='bg-[#F7F7F7]'
+                                loading={pendingTaskId === taskId && isTaskPending}
+                            >
+                                <SendIcon />
+                            </Button>
                         </div>
-                    })}
+                    ))}
                 </div>
             </div>
             <ModelComponentWithExternalControl title="Assign Project Manager"
@@ -177,7 +208,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
             >
                 <EligibilityTest
                     charityTite={charityTitle}
-                    charityId={id}
+                    charityId={charityId}
                 />
             </ModelComponentWithExternalControl>
         </div>
