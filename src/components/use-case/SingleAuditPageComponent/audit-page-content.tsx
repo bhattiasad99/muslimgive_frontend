@@ -53,13 +53,14 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
                 return <CoreArea1 />
             }
             case "core-area-2": {
+                // location goes here
                 return <div>CoreArea2</div>
             }
             case "core-area-3": {
                 return <CoreArea3 />
             }
             case 'core-area-4': {
-                // location goes here
+
                 return <CoreArea4 />
             }
         }
