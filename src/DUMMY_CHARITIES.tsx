@@ -21,6 +21,7 @@ export const DUMMY_CHARITIES: SingleCharityType[] = [
         auditsCompleted: 1,
         status: "pending-eligibility",
         category: "education",
+        country: "uk",
     },
     {
         id: "c2",
@@ -33,6 +34,7 @@ export const DUMMY_CHARITIES: SingleCharityType[] = [
         auditsCompleted: 0,
         status: "unassigned",
         category: "local-relief",
+        country: "usa",
     },
     {
         id: "c3",
@@ -52,6 +54,7 @@ export const DUMMY_CHARITIES: SingleCharityType[] = [
         auditsCompleted: 1,
         status: "pending-eligibility",
         category: "education",
+        country: "ca",
     },
     {
         id: "c4",

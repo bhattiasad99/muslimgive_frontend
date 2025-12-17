@@ -11,9 +11,6 @@ importers:
 
   .:
     dependencies:
-      '@bhattiasad99/muslimgive__perms-registry':
-        specifier: ^1.0.4
-        version: 1.0.4
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@19.1.9(@types/react@19.1.12))(@types/react@19.1.12)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -159,9 +156,6 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
-
-  '@bhattiasad99/muslimgive__perms-registry@1.0.4':
-    resolution: {integrity: sha512-SHU4ttXL32ZtANHtCDHewocAxLawvGUK9M7VoS/ObaXRTEnh+erK9kdBDRwALw+8nY4gdfkfikDWdokgZYMcxg==, tarball: https://npm.pkg.github.com/download/@bhattiasad99/muslimgive__perms-registry/1.0.4/a1bb955460493a2343a98edd699f894aab3a0127}
 
   '@date-fns/tz@1.4.1':
     resolution: {integrity: sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA==}
@@ -1484,10 +1478,6 @@ packages:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
     engines: {node: '>=0.10.0'}
 
-  dotenv@17.2.3:
-    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
-    engines: {node: '>=12'}
-
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
     engines: {node: '>= 0.4'}
@@ -2626,10 +2616,6 @@ packages:
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
-
-  '@bhattiasad99/muslimgive__perms-registry@1.0.4':
-    dependencies:
-      dotenv: 17.2.3
 
   '@date-fns/tz@1.4.1': {}
 
@@ -3917,8 +3903,6 @@ snapshots:
   doctrine@2.1.0:
     dependencies:
       esutils: 2.0.3
-
-  dotenv@17.2.3: {}
 
   dunder-proto@1.0.1:
     dependencies:

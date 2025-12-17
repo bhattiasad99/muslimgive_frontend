@@ -24,7 +24,8 @@ export type TextFieldProps = BaseProps<'text'> & {
 
 export type TextareaProps = BaseProps<'textarea'> & {
     placeholder?: string,
-    lines: number
+    lines: number,
+    className?: string
 }
 
 export type SingleQuestionProps = RadioProps | CheckboxProps | TextFieldProps | TextareaProps

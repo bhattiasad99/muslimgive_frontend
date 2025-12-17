@@ -40,6 +40,7 @@ const CharityAuditPage = ({ params }: CharityAuditPageProps) => {
             charityId={charity.id}
             charityTitle={charity.charityTitle}
             isPreviewMode={!!previewMode}
+            location={charity.country || 'usa'}
         />
     )
 }

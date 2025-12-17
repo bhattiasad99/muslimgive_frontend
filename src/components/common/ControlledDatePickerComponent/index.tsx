@@ -79,7 +79,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 value={input}
                 disabled={disabled}
                 placeholder={placeholder}
-                className="bg-background w-full"
+                className="w-full"
                 onChange={(e) => {
                     const text = e.target.value;
                     setInput(text);

@@ -31,6 +31,8 @@ const CharityAuditPage = ({ params }: CharityAuditPageProps) => {
             auditDescription={auditDefinition.description}
             charityId={charity.id}
             charityTitle={charity.charityTitle}
+            isPreviewMode={false}
+            location={charity.country || 'usa'}
         />
     )
 }

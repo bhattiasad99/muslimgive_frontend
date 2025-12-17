@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { AUDIT_DEFINITIONS, type AuditSlug } from './AUDIT_DEFINITIONS'
 import CoreArea1 from './Audits/CoreArea1_CharityStatus'
+import CoreArea2 from './Audits/CoreArea2_FinancialAccountability'
 import CoreArea3 from './Audits/CoreArea3_Zakat'
 import CoreArea4 from './Audits/CoreArea4_Governance'
 
@@ -18,7 +19,7 @@ type AuditPageContentProps = {
     auditTitle: string;
     auditDescription: string;
     isPreviewMode: boolean;
-    location: 'canada' | 'uk' | 'usa'
+    location: 'ca' | 'uk' | 'usa'
 }
 
 const AuditPageContent: React.FC<AuditPageContentProps> = ({
@@ -38,7 +39,7 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
                     return <>core area 1 preview mode</>
                 }
                 case "core-area-2": {
-                    return <>core area 2 preview mode</>
+                    return <>Core Area 2 - Financial Accountability Preview Mode ({location.toUpperCase()})</>
                 }
                 case "core-area-3": {
                     return <>core area 3 preview mode</>
@@ -53,8 +54,7 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
                 return <CoreArea1 />
             }
             case "core-area-2": {
-                // location goes here
-                return <div>CoreArea2</div>
+                return <CoreArea2 location={location} />
             }
             case "core-area-3": {
                 return <CoreArea3 />
