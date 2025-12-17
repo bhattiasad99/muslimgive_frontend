@@ -1,3 +1,4 @@
+import type { IProps as TextFieldComponentProps } from '@/components/common/TextFieldComponent'
 
 export type QuestionType = 'radio' | 'checkbox' | 'text' | 'textarea'
 
@@ -18,7 +19,7 @@ export type CheckboxProps = BaseProps<'checkbox'> & {
 
 export type TextFieldProps = BaseProps<'text'> & {
     placeholder?: string,
-    inputProps?: React.InputHTMLAttributes<HTMLInputElement>
+    inputProps?: Omit<TextFieldComponentProps, 'label' | 'id'>
 }
 
 export type TextareaProps = BaseProps<'textarea'> & {

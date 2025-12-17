@@ -36,3 +36,24 @@ export function formatLabel(key: string): string {
         // capitalize each word
         .replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
+
+export function isValidUrl(
+    input: string,
+    isHttp: boolean = true
+): boolean {
+    if (!input || typeof input !== "string") return false;
+
+    try {
+        const url = new URL(input);
+
+        if (!url.hostname || url.hostname.trim().length === 0) return false;
+
+        if (isHttp) {
+            if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+        }
+
+        return true;
+    } catch {
+        return false;
+    }
+}

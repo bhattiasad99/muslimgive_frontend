@@ -3,41 +3,13 @@
 import ArrowIcon from '@/components/common/IconComponents/ArrowIcon'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { Badge } from '@/components/ui/badge'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-import React, { useMemo, useState } from 'react'
-import type { AuditSlug } from './audit-definitions'
-import AuditSectionCard from './UI/AuditSectionCard'
-import SingleSectionQuestion from './SingleSectionQuestion'
-import RadioGroupComponent from '@/components/common/RadioGroupComponent'
-
-type AuditStage = 'draft' | 'preview' | 'submitted'
-
-const STAGE_DETAILS: Record<AuditStage, { label: string; description: string; placeholder: string }> = {
-    draft: {
-        label: 'Draft',
-        description: 'Editable state where auditors capture evidence, notes, and uploads.',
-        placeholder: 'Place form inputs, evidence uploads, and validation rules here. Save progress as needed.',
-    },
-    preview: {
-        label: 'Preview',
-        description: 'Read-only review of everything entered in the draft before final submission.',
-        placeholder: 'Render a read-only summary or print-friendly preview of the draft content.',
-    },
-    submitted: {
-        label: 'Submitted',
-        description: 'Locked view after submission. Edits are disabled, but a confirmation/summary stays visible.',
-        placeholder: 'Show submission confirmation, timestamps, and a summary of what was sent for review.',
-    },
-}
+import React, { useState } from 'react'
+import { AUDIT_DEFINITIONS, type AuditSlug } from './AUDIT_DEFINITIONS'
+import CoreArea1 from './Audits/CoreArea1_CharityStatus'
+import CoreArea3 from './Audits/CoreArea3_Zakat'
+import CoreArea4 from './Audits/CoreArea4_Governance'
 
 type AuditPageContentProps = {
     charityId: string;
@@ -45,18 +17,50 @@ type AuditPageContentProps = {
     auditSlug: AuditSlug;
     auditTitle: string;
     auditDescription: string;
+    isPreviewMode: boolean;
 }
 
 const AuditPageContent: React.FC<AuditPageContentProps> = ({
     charityId,
     charityTitle,
     auditSlug,
-    auditTitle,
-    auditDescription,
+    isPreviewMode
 }) => {
     const router = useRouter()
-    const [stage, setStage] = useState<AuditStage>('draft')
-    const orderedStages: AuditStage[] = useMemo(() => ['draft', 'preview', 'submitted'], [])
+
+    const renderAudit = (auditId: AuditSlug) => {
+        const CURRENT_AUDIT = AUDIT_DEFINITIONS[auditId];
+        if (isPreviewMode) {
+            switch (auditId) {
+                case "core-area-1": {
+                    return <>core area 1 preview mode</>
+                }
+                case "core-area-2": {
+                    return <>core area 2 preview mode</>
+                }
+                case "core-area-3": {
+                    return <>core area 3 preview mode</>
+                }
+                case 'core-area-4': {
+                    return <>core area 4 preview mode</>
+                }
+            }
+        }
+        switch (auditId) {
+            case "core-area-1": {
+                return <CoreArea1 />
+            }
+            case "core-area-2": {
+                return <div>CoreArea2</div>
+            }
+            case "core-area-3": {
+                return <CoreArea3 />
+            }
+            case 'core-area-4': {
+                return <CoreArea4 />
+            }
+        }
+    }
 
     return (
         <div className="flex flex-col gap-6">
@@ -80,21 +84,7 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
                     <TypographyComponent className='text-gray-400 text-sm'>Please enter relevant information regarding the charity</TypographyComponent>
                 </div>
             </div>
-            <SingleSectionQuestion heading='Enter Charity Number' type='text' id='core_1__charity-number' required={true} inputProps={{
-                type: 'number'
-            }} />
-            <SingleSectionQuestion heading='Enter Charity Commission Profile Link' type='text' id='core_1__charity-commission-profile-link' required={true} inputProps={{
-                type: 'text'
-            }} />
-            <AuditSectionCard>
-                <div className="flex flex-col gap-4">
-                    <RadioGroupComponent label="Registration Status" required={true} options={[
-                        { label: 'Registered', value: 'registered' },
-                        { label: 'Not Registered', value: 'not_registered' },
-                        { label: 'Pending', value: 'pending' }
-                    ]} />
-                </div>
-            </AuditSectionCard>
+            {renderAudit(auditSlug)}
         </div>
     )
 }

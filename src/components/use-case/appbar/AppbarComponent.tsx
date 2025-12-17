@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { PAGES } from '../sidebar/pages';
 import { TypographyComponent } from '@/components/common/TypographyComponent';
 import NotificationNavbar from '@/components/common/IconComponents/NotificationNavbar';
-import { AUDIT_DEFINITIONS, isAuditSlug } from '@/components/use-case/SingleAuditPageComponent/audit-definitions';
+import { AUDIT_DEFINITIONS, isAuditSlug } from '@/components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS';
 
 type TitleResolver = {
     match: (segments: string[]) => boolean;

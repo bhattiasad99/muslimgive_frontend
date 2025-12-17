@@ -1,6 +1,7 @@
 'use client';
 
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea"
+
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import React, { FC, useId } from "react";
@@ -10,15 +11,15 @@ export type Icon = {
     component: React.ReactNode;
 };
 
-export type IProps = React.InputHTMLAttributes<HTMLInputElement> & {
+export type IProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
     label?: string;
     id?: string;
     icon?: Icon;
     containerClassName?: string; // optional wrapper styling
+    lines?: number;
 };
 
-export const TextFieldComponent: FC<IProps> = ({
-    type = "text",
+export const TextAreaComponent: FC<IProps> = ({
     name,
     label,
     placeholder,
@@ -26,6 +27,7 @@ export const TextFieldComponent: FC<IProps> = ({
     icon,
     className,
     containerClassName,
+    lines = 4,
     ...props
 }) => {
     const reactId = useId();
@@ -55,10 +57,10 @@ export const TextFieldComponent: FC<IProps> = ({
                     </span>
                 )}
 
-                <Input
+                <Textarea
+                    rows={lines}
                     id={inputId}
                     name={name}
-                    type={type}
                     placeholder={placeholder ?? ""}
                     className={cn(
                         hasLeft && "pl-9",

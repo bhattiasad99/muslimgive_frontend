@@ -1,5 +1,5 @@
 import AuditPageContent from '../../../../../components/use-case/SingleAuditPageComponent/audit-page-content'
-import { AUDIT_DEFINITIONS, isAuditSlug } from '../../../../../components/use-case/SingleAuditPageComponent/audit-definitions'
+import { AUDIT_DEFINITIONS, isAuditSlug } from '../../../../../components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS'
 import { notFound } from 'next/navigation'
 import { DUMMY_CHARITIES } from '@/DUMMY_CHARITIES'
 

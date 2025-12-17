@@ -4,6 +4,8 @@ import AuditSectionCard from './UI/AuditSectionCard'
 import { SingleQuestionProps } from './types'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { TextFieldComponent } from '@/components/common/TextFieldComponent'
+import RadioGroupComponent from '@/components/common/RadioGroupComponent'
+import { TextAreaComponent } from '@/components/common/TextAreaComponent'
 
 type IProps = SingleQuestionProps & {
     onInputChange?: (name: string, value: string) => void
@@ -15,17 +17,27 @@ const SingleSectionQuestion: FC<IProps> = (p) => {
     return (
         <AuditSectionCard>
             <div className="flex flex-col gap-2">
-                <TypographyComponent>
+                <TypographyComponent className='text-sm'>
                     <strong>
                         {heading}{required ? <span className="text-red-500">*</span> : ''}
                     </strong>
                 </TypographyComponent>
                 {type === 'text' ? (
                     <TextFieldComponent
-                        {...p.inputProps}
                         label=""
                         id={id}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            if (onInputChange) onInputChange(id, e.target.value)
+                        }}
+                        {...p.inputProps}
+                    />
+                ) : null}
+                {type === 'textarea' ? (
+                    <TextAreaComponent
+                        id={id}
+                        placeholder={p.placeholder}
+                        lines={p.lines}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                             if (onInputChange) onInputChange(id, e.target.value)
                         }}
                     />

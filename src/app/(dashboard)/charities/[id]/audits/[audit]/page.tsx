@@ -1,6 +1,6 @@
 import { DUMMY_CHARITIES } from '@/DUMMY_CHARITIES'
 import AuditPageContent from '../../../../../../components/use-case/SingleAuditPageComponent/audit-page-content'
-import { AUDIT_DEFINITIONS, isAuditSlug } from '../../../../../../components/use-case/SingleAuditPageComponent/audit-definitions'
+import { AUDIT_DEFINITIONS, isAuditSlug } from '../../../../../../components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS'
 import { notFound } from 'next/navigation'
 
 type CharityAuditPageProps = {
@@ -11,7 +11,15 @@ type CharityAuditPageProps = {
 }
 
 const CharityAuditPage = ({ params }: CharityAuditPageProps) => {
-    const { id, audit } = params
+    const { id, audit } = params;
+
+    // i want to get the "preview-mode" variable from URL: http://localhost:3000/charities/c1/audits/core-area-1?preview-mode=true or http://localhost:3000/charities/c1/audits/core-area-1
+    const urlSearchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const previewModeParam = urlSearchParams.get('preview-mode');
+    const previewMode = previewModeParam === 'true' ? true : previewModeParam === 'false' ? false : undefined;
+    // if preview-mode is not present, it should lead to the normal audit page
+    // if preview-mode is true, it should lead to the preview audit page
+    // if preview-mode is false, it should lead to the normal audit page
 
     if (!isAuditSlug(audit)) {
         return notFound()
@@ -31,6 +39,7 @@ const CharityAuditPage = ({ params }: CharityAuditPageProps) => {
             auditDescription={auditDefinition.description}
             charityId={charity.id}
             charityTitle={charity.charityTitle}
+            isPreviewMode={!!previewMode}
         />
     )
 }
