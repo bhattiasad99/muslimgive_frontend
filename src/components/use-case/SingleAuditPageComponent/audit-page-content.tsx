@@ -18,13 +18,15 @@ type AuditPageContentProps = {
     auditTitle: string;
     auditDescription: string;
     isPreviewMode: boolean;
+    location: 'canada' | 'uk' | 'usa'
 }
 
 const AuditPageContent: React.FC<AuditPageContentProps> = ({
     charityId,
     charityTitle,
     auditSlug,
-    isPreviewMode
+    isPreviewMode,
+    location
 }) => {
     const router = useRouter()
 
@@ -57,6 +59,7 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
                 return <CoreArea3 />
             }
             case 'core-area-4': {
+                // location goes here
                 return <CoreArea4 />
             }
         }
