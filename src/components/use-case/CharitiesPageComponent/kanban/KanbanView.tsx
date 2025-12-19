@@ -91,6 +91,13 @@ type IProps = {
 }
 
 const KanbanView: FC<IProps> = ({ charities }) => {
+    charities.forEach(({ country }) => {
+        if (!country) return
+        const countryName = CountryEnum[country as keyof typeof CountryEnum]
+        if (countryName) {
+            console.log(`Country selected: ${countryName}`)
+        }
+    })
     const COLS: KanbanColType[] = [
         {
             color: '#F25F5C',

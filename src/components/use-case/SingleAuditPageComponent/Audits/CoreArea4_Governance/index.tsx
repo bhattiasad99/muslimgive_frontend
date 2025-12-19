@@ -1,9 +1,10 @@
 'use client'
-import React, { useState } from 'react'
+import React, { FC, useState } from 'react'
 import AuditSectionCard from '../../UI/AuditSectionCard'
 import RadioGroupComponent from '@/components/common/RadioGroupComponent'
 import SingleRadioQuestion from './SingleRadioQuestion'
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation'
 
 const DEFINITIONS = {
     'board-members-names-on-website': {
@@ -105,13 +106,13 @@ type Keys = keyof typeof DEFINITIONS;
 
 type State = { [K in Keys]: typeof DEFINITIONS[K]["options"][number]["value"] | "" };
 
-const CoreArea4 = () => {
+const CoreArea4: FC<{ charityId: string }> = ({ charityId }) => {
     const emptyState = Object.fromEntries(
         (Object.keys(DEFINITIONS) as Keys[]).map(k => [k, ""])
     ) as State;
     const [formVals, setFormVals] = React.useState<State>(emptyState);
     const keys = Object.keys(DEFINITIONS) as Keys[];
-
+    const router = useRouter();
     return (
         <>
             {keys.map(key => {
@@ -130,7 +131,9 @@ const CoreArea4 = () => {
                 );
             })}
             <div className='flex gap-4 mb-8'>
-                <Button className="w-36" variant='primary' disabled={Object.values(formVals).some(val => val === "")}>Preview</Button>
+                <Button className="w-36" variant='primary' disabled={Object.values(formVals).some(val => val === "")} onClick={() => {
+                    router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true`)
+                }}>Preview</Button>
                 <Button className="w-36" variant={'outline'}>Cancel</Button>
             </div>
         </>

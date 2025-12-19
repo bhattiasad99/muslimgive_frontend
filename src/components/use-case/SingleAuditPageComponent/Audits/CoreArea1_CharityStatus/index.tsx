@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { FC, useState } from 'react'
 import SingleSectionQuestion from '../../SingleSectionQuestion'
 import { Link } from 'lucide-react'
 import AuditSectionCard from '../../UI/AuditSectionCard'
@@ -11,13 +11,14 @@ import { ControlledTextFieldComponent } from '@/components/common/TextFieldCompo
 import ControlledFileUploadComponent, { UploadedItem } from '@/components/common/FileUploadComponent/ControlledFileUploadComponent'
 import { Button } from '@/components/ui/button'
 import { isValidUrl } from '@/lib/helpers'
+import { useRouter } from 'next/navigation'
 
-type FileStatusEvidence = {
+export type FileStatusEvidence = {
     type: 'file';
     fileInfo: UploadedItem | null;
 }
 
-type LinkStatusEvidence = {
+export type LinkStatusEvidence = {
     type: 'link';
     linkUrl: string;
 }
@@ -44,7 +45,8 @@ const INITIAL_FORM_DATA: FormDataType = {
     statusNotes: '',
 }
 
-const CoreArea1 = () => {
+const CoreArea1: FC<{ charityId: string }> = ({ charityId }) => {
+    const router = useRouter()
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
     const updateFormData = (field: keyof FormDataType, value: FormDataType[keyof FormDataType]) => {
         setFormData((prev) => ({
@@ -205,7 +207,9 @@ const CoreArea1 = () => {
             </AuditSectionCard>
             <SingleSectionQuestion type="textarea" heading='Status Notes' lines={6} id='core_1__status-notes' required={true} />
             <div className='flex gap-4 mb-8'>
-                <Button className="w-36" variant='primary'>Preview</Button>
+                <Button className="w-36" variant='primary' onClick={() => {
+                    router.push(`/charities/${charityId}/audits/core-area-1?preview-mode=true`)
+                }}>Preview</Button>
                 <Button className="w-36" variant={'outline'}>Cancel</Button>
             </div>
         </>

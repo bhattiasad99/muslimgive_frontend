@@ -1,11 +1,12 @@
 'use client'
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import React, { useState } from 'react'
+import React, { FC, useState } from 'react'
 import { MULTI_STEP_DEFS, QuestionDef } from './MULTI_STEP_DEFS';
 import Page from './Page';
 import ComplexCheckboxGroup, { ComplexCheckboxGroupStatus, LinkAttached } from './ComplexCheckboxGroup';
 import AuditSectionCard from '../../UI/AuditSectionCard';
+import { useRouter } from 'next/navigation';
 
 type Steps = 0 | 1 | 2 | 3 | 4;
 
@@ -17,7 +18,8 @@ type FormEntry = ComplexCheckboxGroupStatus & {
     id: string;
 }
 
-const CoreArea3 = () => {
+const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
+    const router = useRouter();
     const [step, setStep] = useState<Steps>(0);
     const [formEntries, setFormEntries] = useState<FormEntry[]>([]);
     const scrollToTop = () => {
@@ -66,6 +68,9 @@ const CoreArea3 = () => {
                 <Button className="w-36" variant='primary' onClick={() => {
                     if (step < 4) {
                         handleNext()
+                    }
+                    else {
+                        router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true`)
                     }
                 }}>{step === 4 ? 'Preview' : 'Next'}</Button>
                 <Button className="w-36" variant={'outline'} onClick={() => {

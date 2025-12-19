@@ -67,13 +67,14 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const modalTaskIds: TaskIds[] = ['assign-project-manager', 'eligibility']
 
     const handleTask = (taskId: TaskIds) => {
+        const resolvedCountry = country ?? 'usa'
         if (modalTaskIds.includes(taskId)) {
             handleOpenModel(taskId)
             return
         }
         setPendingTaskId(taskId)
         startNavigation()
-        startTaskTransition(() => router.push(`/charities/${charityId}/audits/${taskId}`))
+        startTaskTransition(() => router.push(`/charities/${charityId}/audits/${taskId}?country=${resolvedCountry}`))
     }
 
     return (
@@ -168,7 +169,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                 size={"icon"}
                                 variant={'outline'}
                                 className='bg-[#F7F7F7]'
-                                loading={pendingTaskId === taskId && isTaskPending}
+                                // loading={}
+                                disabled={pendingTaskId === taskId && isTaskPending}
                             >
                                 <SendIcon />
                             </Button>

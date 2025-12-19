@@ -57,3 +57,63 @@ export function isValidUrl(
         return false;
     }
 }
+
+export function formatToReadableWithTZ(
+    isoString: string,
+    timeZone: string = 'America/New_York'
+): string {
+    const date = new Date(isoString);
+
+    // 🚨 Invalid date guard
+    if (Number.isNaN(date.getTime())) {
+        throw new Error(`Invalid date string provided: "${isoString}"`);
+    }
+
+    const parts = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone,
+        timeZoneName: 'short',
+    }).formatToParts(date);
+
+    const get = (type: Intl.DateTimeFormatPartTypes) =>
+        parts.find(p => p.type === type)?.value ?? '';
+
+    return `${get('weekday')} / ${get('month')} ${get('day')}, ${get('year')} ${get('hour')}:${get('minute')} ${get('timeZoneName')}`;
+}
+
+export function camelCaseToTitle(input: string): string {
+    if (!input) return '';
+
+    return input
+        // insert space before capital letters
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        // uppercase first letter
+        .replace(/^./, (c) => c.toUpperCase());
+}
+
+export function isLikelyUrl(input: string): boolean {
+    if (!input) return false;
+
+    const value = input.trim();
+
+    // no spaces
+    if (/\s/.test(value)) return false;
+
+    try {
+        const url = new URL(
+            value.startsWith('http') ? value : `https://${value}`
+        );
+
+        // hostname must look like a real domain
+        return /^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(url.hostname);
+    } catch {
+        return false;
+    }
+}
+

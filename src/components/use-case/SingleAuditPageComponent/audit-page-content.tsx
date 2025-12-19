@@ -11,6 +11,7 @@ import CoreArea1 from './Audits/CoreArea1_CharityStatus'
 import CoreArea2 from './Audits/CoreArea2_FinancialAccountability'
 import CoreArea3 from './Audits/CoreArea3_Zakat'
 import CoreArea4 from './Audits/CoreArea4_Governance'
+import Preview from './Audits/Preview'
 
 type AuditPageContentProps = {
     charityId: string;
@@ -18,7 +19,6 @@ type AuditPageContentProps = {
     auditSlug: AuditSlug;
     auditTitle: string;
     auditDescription: string;
-    isPreviewMode: boolean;
     location: 'ca' | 'uk' | 'usa'
 }
 
@@ -26,42 +26,24 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
     charityId,
     charityTitle,
     auditSlug,
-    isPreviewMode,
     location
 }) => {
     const router = useRouter()
 
     const renderAudit = (auditId: AuditSlug) => {
-        const CURRENT_AUDIT = AUDIT_DEFINITIONS[auditId];
-        if (isPreviewMode) {
-            switch (auditId) {
-                case "core-area-1": {
-                    return <>core area 1 preview mode</>
-                }
-                case "core-area-2": {
-                    return <>Core Area 2 - Financial Accountability Preview Mode ({location.toUpperCase()})</>
-                }
-                case "core-area-3": {
-                    return <>core area 3 preview mode</>
-                }
-                case 'core-area-4': {
-                    return <>core area 4 preview mode</>
-                }
-            }
-        }
         switch (auditId) {
             case "core-area-1": {
-                return <CoreArea1 />
+                return <CoreArea1 charityId={charityId} />
             }
             case "core-area-2": {
-                return <CoreArea2 location={location} />
+                return <CoreArea2 charityId={charityId} location={location} />
             }
             case "core-area-3": {
-                return <CoreArea3 />
+                return <CoreArea3 charityId={charityId} />
             }
             case 'core-area-4': {
 
-                return <CoreArea4 />
+                return <CoreArea4 charityId={charityId} />
             }
         }
     }

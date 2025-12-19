@@ -8,6 +8,7 @@ import DatePicker from '@/components/common/ControlledDatePickerComponent'
 import { Label } from '@/components/ui/label'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 type FormDataType = {
     financialsLink?: string;
@@ -39,17 +40,20 @@ const INITIAL_FORM_DATA: FormDataType = {
 
 type IProps = {
     location: 'ca' | 'uk' | 'usa';
+    charityId: string;
 }
 
-const CoreArea2: React.FC<IProps> = ({ location }) => {
+const CoreArea2: React.FC<IProps> = ({ location, charityId }) => {
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
-    
+
     const updateFormData = (field: keyof FormDataType, value: FormDataType[keyof FormDataType]) => {
         setFormData((prev) => ({
             ...prev,
             [field]: value,
         }))
     }
+
+    const router = useRouter();
 
     return (
         <>
@@ -141,10 +145,10 @@ const CoreArea2: React.FC<IProps> = ({ location }) => {
                             End of fiscal year<span className="text-red-500">*</span>
                         </TypographyComponent>
                         <div className="w-[306px]">
-                            <DatePicker 
-                                label='End of fiscal year' 
+                            <DatePicker
+                                label='End of fiscal year'
                                 onChange={(date) => updateFormData('endOfFiscalYear', date ?? null)}
-                                value={formData.endOfFiscalYear ?? undefined} 
+                                value={formData.endOfFiscalYear ?? undefined}
                             />
                         </div>
                     </div>
@@ -154,11 +158,11 @@ const CoreArea2: React.FC<IProps> = ({ location }) => {
                             Charitable Registration since
                         </TypographyComponent>
                         <div className="w-[306px]">
-                            <DatePicker 
+                            <DatePicker
                                 disabledFutureDates
-                                label='Charitable Registration since' 
+                                label='Charitable Registration since'
                                 onChange={(date) => updateFormData('charitableRegistrationSince', date ?? null)}
-                                value={formData.charitableRegistrationSince ?? undefined} 
+                                value={formData.charitableRegistrationSince ?? undefined}
                             />
                         </div>
                     </div>
@@ -170,10 +174,10 @@ const CoreArea2: React.FC<IProps> = ({ location }) => {
                                 {location === 'usa' ? 'Analysis Reviewed Date' : "SNK Team's Analysis Date"}
                             </TypographyComponent>
                             <div className="w-[306px]">
-                                <DatePicker 
+                                <DatePicker
                                     label={location === 'usa' ? 'Analysis Reviewed Date' : "SNK Team's Analysis Date"}
                                     onChange={(date) => updateFormData('analysisDate', date ?? null)}
-                                    value={formData.analysisDate ?? undefined} 
+                                    value={formData.analysisDate ?? undefined}
                                 />
                             </div>
                         </div>
@@ -193,7 +197,7 @@ const CoreArea2: React.FC<IProps> = ({ location }) => {
                     options={[
                         { label: 'Yes', value: 'yes' },
                         { label: 'No', value: 'no' }
-                    ]} 
+                    ]}
                 />
             </AuditSectionCard>
 
@@ -209,7 +213,7 @@ const CoreArea2: React.FC<IProps> = ({ location }) => {
                     options={[
                         { label: 'Yes', value: 'yes' },
                         { label: 'No', value: 'no' }
-                    ]} 
+                    ]}
                 />
             </AuditSectionCard>
 
@@ -225,23 +229,25 @@ const CoreArea2: React.FC<IProps> = ({ location }) => {
                     options={[
                         { label: 'Yes', value: 'yes' },
                         { label: 'No', value: 'no' }
-                    ]} 
+                    ]}
                 />
             </AuditSectionCard>
 
             {/* Notes Section */}
-            <SingleSectionQuestion 
-                type="textarea" 
-                heading='Notes' 
-                lines={6} 
-                id='core_2__notes' 
+            <SingleSectionQuestion
+                type="textarea"
+                heading='Notes'
+                lines={6}
+                id='core_2__notes'
                 required={false}
                 className='h-[127px] resize-none'
             />
 
             {/* Action Buttons */}
             <div className='flex gap-4 mb-8'>
-                <Button className="w-36" variant='primary'>Preview</Button>
+                <Button className="w-36" variant='primary' onClick={() => {
+                    router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true`)
+                }}>Preview</Button>
                 <Button className="w-36" variant={'outline'}>Cancel</Button>
             </div>
         </>
