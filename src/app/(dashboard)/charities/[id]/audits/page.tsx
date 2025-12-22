@@ -1,29 +1,68 @@
-import { TypographyComponent } from '@/components/common/TypographyComponent'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+'use client'
+import React, { FC, useState } from 'react'
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion'
+import { AuditIds, DUMMY_AUDIT_VALUES } from '@/DUMMY_AUDIT_VALS'
+import AccordionHeader from './AccordionHeader'
+import Preview from '@/components/use-case/SingleAuditPageComponent/Audits/Preview'
+import { AUDIT_DEFINITIONS } from '@/components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS'
+import { DUMMY_CHARITIES } from '@/DUMMY_CHARITIES'
+import { usePathname } from 'next/navigation'
+import { kebabToTitle } from '@/lib/helpers'
 
 const AuditHistoryPage = () => {
+    const [openId, setOpenId] = useState<string | null>(null)
+
+    const auditVals = DUMMY_AUDIT_VALUES;
+
+    const auditKeys: AuditIds[] = ['core-area-1', 'core-area-2', 'core-area-3', 'core-area-4'];
+
+    const pathname = usePathname();
+
+    const charityId = pathname.split('/')[2];
+
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-                <TypographyComponent variant='h1'>Audit History</TypographyComponent>
-                <TypographyComponent variant='body2' className="text-[#666E76]">
-                    Placeholder page for past and in-progress audits. Replace with timeline/table later.
-                </TypographyComponent>
-            </div>
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center gap-2">
-                        <CardTitle>Activity feed</CardTitle>
-                        <Badge variant="outline">stub</Badge>
-                    </div>
-                </CardHeader>
-                <CardContent className="text-sm text-[#666E76]">
-                    Show recent audits, statuses, and links once data is wired up.
-                </CardContent>
-            </Card>
-        </div>
+        <Accordion type="single" collapsible>
+            {auditKeys.map((eachAudit) => {
+                const isOpen = openId === eachAudit
+                const close = () => setOpenId(null)
+
+                return (
+                    <AccordionItem key={eachAudit} value={eachAudit}>
+                        <AccordionTrigger asChild className="w-full">
+                            <AccordionHeader {...{
+                                close,
+                                title: kebabToTitle(eachAudit),
+                                subTitle: AUDIT_DEFINITIONS[eachAudit].title.split('(')[0].trim(),
+                                grade: auditVals[eachAudit].grade,
+                                score: auditVals[eachAudit].score,
+                                status: auditVals[eachAudit].status,
+                                isOpen: isOpen,
+                                setOpenId: setOpenId
+                            }}
+                            />
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="p-4">
+                                <Preview
+                                    status={auditVals[eachAudit].status}
+                                    showModeAndBackBtn={false}
+                                    charityTitle={AUDIT_DEFINITIONS[eachAudit].title}
+                                    auditSlug={eachAudit} country={DUMMY_CHARITIES.find(eachCharity => eachCharity.id === charityId)?.country || 'usa'}
+                                    auditedBy={auditVals[eachAudit].auditedBy ? auditVals[eachAudit].auditedBy : undefined}
+                                    charityId={charityId}
+                                />
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                )
+            })}
+        </Accordion>
     )
 }
 
-export default AuditHistoryPage
+export default AuditHistoryPage;

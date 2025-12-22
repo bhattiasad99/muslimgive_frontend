@@ -1,12 +1,25 @@
+import { AuditedByType } from "./components/use-case/SingleAuditPageComponent/Audits/Preview";
 import { CoreArea1Values, CoreArea2Values, CoreArea3Values, CoreArea4Values } from "./components/use-case/SingleAuditPageComponent/Audits/types";
 
 export type AuditIds = 'core-area-1' | 'core-area-2' | 'core-area-3' | 'core-area-4';
 
+export type GradeType = "A" | "B" | "C" | "D" | "F";
+
+export type AuditStatus = 'submitted' | 'draft' | 'pending' | 'in-progress';
+
+type AuditValueCommonExtension = {
+    score: number,
+    totalScore: number,
+    grade: GradeType,
+    status: AuditStatus,
+    auditedBy?: AuditedByType
+}
+
 type AuditValueType = {
-    'core-area-1': CoreArea1Values,
-    'core-area-2': CoreArea2Values,
-    'core-area-3': CoreArea3Values,
-    'core-area-4': CoreArea4Values
+    'core-area-1': CoreArea1Values & AuditValueCommonExtension,
+    'core-area-2': CoreArea2Values & AuditValueCommonExtension,
+    'core-area-3': CoreArea3Values & AuditValueCommonExtension,
+    'core-area-4': CoreArea4Values & AuditValueCommonExtension
 }
 
 export const DUMMY_AUDIT_VALUES: AuditValueType = {
@@ -31,7 +44,15 @@ export const DUMMY_AUDIT_VALUES: AuditValueType = {
             linkUrl: 'https://example.org/registration-proof'
         },
         giftStatusEvidenceUrl: 'https://example.org/gift-aid-proof',
-        statusNotes: 'Charity is fully registered and eligible for Gift Aid.'
+        statusNotes: 'Charity is fully registered and eligible for Gift Aid.',
+        score: 9,
+        totalScore: 10,
+        grade: 'A',
+        status: 'in-progress',
+        auditedBy: {
+            name: "Rahima Issa",
+            time: "2024-06-01T12:00:00Z"
+        }
     },
 
     'core-area-2': {
@@ -45,7 +66,15 @@ export const DUMMY_AUDIT_VALUES: AuditValueType = {
         auditedStatementsAvailable: 'Yes – independently audited',
         pyAuditedStatementsAvailable: 'Yes – previous year available',
         impactReportAvailable: 'Yes – annual impact report published',
-        notes: 'Financials reviewed and compliant with reporting standards.'
+        notes: 'Financials reviewed and compliant with reporting standards.',
+        score: 8,
+        totalScore: 10,
+        grade: 'B',
+        status: 'draft',
+        auditedBy: {
+            name: "Rahima Issa",
+            time: "2024-06-01T12:00:00Z"
+        }
     },
 
     'core-area-3': {
@@ -82,7 +111,11 @@ export const DUMMY_AUDIT_VALUES: AuditValueType = {
         'details-on-the-fi-ar-riqab-category': ['assurance-funds-properly-used'],
         'details-on-the-al-gharimin-category': ['category-explained'],
         'details-on-the-fi-sabilillah-category': ['explanation-of-fund-usage'],
-        'details-on-the-ibn-as-sabil-category': ['category-explained']
+        'details-on-the-ibn-as-sabil-category': ['category-explained'],
+        score: 7,
+        totalScore: 10,
+        grade: 'C',
+        status: 'pending'
     },
 
     'core-area-4': {
@@ -91,6 +124,14 @@ export const DUMMY_AUDIT_VALUES: AuditValueType = {
         'board-members-photos-on-website': 'yes',
         'leadership-team-names-on-website': 'yes',
         'leadership-photos-on-website': 'no',
-        'minimum-3-board-members-at-arms-length': 'yes'
+        'minimum-3-board-members-at-arms-length': 'yes',
+        grade: 'A',
+        score: 10,
+        totalScore: 10,
+        status: 'submitted',
+        auditedBy: {
+            name: "Rahima Issa",
+            time: "2024-06-01T12:00:00Z"
+        }
     }
 };

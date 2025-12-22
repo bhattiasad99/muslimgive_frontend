@@ -1,6 +1,6 @@
 'use client'
 import { CountryCode } from '@/app/(dashboard)/charities/[id]/audits/[audit]/page'
-import { AuditIds, DUMMY_AUDIT_VALUES } from '@/DUMMY_AUDIT_VALS';
+import { AuditIds, AuditStatus, DUMMY_AUDIT_VALUES } from '@/DUMMY_AUDIT_VALS';
 import React, { FC, useState } from 'react'
 import PreviewValueLayout from '../../UI/PreviewValueLayout';
 import LinkComponent from '@/components/common/LinkComponent';
@@ -12,21 +12,23 @@ import SubmittedSymbol from './SubmittedSymbol';
 
 export type PreviewPageCommonProps = {
     country: CountryCode;
+    status: AuditStatus
 }
 
 type IProps = PreviewPageCommonProps;
 
 const auditName: AuditIds = 'core-area-1'
 
-const PreviewCoreArea1: FC<IProps> = ({ country }) => {
+const PreviewCoreArea1: FC<IProps> = ({ country, status }) => {
     const auditVals = DUMMY_AUDIT_VALUES[auditName];
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const router = useRouter();
     // get path from router
     const pathname = usePathname();
-
+    const charityId = pathname.split('/')[2];
     return (
         <div className='flex flex-col gap-4'>
+
             <PreviewValueLayout label='Charity Number' result={`${auditVals.charityNumber}`} />
             <PreviewValueLayout label='Charity Commission Profile URL' result={<LinkComponent openInNewTab className='hover:underline text-primary' to={auditVals.charityCommissionProfileLink}>{auditVals.charityCommissionProfileLink}</LinkComponent>} />
             <PreviewValueLayout label="Registration Status" result={<span className='flex gap-2 items-center'><span>{capitalizeWords(auditVals.registrationStatus)}</span>
@@ -47,16 +49,25 @@ const PreviewCoreArea1: FC<IProps> = ({ country }) => {
             <PreviewValueLayout label='Gift Aid Eligibility' result={`${auditVals.eligibleForGiftAid ? 'Yes' : 'No'}`} />
             <PreviewValueLayout label='Link to Gift Aid Status' result={<LinkComponent openInNewTab className='hover:underline text-primary' to={auditVals.giftStatusEvidenceUrl}>{auditVals.giftStatusEvidenceUrl}</LinkComponent>} />
             <PreviewValueLayout orientation='vertical' label='Status Notes' result={auditVals.statusNotes} />
-            <div className='flex gap-4 mb-8'>
-                <Button className="w-36" variant='primary' onClick={() => {
-                    setShowSubmittedModel(true);
-                    const charityId = pathname.split('/')[2];
-                    setTimeout(() => {
-                        setShowSubmittedModel(false);
-                        router.push(`/charities/${charityId}`)
-                    }, 2000)
-                }}>Submit Form</Button>
-            </div>
+            {status === 'draft' ? <>
+                <div className='flex gap-4 mb-8'>
+                    <Button className="w-36" variant='primary' onClick={() => {
+                        setShowSubmittedModel(true);
+
+                        setTimeout(() => {
+                            setShowSubmittedModel(false);
+                            router.push(`/charities/${charityId}`)
+                        }, 2000)
+                    }}>Submit Form</Button>
+                </div>
+            </> : null}
+            {status === 'in-progress' ? <>
+                <div className='flex gap-4 mb-8'>
+                    <Button className="w-36" variant='primary' onClick={() => {
+                        router.push(`/charities/${charityId}/audits/core-area-1?country=${country}`)
+                    }}>Continue Form</Button>
+                </div>
+            </> : null}
             <ModelComponentWithExternalControl open={showSubmittedModel} title='' onOpenChange={(openState) => setShowSubmittedModel(openState)}>
                 <div className="flex flex-col gap-2 items-center">
                     <SubmittedSymbol />

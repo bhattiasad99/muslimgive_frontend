@@ -20,6 +20,7 @@ import EligibilityTest from './models/EligibilityTest'
 import { toast } from 'sonner'
 import { capitalizeWords } from '@/lib/helpers'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
+import LinkComponent from '@/components/common/LinkComponent'
 
 type IProps = SingleCharityType;
 
@@ -137,7 +138,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                     },
                                     {
                                         value: 'view-audit-status',
-                                        label: <div className='flex gap-1 items-center cursor-pointer'><AuditStatus /><span>View Audit Status</span></div>
+                                        label: <LinkComponent to={`/charities/${charityId}/audits`}><div className='flex gap-1 items-center cursor-pointer'><AuditStatus /><span>View Audit Status</span></div></LinkComponent>
                                     },
                                 ]}
                             />
