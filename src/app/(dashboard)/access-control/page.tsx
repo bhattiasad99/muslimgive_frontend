@@ -1,8 +1,11 @@
 import React from 'react'
+import { ManageRoles } from '@/components/use-case/AccessControl'
 
 const AccessControlPage = () => {
     return (
-        <div>AccessControlPage</div>
+        <div className="p-4">
+            <ManageRoles />
+        </div>
     )
 }
 

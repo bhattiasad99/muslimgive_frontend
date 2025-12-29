@@ -6,7 +6,6 @@ import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar"
 import { getCookies } from "@/app/lib/cookies";
 import { jwtDecode } from "jwt-decode";
 import { redirect } from "next/navigation";
-import { signOut } from "@/app/actions/auth";
 
 type MenuItemType = {
     title: string,
@@ -16,7 +15,6 @@ type MenuItemType = {
 const SideBarComponent = async () => {
     const { accessToken } = await getCookies();
     if (!accessToken) {
-        await signOut()
         redirect('/login')
     }
     const decoded: any = jwtDecode(accessToken); // decode only, no verify here

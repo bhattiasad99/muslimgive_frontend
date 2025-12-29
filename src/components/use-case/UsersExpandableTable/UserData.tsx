@@ -9,7 +9,12 @@ import { Button } from '@/components/ui/button';
 import EditIcon from '@/components/common/IconComponents/EditIcon';
 import SimpleCardDataFormat from './SimpleCardDataFormat';
 
-type IProps = Data;
+type IProps = Data & {
+    onEditPersonalInfo?: () => void;
+    onEditAddress?: () => void;
+    onChangePassword?: () => void;
+    showEditButtons?: boolean;
+};
 
 const UserData: FC<IProps> = ({
     id,
@@ -22,7 +27,11 @@ const UserData: FC<IProps> = ({
     postalCode,
     roles,
     status,
-    requestingPasswordReset
+    requestingPasswordReset,
+    onEditPersonalInfo,
+    onEditAddress,
+    onChangePassword,
+    showEditButtons = false
 }) => {
     const [city, country] = location.split(',').map(el => el.trim())
     return (
@@ -40,12 +49,38 @@ const UserData: FC<IProps> = ({
                             {id}
                         </span>
                     </div>
-                    <button className='bg-[rgba(187,201,222,0.2)] border border-[rgba(0,0,0,0.1)] rounded-2xl h-full px-4'>Copy</button>
+                    <button 
+                        className='bg-[rgba(187,201,222,0.2)] border border-[rgba(0,0,0,0.1)] rounded-2xl h-full px-4'
+                        onClick={() => navigator.clipboard.writeText(id)}
+                    >
+                        Copy
+                    </button>
                 </div>
                 {requestingPasswordReset ? <Button variant={"primary"} className='w-full'>Requesting Password Reset</Button> : null}
+                {onChangePassword && showEditButtons ? (
+                    <Button 
+                        variant="primary"
+                        className='w-full'
+                        onClick={onChangePassword}
+                    >
+                        Change Password
+                    </Button>
+                ) : null}
             </div>
             <div className="w-full flex flex-col gap-6">
-                <UserCardLayout headingText='Personal Information'>
+                <UserCardLayout 
+                    headingText='Personal Information'
+                    action={onEditPersonalInfo && showEditButtons ? (
+                        <Button
+                            className='rounded-lg'
+                            variant="primary"
+                            size="sm"
+                            onClick={onEditPersonalInfo}
+                        >
+                            <span><EditIcon /></span> Edit
+                        </Button>
+                    ) : undefined}
+                >
                     <SimpleCardDataFormat items={[
                         {
                             firstName: capitalizeWords(firstName)
@@ -61,7 +96,19 @@ const UserData: FC<IProps> = ({
                         }
                     ]} />
                 </UserCardLayout>
-                <UserCardLayout headingText='Address'>
+                <UserCardLayout 
+                    headingText='Address'
+                    action={onEditAddress && showEditButtons ? (
+                        <Button
+                            className='rounded-lg'
+                            variant="primary"
+                            size="sm"
+                            onClick={onEditAddress}
+                        >
+                            <span><EditIcon /></span> Edit
+                        </Button>
+                    ) : undefined}
+                >
                     <SimpleCardDataFormat items={[
                         {
                             city: capitalizeWords(city)
@@ -76,7 +123,7 @@ const UserData: FC<IProps> = ({
                 </UserCardLayout>
                 <UserCardLayout
                     headingText='Professional Information'
-                    action={
+                    action={!showEditButtons ? (
                         <Button
                             className='rounded-lg'
                             variant={"primary"}
@@ -86,7 +133,7 @@ const UserData: FC<IProps> = ({
                             </span>
                             {" "}Edit
                         </Button>
-                    }
+                    ) : undefined}
                 >
                     <div className="flex flex-col gap-2">
                         <div className="flex flex-col gap-2">

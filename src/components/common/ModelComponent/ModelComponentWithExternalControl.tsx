@@ -1,3 +1,5 @@
+"use client"
+import React, { FC, ReactNode, useId } from "react"
 import {
     Dialog,
     DialogContent,
@@ -20,12 +22,13 @@ type ModelComponentWithExternalControlProps = {
 }
 
 const ModelComponentWithExternalControl: FC<ModelComponentWithExternalControlProps> = ({ open, onOpenChange, title, description, children, dialogContentClassName }) => {
+    const descriptionId = useId();
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={clsx("sm:max-w-[425px]", dialogContentClassName)}>
+            <DialogContent aria-describedby={description ? descriptionId : undefined} className={clsx("sm:max-w-[425px]", dialogContentClassName)}>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
-                    {description ? <DialogDescription>
+                    {description ? <DialogDescription id={descriptionId}>
                         {description}
                     </DialogDescription> : null}
                 </DialogHeader>

@@ -1,6 +1,8 @@
 import Charities from "../../common/IconComponents/pages_icons/Charities"
 import Profile from "../../common/IconComponents/pages_icons/Profile"
 import AccessControl from "../../common/IconComponents/pages_icons/AccessControl"
+import EmailIcon from "../../common/IconComponents/EmailIcon"
+import EmailIconBlack from "@/components/common/IconComponents/EmailIconBlack"
 
 export type PageType = 'menu' | 'admin'
 
@@ -29,7 +31,7 @@ export const PAGES: Page[] = [
     {
         name: 'profile',
         path: "/profile",
-        heading: 'My Profile',
+        heading: 'Profile',
         icon: <Profile />,
         type: 'menu',
         show: true
@@ -48,6 +50,14 @@ export const PAGES: Page[] = [
         heading: 'Access Control',
         icon: <AccessControl />,
         type: 'admin',
+        show: true
+    },
+    {
+        name: 'email-logs',
+        path: "/email-logs",
+        heading: 'Email Logs',
+        icon: <EmailIconBlack />,
+        type: 'menu',
         show: true
     },
 ]
