@@ -60,4 +60,12 @@ export const PAGES: Page[] = [
         type: 'menu',
         show: true
     },
+    {
+        name: 'create-charity',
+        path: '/create-charity',
+        heading: 'Create New Charity',
+        icon: <EmailIcon />,
+        type: 'menu',
+        show: false,
+    },
 ]

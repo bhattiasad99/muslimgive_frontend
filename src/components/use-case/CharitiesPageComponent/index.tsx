@@ -3,6 +3,7 @@ import AddIcon from '@/components/common/IconComponents/AddIcon'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useMemo, useState } from 'react'
+import LinkComponent from '@/components/common/LinkComponent'
 import KanbanTabularToggle, { ViewsType } from '../KanbanTabularToggle'
 import EmailIcon from '@/components/common/IconComponents/EmailIcon'
 import KanbanView, { SingleCharityType } from './kanban/KanbanView'
@@ -66,9 +67,12 @@ const CharitiesPageComponent = () => {
                     />
                 </div>
                 <div className="flex gap-4 items-center">
-                    <Button size={"icon"} variant={"primary"}>
-                        <AddIcon />
-                    </Button>
+                    <LinkComponent to="/create-charity">
+                        <Button variant={"primary"} className="flex items-center gap-2">
+                            <AddIcon />
+                            Create New Charity
+                        </Button>
+                    </LinkComponent>
                     <Button variant={"primary"} onClick={() => setOpenBulkEmailModal(true)}>
                         <EmailIcon />
                         Send Bulk Email
@@ -78,7 +82,7 @@ const CharitiesPageComponent = () => {
             </div>
             <div className="">
                 {view === "kanban" ? <KanbanView charities={searchedRows} /> : null}
-                {view === "tabular" ? <TabularView /> : null}
+                {view === "tabular" ? <TabularView charities={searchedRows} /> : null}
             </div>
             <ModelComponentWithExternalControl
                 dialogContentClassName='max-w-[90vw] md:min-w-[800px] max-h-[90vh] overflow-y-auto'

@@ -71,7 +71,7 @@ export function TableComponent<TData, TValue = unknown>({
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id}>
+                                <TableHead key={header.id} className="text-sm text-muted-foreground bg-white/0 px-4 py-3">
                                     {header.isPlaceholder
                                         ? null
                                         : flexRender(

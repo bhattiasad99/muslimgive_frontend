@@ -168,17 +168,23 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
                 }}
             />
 
-            <div className="flex justify-end gap-2">
-                <Button type="button" variant={'outline'} onClick={onClose}>
-                    Cancel
-                </Button>
-                <Button
-                    type="submit"
-                    variant={'primary'}
-                    disabled={selectedCharities.length === 0}
-                >
-                    {selectedCharities.length === 0 ? <>Select Charities to Send Email</> : <>Send Email to {selectedCharities.length} Charities</>}
-                </Button>
+            <div className="mt-2">
+                <div className="text-sm text-muted-foreground mb-2">{selectedCharities.length === 0 ? 'No Charity Selected' : `${selectedCharities.length} Charity Selected`}</div>
+
+                <div className="flex flex-col gap-2 w-full">
+                    <Button
+                        type="submit"
+                        variant={'primary'}
+                        disabled={selectedCharities.length === 0}
+                        className="w-full"
+                    >
+                        {selectedCharities.length === 0 ? <>Select Charities to Send Email</> : <>Send Email to {selectedCharities.length} Charity</>}
+                    </Button>
+
+                    <Button type="button" variant={'outline'} onClick={onClose} className="w-full">
+                        Back to charities
+                    </Button>
+                </div>
             </div>
         </form>
     )

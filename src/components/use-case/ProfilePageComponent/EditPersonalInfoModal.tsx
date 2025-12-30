@@ -1,10 +1,11 @@
 'use client'
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState, useEffect, useMemo } from 'react'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import DatePicker from '@/components/common/ControlledDatePickerComponent'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 
 type PersonalInfo = {
     firstName: string
@@ -21,10 +22,17 @@ type IProps = {
 }
 
 const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave }) => {
-    const [firstName, setFirstName] = useState(initialData.firstName)
-    const [lastName, setLastName] = useState(initialData.lastName)
-    const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(initialData.dateOfBirth)
-    const [phoneNumber, setPhoneNumber] = useState(initialData.phoneNumber)
+    const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
+    const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
+    const [phoneNumber, setPhoneNumber] = useState('')
+    const [showConfirm, setShowConfirm] = useState(false)
+    const [capturedInitial, setCapturedInitial] = useState<PersonalInfo>({
+        firstName: '',
+        lastName: '',
+        dateOfBirth: undefined,
+        phoneNumber: ''
+    })
 
     useEffect(() => {
         if (open) {
@@ -32,10 +40,24 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
             setLastName(initialData.lastName)
             setDateOfBirth(initialData.dateOfBirth)
             setPhoneNumber(initialData.phoneNumber)
+            setCapturedInitial({ ...initialData })
         }
-    }, [open, initialData])
+    }, [open])
+
+    const hasChanges = useMemo(() => {
+        return (
+            firstName !== capturedInitial.firstName ||
+            lastName !== capturedInitial.lastName ||
+            dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime() ||
+            phoneNumber !== capturedInitial.phoneNumber
+        )
+    }, [firstName, lastName, dateOfBirth, phoneNumber, capturedInitial])
 
     const handleUpdate = () => {
+        setShowConfirm(true)
+    }
+
+    const confirmUpdate = () => {
         onSave({
             firstName,
             lastName,
@@ -46,10 +68,10 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
     }
 
     const handleCancel = () => {
-        setFirstName(initialData.firstName)
-        setLastName(initialData.lastName)
-        setDateOfBirth(initialData.dateOfBirth)
-        setPhoneNumber(initialData.phoneNumber)
+        setFirstName(capturedInitial.firstName)
+        setLastName(capturedInitial.lastName)
+        setDateOfBirth(capturedInitial.dateOfBirth)
+        setPhoneNumber(capturedInitial.phoneNumber)
         onOpenChange(false)
     }
 
@@ -98,6 +120,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                         variant="primary" 
                         className="w-full"
                         onClick={handleUpdate}
+                        disabled={!hasChanges}
                     >
                         Update Profile
                     </Button>
@@ -110,6 +133,15 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                     </Button>
                 </div>
             </div>
+
+            <ConfirmActionModal
+                open={showConfirm}
+                onOpenChange={setShowConfirm}
+                onConfirm={confirmUpdate}
+                title="Confirm Update"
+                description="Are you sure you want to update your personal information?"
+                confirmText="Update Profile"
+            />
         </ModelComponentWithExternalControl>
     )
 }

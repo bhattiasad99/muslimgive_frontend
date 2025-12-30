@@ -67,7 +67,7 @@ const ManageRoles: FC = () => {
           <TableRow>
             <TableHead>Role Name</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="w-[160px] text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -81,8 +81,8 @@ const ManageRoles: FC = () => {
               <TableCell className="py-4">
                 <Badge variant="outline" className="px-3 py-1 bg-gray-50">{r.description}</Badge>
               </TableCell>
-              <TableCell className="py-4">
-                <div className="flex items-center gap-2 justify-end">
+              <TableCell className="py-4 w-[160px]">
+                <div className="flex items-center gap-2 justify-center">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(r)}>
