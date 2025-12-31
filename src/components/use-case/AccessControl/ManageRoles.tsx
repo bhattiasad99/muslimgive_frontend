@@ -1,5 +1,5 @@
 'use client'
-import React, { FC, useState } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,11 +8,14 @@ import AddRoleModal from './AddRoleModal'
 import EditRoleModal from './EditRoleModal'
 import ManagePermissionsModal from './ManagePermissionsModal'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { _get, _post, _patch } from '@/app/lib/methods'
+import { toast } from 'sonner'
 
 type Role = {
   id: string
   name: string
   description?: string
+  permissionIds?: string[]
 }
 
 type Permission = {
@@ -22,35 +25,143 @@ type Permission = {
   enabled?: boolean
 }
 
-const sampleRoles: Role[] = [
-  { id: 'r1', name: 'Project Manager', description: 'Pending Eligibility Review' },
-  { id: 'r2', name: 'Operations Manager', description: 'Unassigned' },
-]
+const sampleRoles: Role[] = []
 
-const defaultPermissions = [
-  { id: 'p1', name: 'Create another user', enabled: true },
-  { id: 'p2', name: 'Edit Role Details', enabled: true },
-  { id: 'p3', name: 'Manage roles of user', enabled: true },
-]
+// will be populated from GET /roles/permissions
+const defaultPermissions: Permission[] = []
 
 const ManageRoles: FC = () => {
   const [roles, setRoles] = useState<Role[]>(sampleRoles)
+  const [permissionsList, setPermissionsList] = useState<Permission[]>(defaultPermissions)
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isManagePermOpen, setIsManagePermOpen] = useState(false)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const handleAdd = (data: { name: string; description?: string; permissions?: Permission[] }) => {
-    const newRole: Role & { permissions?: Permission[] } = { id: `r${Date.now()}`, name: data.name, description: data.description, permissions: data.permissions }
-    setRoles(prev => [newRole, ...prev])
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      try {
+        const r = await _get('/roles')
+        if (r.ok && r.payload?.data) {
+          // API shape: payload.data.data -> array
+          const apiRoles: any[] = Array.isArray(r.payload.data) ? r.payload.data : (Array.isArray(r.payload.data?.data) ? r.payload.data.data : [])
+          const mapped = apiRoles.map((ar: any) => ({
+            id: ar.id || ar._id || String(ar._id || ar.id),
+            name: ar.title || ar.name,
+            description: ar.description || '',
+            permissionIds: (ar.permissions || []).map((pp: any) => pp.permissionId || pp.id || pp)
+          }))
+          setRoles(mapped)
+        } else {
+          toast.error(r.message || 'Failed to load roles')
+        }
+
+        const p = await _get('/roles/permissions')
+        if (p.ok && p.payload?.data) {
+          const permsArr: any[] = Array.isArray(p.payload.data) ? p.payload.data : (Array.isArray(p.payload.data?.data) ? p.payload.data.data : [])
+          // normalize permissions into {id, name, module, enabled}
+          const mappedPerms = permsArr.map((pp: any) => ({ id: pp.id || pp.key || pp, name: pp.label || pp.name || pp, module: pp.module, enabled: false }))
+          setPermissionsList(mappedPerms)
+        }
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to load roles or permissions')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    load()
+  }, [])
+
+  const handleAdd = async (data: { name: string; description?: string; permissions?: Permission[] }) => {
+    try {
+      const body = {
+        title: data.name,
+        description: data.description,
+        permissions: (data.permissions || []).filter(p => p.enabled).map(p => p.id)
+      }
+      const res = await _post('/roles', body)
+      if (res.ok) {
+        // refresh roles from server to ensure consistent shape
+        const listRes = await _get('/roles')
+        if (listRes.ok && listRes.payload?.data) {
+          const apiRoles: any[] = Array.isArray(listRes.payload.data) ? listRes.payload.data : (Array.isArray(listRes.payload.data?.data) ? listRes.payload.data.data : [])
+          const mapped = apiRoles.map((ar: any) => ({
+            id: ar.id || ar._id || String(ar._id || ar.id),
+            name: ar.title || ar.name,
+            description: ar.description || '',
+            permissionIds: (ar.permissions || []).map((pp: any) => pp.permissionId || pp.id || pp)
+          }))
+          setRoles(mapped)
+        }
+        setIsAddOpen(false)
+        toast.success('Role created')
+      } else {
+        toast.error(res.message || 'Failed to create role')
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to create role')
+    }
   }
 
-  const handleEditSave = (data: { id: string; name: string; description: string }) => {
-    setRoles(prev => prev.map(r => r.id === data.id ? { ...r, name: data.name, description: data.description } : r))
+  const handleEditSave = async (data: { id: string; name: string; description: string }) => {
+    try {
+      const body = { title: data.name, description: data.description }
+      const res = await _patch(`/roles/${data.id}`, body)
+      if (res.ok) {
+        setRoles(prev => prev.map(r => r.id === data.id ? { ...r, name: data.name, description: data.description } : r))
+        setIsEditOpen(false)
+        toast.success('Role updated')
+      } else {
+        toast.error(res.message || 'Failed to update role')
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to update role')
+    }
   }
 
   const handleOpenEdit = (role: Role) => { setEditingRole(role); setIsEditOpen(true) }
   const handleOpenManagePerm = (role: Role) => { setEditingRole(role); setIsManagePermOpen(true) }
+
+  const handleSavePermissions = async (items: Permission[]) => {
+    if (!editingRole) return
+    try {
+      const currentIds = editingRole.permissionIds || []
+      const newEnabledIds = (items || []).filter(p => p.enabled).map(p => p.id)
+      const toAdd = newEnabledIds.filter(id => !currentIds.includes(id))
+      const toRemove = currentIds.filter(id => !newEnabledIds.includes(id))
+
+      if (toAdd.length === 0 && toRemove.length === 0) {
+        toast(`No permission changes to save`)
+        setIsManagePermOpen(false)
+        return
+      }
+
+      const body = { add: toAdd, remove: toRemove }
+      const res = await _patch(`/roles/${editingRole.id}/permissions`, body)
+      if (res.ok && res.payload?.data) {
+        // backend returns updated role in payload.data.role (or similar); try to read it
+        const returnedRole = res.payload.data?.role || null
+        const updatedPermissionIds = returnedRole ? (returnedRole.permissions || []).map((pp: any) => pp.permissionId || pp.id || pp) : newEnabledIds
+        // update local role permission ids so UI reflects saved state
+        setRoles(prev => prev.map(r => r.id === editingRole.id ? { ...r, permissionIds: updatedPermissionIds } : r))
+        // update editingRole in case modal remains open or reused
+        setEditingRole(prev => prev ? { ...prev, permissionIds: updatedPermissionIds } : prev)
+        setIsManagePermOpen(false)
+        toast.success('Permissions updated')
+      } else {
+        toast.error(res.message || 'Failed to update permissions')
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to update permissions')
+    }
+  }
 
   return (
     <div className="p-4 bg-white rounded-lg border">
@@ -111,9 +222,15 @@ const ManageRoles: FC = () => {
         </TableBody>
       </Table>
 
-      <AddRoleModal open={isAddOpen} onOpenChange={setIsAddOpen} onSave={handleAdd} permissions={defaultPermissions} />
-      {editingRole && <EditRoleModal open={isEditOpen} onOpenChange={setIsEditOpen} role={{...editingRole, description: editingRole.description || ''}} onSave={handleEditSave} permissions={defaultPermissions} />}
-      <ManagePermissionsModal open={isManagePermOpen} onOpenChange={setIsManagePermOpen} permissions={defaultPermissions} onSave={(p)=>{console.log('saved perms',p)}} />
+      <AddRoleModal open={isAddOpen} onOpenChange={setIsAddOpen} onSave={handleAdd} permissions={permissionsList} />
+      {editingRole && <EditRoleModal open={isEditOpen} onOpenChange={setIsEditOpen} role={{...editingRole, description: editingRole.description || ''}} onSave={handleEditSave} permissions={permissionsList} />}
+      {/* Pass permissions with enabled flags for the selected role so toggles reflect current state */}
+      <ManagePermissionsModal
+        open={isManagePermOpen}
+        onOpenChange={setIsManagePermOpen}
+        permissions={editingRole ? permissionsList.map(p => ({ ...p, enabled: !!editingRole.permissionIds?.includes(p.id) })) : permissionsList}
+        onSave={handleSavePermissions}
+      />
     </div>
   )
 }

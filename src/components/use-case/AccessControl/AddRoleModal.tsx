@@ -28,6 +28,7 @@ const AddRoleModal: FC<IProps> = ({ open, onOpenChange, onSave, initial = {}, pe
   const [description, setDescription] = useState('')
   const [error, setError] = useState('')
   const [items, setItems] = useState<Permission[]>([])
+  const [permSearch, setPermSearch] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
   const [initialState, setInitialState] = useState({ name: '', description: '', permissions: [] as Permission[] })
 
@@ -105,18 +106,22 @@ const AddRoleModal: FC<IProps> = ({ open, onOpenChange, onSave, initial = {}, pe
 
           <div>
             <h3 className="text-xl font-semibold mt-4">Assign Permissions</h3>
-            <div className="mt-2">
-              <Input placeholder="Search Permissions by Name or Module" />
-            </div>
+              <div className="mt-2">
+                <Input value={permSearch} onChange={(e) => setPermSearch((e.target as HTMLInputElement).value)} placeholder="Search Permissions by Name or Module" />
+              </div>
 
-            <div className="flex flex-col gap-3 mt-3">
-              {items.map(p => (
-                <div key={p.id} className="flex items-center justify-between">
-                  <div>{p.name}</div>
-                  <Switch checked={!!p.enabled} onCheckedChange={() => toggle(p.id)} />
-                </div>
-              ))}
-            </div>
+              <div className="flex flex-col gap-3 mt-3 max-h-64 overflow-y-auto pr-2">
+                {(items.filter(p => {
+                  if (!permSearch) return true
+                  const s = permSearch.toLowerCase()
+                  return String(p.name || '').toLowerCase().includes(s) || String(p.module || '').toLowerCase().includes(s)
+                })).map(p => (
+                  <div key={p.id} className="flex items-center justify-between">
+                    <div>{p.name}</div>
+                    <Switch checked={!!p.enabled} onCheckedChange={() => toggle(p.id)} />
+                  </div>
+                ))}
+              </div>
 
             <div className="mt-4">
               <Button variant="primary" className="w-full" onClick={handleSave} disabled={!hasChanges}>Save Role</Button>

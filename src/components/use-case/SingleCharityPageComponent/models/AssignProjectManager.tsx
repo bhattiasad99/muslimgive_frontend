@@ -4,13 +4,9 @@ import { Label } from "@/components/ui/label"
 import { TypographyComponent } from "@/components/common/TypographyComponent"
 import { Button } from "@/components/ui/button"
 import AvatarComponent from "@/components/common/AvatarComponent"
-
-const projectManagers: AutoCompleteOption[] = [
-    { value: "fatima-ali", label: "Fatima Ali", hint: "fatima.ali@muslimgive.org" },
-    { value: "imran-khan", label: "Imran Khan", hint: "imran.khan@muslimgive.org" },
-    { value: "aisha-yusuf", label: "Aisha Yusuf", hint: "aisha.yusuf@muslimgive.org" },
-    { value: "hamza-ahmed", label: "Hamza Ahmed", hint: "hamza.ahmed@muslimgive.org" },
-]
+import { listUsersAction } from "@/app/actions/users"
+import { toast } from "sonner"
+import { useDebounce } from "@/hooks/useDebounce"
 
 type IProps = {
     onSelection: (id: string) => void;
@@ -19,25 +15,63 @@ type IProps = {
 
 const AssignProjectManager: React.FC<IProps> = ({ onSelection, onCancel }) => {
     const [selectedManager, setSelectedManager] = React.useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = React.useState("")
+    const debouncedSearch = useDebounce(searchQuery, 300)
+    const [options, setOptions] = React.useState<AutoCompleteOption[]>([])
+    const [loading, setLoading] = React.useState(false)
+
+    React.useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true)
+            try {
+                // Fetching all users or filtering by search if provided
+                // Ideally, backend should support role filtering like 'project-manager'
+                const res = await listUsersAction({
+                    search: debouncedSearch,
+                    limit: 50
+                })
+
+                if (res.ok && Array.isArray(res.payload?.data)) {
+                    const users = res.payload.data;
+                    const managerOptions: AutoCompleteOption[] = users.map((u: any) => ({
+                        value: u.id,
+                        label: `${u.firstName} ${u.lastName}`,
+                        hint: u.email
+                    }))
+                    setOptions(managerOptions)
+                }
+            } catch (error) {
+                console.error("Failed to fetch users", error)
+                toast.error("Failed to load project managers")
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchUsers()
+    }, [debouncedSearch])
+
+    const selectedUserOption = options.find(opt => opt.value === selectedManager)
 
     return (
         <div className="max-w-md flex flex-col gap-4">
             <Label className="text-sm font-medium">Assign project manager</Label>
             <AutoCompleteComponent
-                options={projectManagers}
+                options={options}
                 value={selectedManager}
                 onValueChange={setSelectedManager}
-                placeholder="Search managers..."
+                placeholder={loading ? "Loading..." : "Search managers..."}
                 inputPlaceholder="Type a name or email"
                 emptyMessage="No managers found."
+                onSearchChange={setSearchQuery}
             />
-            {selectedManager ? <>
+            {selectedManager && selectedUserOption ? <>
                 <div className="flex items-center gap-3 p-3 border rounded-md">
-                    <AvatarComponent fallback="AB" sizePx={40} className="w-10 h-10 mr-3" />
+                    <AvatarComponent fallback={selectedUserOption.label.charAt(0)} sizePx={40} className="w-10 h-10 mr-3" />
                     <div className="flex flex-col">
-                        <TypographyComponent className="text-gray-900 font-medium">{projectManagers.find(pm => pm.value === selectedManager)?.label}</TypographyComponent>
+                        <TypographyComponent className="text-gray-900 font-medium">{selectedUserOption.label}</TypographyComponent>
                         <TypographyComponent className="text-gray-600 text-xs">
-                            {projectManagers.find(pm => pm.value === selectedManager)?.hint}
+                            {selectedUserOption.hint}
                         </TypographyComponent>
                     </div>
                 </div>

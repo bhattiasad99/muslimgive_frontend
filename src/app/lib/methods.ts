@@ -3,7 +3,15 @@ import { ResponseType, serverUrl } from "./definitions";
 
 export const _get = async (request: string, requireAuth = true): Promise<ResponseType> => {
     const { accessToken } = await getCookies();
-    const url = new URL(request, serverUrl).toString()
+    // Build URL safely: if `serverUrl` is provided use it as base, otherwise
+    // allow relative or absolute `request` values (e.g. '/roles' or full URL).
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        // Fallback: if URL constructor fails, treat request as-is
+        url = request
+    }
 
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (requireAuth) {
@@ -41,7 +49,12 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
 }
 export const _post = async (request: string, body: any, requireAuth = true): Promise<ResponseType> => {
     const { accessToken } = await getCookies();
-    const url = new URL(request, serverUrl).toString()
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
 
     const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
     if (requireAuth) {
@@ -81,7 +94,12 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
 }
 export const _patch = async <K = any>(request: string, body: K, requireAuth = true): Promise<ResponseType> => {
     const { accessToken } = await getCookies();
-    const url = new URL(request, serverUrl).toString()
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
 
     const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
     if (requireAuth) {
@@ -121,7 +139,12 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
 }
 export const _delete = async (request: string, requireAuth = true): Promise<ResponseType> => {
     const { accessToken } = await getCookies();
-    const url = new URL(request, serverUrl).toString()
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
 
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (requireAuth) {

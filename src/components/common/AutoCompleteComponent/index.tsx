@@ -38,6 +38,7 @@ export type AutoCompleteComponentProps = {
     triggerClassName?: string
     contentClassName?: string
     inputClassName?: string
+    onSearchChange?: (value: string) => void
 }
 
 export function AutoCompleteComponent({
@@ -53,6 +54,7 @@ export function AutoCompleteComponent({
     triggerClassName,
     contentClassName,
     inputClassName,
+    onSearchChange,
 }: AutoCompleteComponentProps) {
     const [open, setOpen] = React.useState(false)
     const [internalValue, setInternalValue] = React.useState<string | null>(defaultValue)
@@ -87,11 +89,13 @@ export function AutoCompleteComponent({
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className={cn("w-full p-0", contentClassName)}>
-                    <Command>
+                    <Command shouldFilter={!onSearchChange}>
+                        {/* If onSearchChange is provided, we disable default client-side filtering with shouldFilter={false} */}
                         <CommandInput
                             placeholder={inputPlaceholder}
                             className={cn("h-9", inputClassName)}
                             disabled={disabled}
+                            onValueChange={onSearchChange}
                         />
                         <CommandList>
                             <CommandEmpty>{emptyMessage}</CommandEmpty>

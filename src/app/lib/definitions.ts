@@ -56,7 +56,8 @@ export type SetPasswordFormState =
     }
     | undefined
 
-export const serverUrl = process.env.SERVER!
+// Use NEXT_PUBLIC_SERVER for client-side access in Next.js; fall back to SERVER if available.
+export const serverUrl = process.env.NEXT_PUBLIC_SERVER || process.env.SERVER || ''
 
 export const AUTH_COOKIE_LABEL = 'Authentication';
 export const REFRESH_COOKIE_LABEL = 'Refresh'

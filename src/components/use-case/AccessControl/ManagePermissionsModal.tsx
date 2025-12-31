@@ -23,6 +23,7 @@ type IProps = {
 
 const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = [], onSave }) => {
   const [items, setItems] = useState<Permission[]>([])
+  const [permSearch, setPermSearch] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
   const [initialPermissions, setInitialPermissions] = useState<Permission[]>([])
 
@@ -65,9 +66,13 @@ const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = 
         dialogContentClassName="sm:max-w-[700px]"
       >
         <div className="flex flex-col gap-4">
-          <Input placeholder="Search Permissions by Name or Module" />
-          <div className="flex flex-col gap-3">
-            {items.map(p => (
+          <Input value={permSearch} onChange={(e) => setPermSearch((e.target as HTMLInputElement).value)} placeholder="Search Permissions by Name or Module" />
+          <div className="flex flex-col gap-3 max-h-64 overflow-y-auto pr-2">
+            {items.filter(p => {
+              if (!permSearch) return true
+              const s = permSearch.toLowerCase()
+              return String(p.name || '').toLowerCase().includes(s) || String(p.module || '').toLowerCase().includes(s)
+            }).map(p => (
               <div key={p.id} className="flex items-center justify-between">
                 <div>{p.name}</div>
                 <Switch checked={!!p.enabled} onCheckedChange={() => toggle(p.id)} />

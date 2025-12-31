@@ -21,7 +21,7 @@ import { toast } from 'sonner'
 import { capitalizeWords } from '@/lib/helpers'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
 import LinkComponent from '@/components/common/LinkComponent'
-import { deleteCharityAction } from '@/app/actions/charities'
+import { assignRolesToCharityAction, deleteCharityAction } from '@/app/actions/charities'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { Trash2 } from 'lucide-react'
 
@@ -194,27 +194,34 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 onOpenChange={handleCloseModel}
                 open={modelState.nameOfModel === 'assign-project-manager'}
             >
-                <AssignProjectManager onSelection={() => {
-                    toast.success('Project manager assigned successfully!', {
-                        duration: 2000,
-                        // actionButtonStyle: {
-                        //     backgroundColor: '#2563EB',
-                        //     color: '#FFFFFF',
-                        // },
-                        // action: {
-                        //     label: 'Go to Charities',
-                        //     onClick: () => {
-                        //         console.log("clicked")
-                        //     }
-                        // }
-                    });
-                    router.push('/charities');
-                    handleCloseModel();
+                <AssignProjectManager onSelection={async (userId) => {
+                    // Call the API to assign the project manager
+                    try {
+                        const payload = [{
+                            userId: userId,
+                            set: ['project-manager'] // We 'set' to ensure they have this role. Could also use 'add'.
+                        }];
+
+                        // We need to import assignRolesToCharityAction at top of file
+                        const res = await assignRolesToCharityAction(charityId, payload);
+
+                        if (res.ok) {
+                            toast.success('Project manager assigned successfully!');
+                            router.refresh(); // Refresh page to show updated team
+                            handleCloseModel();
+                        } else {
+                            toast.error(res.message || "Failed to assign project manager");
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        toast.error("An unexpected error occurred");
+                    }
 
                 }} onCancel={() => {
                     handleCloseModel()
                 }} />
             </ModelComponentWithExternalControl>
+
             <ModelComponentWithExternalControl title="Eligibility Review" description={capitalizeWords(charityTitle)}
                 onOpenChange={handleCloseModel}
                 open={modelState.nameOfModel === 'eligibility'}

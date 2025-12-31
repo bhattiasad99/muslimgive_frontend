@@ -107,3 +107,18 @@ export const performEligibilityTestAction = async (charityId: string, payload: E
 export const deleteCharityAction = async (id: string): Promise<ResponseType> => {
     return await _delete(`/charities/${id}`);
 }
+
+/**
+ * PATCH /charities/{charityId}/assignments
+ * Assigns or removes roles for users in a charity
+ */
+export type AssignRolePayload = {
+    userId: string;
+    add?: string[];
+    remove?: string[];
+}[]
+
+export const assignRolesToCharityAction = async (charityId: string, payload: AssignRolePayload): Promise<ResponseType> => {
+    return await _patch(`/charities/${charityId}/assignments`, payload);
+}
+
