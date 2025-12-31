@@ -7,11 +7,12 @@ type IProps = {
     alt: string,
     className?: string,
     width: number,
-    height: number
+    height: number,
+    priority?: boolean
 }
 
-export const ImageComponent: FC<IProps> = ({ source, alt, className, width, height }) => {
+export const ImageComponent: FC<IProps> = ({ source, alt, className, width, height, priority }) => {
     return (
-        <Image src={source} alt={alt} className={clsx(className)} width={width} height={height} />
+        <Image src={source} alt={alt} className={clsx(className)} width={width} height={height} priority={priority} />
     )
 }

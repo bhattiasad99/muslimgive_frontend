@@ -8,63 +8,232 @@ import KanbanTabularToggle, { ViewsType } from '../KanbanTabularToggle'
 import EmailIcon from '@/components/common/IconComponents/EmailIcon'
 import KanbanView, { SingleCharityType } from './kanban/KanbanView'
 import TabularView from './tabular/TabularView'
-import { DUMMY_CHARITIES } from '@/DUMMY_CHARITIES'
-import Fuse from 'fuse.js'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import BulkEmailModal from './BulkEmailModal'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+
+import { listCharitiesAction } from '@/app/actions/charities'
+import { toast } from 'sonner'
+
+import DashboardSkeleton from '../DashboardSkeleton'
+
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import FilterIcon from '@/components/common/IconComponents/FilterIcon'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+
+const STATUS_KEYS = [
+    { id: 'pending-eligibility', label: 'Pending Eligibility Review' },
+    { id: 'unassigned', label: 'Unassigned' },
+    { id: 'open-to-review', label: 'Open To Review' },
+    { id: 'pending-admin-review', label: 'Pending Admin Review' },
+    { id: 'approved', label: 'Approved' },
+    { id: 'ineligible', label: 'Ineligible' },
+]
+
+const CATEGORY_KEYS = [
+    { id: 'international-relief', label: 'International Relief' },
+    { id: 'local-relief', label: 'Local Relief' },
+    { id: 'education', label: 'Education' },
+    { id: 'masjid-community-projects', label: 'Masjid & Community Projects' },
+    { id: 'health-medical-aid', label: 'Health & Medical Aid' },
+    { id: 'environment-sustainability', label: 'Environment & Sustainability' },
+    { id: 'advocacy-human-rights', label: 'Advocacy & Human Rights' },
+]
 
 const CharitiesPageComponent = () => {
     const [queryInput, setQueryInput] = useState('')
     const [searchQuery, setSearchQuery] = useState('');
     const [view, setView] = useState<ViewsType>('kanban');
     const [openBulkEmailModal, setOpenBulkEmailModal] = useState(false)
-    const charities = DUMMY_CHARITIES
+    const [charities, setCharities] = useState<SingleCharityType[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+
+    // Filter states
+    const [statusFilters, setStatusFilters] = useState<string[]>([])
+    const [categoryFilters, setCategoryFilters] = useState<string[]>([])
+    const [zakatFilter, setZakatFilter] = useState<boolean | undefined>(undefined)
+    const [islamicFilter, setIslamicFilter] = useState<boolean | undefined>(undefined)
+    const [openFilterPopover, setOpenFilterPopover] = useState(false)
+
+    // Sort states
+    const [sortBy, setSortBy] = useState<'createdAt' | 'name' | 'updatedAt'>('createdAt')
+    const [order, setOrder] = useState<'ASC' | 'DESC'>('DESC')
+
+    const fetchCharities = async (search: string, filters: any = {}) => {
+        setIsLoading(true)
+        try {
+            const res = await listCharitiesAction({
+                search,
+                status: filters.status,
+                categories: filters.categories,
+                doesCharityGiveZakat: filters.zakat,
+                isIslamic: filters.islamic,
+                sortBy: filters.sortBy,
+                order: filters.order,
+                limit: 100 // High limit for Kanban
+            })
+
+            if (res.ok && res.payload?.data?.data?.charities) {
+                // Map backend data to SingleCharityType
+                const rawCharities = res.payload.data.data.charities;
+                const mapped: SingleCharityType[] = Array.isArray(rawCharities) ? rawCharities.map((c: any) => ({
+                    id: c.id,
+                    charityTitle: c.name,
+                    charityOwnerName: c.ownerName || "-",
+                    charityDesc: c.description || "",
+                    members: (c.assignments || []).map((a: any) => ({
+                        id: a.user?.id,
+                        name: `${a.user?.firstName} ${a.user?.lastName}`,
+                        profilePicture: null,
+                        role: a.roles?.[0]?.slug || 'project-manager'
+                    })),
+                    comments: c.commentsCount || 0,
+                    auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
+                    status: c.status || 'unassigned',
+                    category: c.category || 'education',
+                    country: c.country,
+                    website: c.charityCommissionWebsiteUrl,
+                    isThisMuslimCharity: c.isIslamic,
+                    doTheyPayZakat: c.doesCharityGiveZakat,
+                    totalDuration: c.startDate ? `${Math.max(1, Math.floor((Date.now() - new Date(c.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365)))} years` : undefined
+                })) : [];
+                setCharities(mapped)
+            } else {
+                toast.error(res.message || "Failed to fetch charities")
+            }
+
+
+        } catch (error) {
+            console.error(error)
+            toast.error("An error occurred while fetching charities")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     useEffect(() => {
         const handler = setTimeout(() => {
             setSearchQuery(queryInput)
+            fetchCharities(queryInput, {
+                status: statusFilters,
+                categories: categoryFilters,
+                zakat: zakatFilter,
+                islamic: islamicFilter,
+                sortBy,
+                order
+            })
         }, 800)
         return () => clearTimeout(handler)
-    }, [queryInput])
+    }, [queryInput, statusFilters, categoryFilters, zakatFilter, islamicFilter, sortBy, order])
 
-    const fuse = useMemo(() => {
-        return new Fuse(DUMMY_CHARITIES, {
-            includeScore: false,
-            threshold: 0.4,
-            ignoreLocation: true,
-            minMatchCharLength: 1,
-            findAllMatches: true,
-            keys: [
-                {
-                    name: 'charityTitle',
-                    getFn: (u: SingleCharityType) => `${u.charityTitle}`.trim(),
-                },
-                // You can add more fields if needed:
-                // 'email', 'location', 'postalCode'
-                {
-                    name: 'charityOwnerName',
-                    getFn: (u: SingleCharityType) => `${u.charityOwnerName}`.trim(),
-                }
-            ],
-        })
-    }, [DUMMY_CHARITIES])
+    // Fuzzy search is now server-side, but we keep the searchedRows variable name to avoid breaking JSX
+    const searchedRows = charities
 
-    // Apply fuzzy search
-    const searchedRows = useMemo(() => {
-        const q = searchQuery.trim()
-        if (!q) return charities
-        return fuse.search(q).map((r) => r.item)
-    }, [searchQuery, fuse, DUMMY_CHARITIES])
 
     return (
         <div className='flex flex-col gap-5'>
             <div className="flex justify-between items-center gap-5">
-                <div className="w-full">
+                <div className="w-full flex gap-4">
+                    <Popover open={openFilterPopover} onOpenChange={setOpenFilterPopover}>
+                        <PopoverTrigger asChild>
+                            <Button size="icon" variant="secondary">
+                                <FilterIcon />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-[320px] p-4 max-h-[80vh] overflow-y-auto">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold">Filters</span>
+                                    <Button variant="ghost" size="sm" className="h-auto p-0 text-blue-600" onClick={() => {
+                                        setStatusFilters([])
+                                        setCategoryFilters([])
+                                        setZakatFilter(undefined)
+                                        setIslamicFilter(undefined)
+                                    }}>Clear all</Button>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <span className="text-[10px] text-[#666E76] uppercase font-bold">Eligibility</span>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="islamic-filter" className="text-sm">Is Islamic Charity</Label>
+                                        <Switch
+                                            id="islamic-filter"
+                                            checked={islamicFilter === true}
+                                            onCheckedChange={(checked) => setIslamicFilter(checked ? true : undefined)}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="zakat-filter" className="text-sm">Gives Zakat</Label>
+                                        <Switch
+                                            id="zakat-filter"
+                                            checked={zakatFilter === true}
+                                            onCheckedChange={(checked) => setZakatFilter(checked ? true : undefined)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <span className="text-[10px] text-[#666E76] uppercase font-bold">Status</span>
+                                    {STATUS_KEYS.map((s) => (
+                                        <div key={s.id} className="flex items-center justify-between">
+                                            <Label htmlFor={`status-${s.id}`} className="text-sm">{s.label}</Label>
+                                            <Switch
+                                                id={`status-${s.id}`}
+                                                checked={statusFilters.includes(s.id)}
+                                                onCheckedChange={(checked) => {
+                                                    setStatusFilters(prev => checked ? [...prev, s.id] : prev.filter(x => x !== s.id))
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <span className="text-[10px] text-[#666E76] uppercase font-bold">Category</span>
+                                    {CATEGORY_KEYS.map((c) => (
+                                        <div key={c.id} className="flex items-center justify-between">
+                                            <Label htmlFor={`cat-${c.id}`} className="text-sm">{c.label}</Label>
+                                            <Switch
+                                                id={`cat-${c.id}`}
+                                                checked={categoryFilters.includes(c.id)}
+                                                onCheckedChange={(checked) => {
+                                                    setCategoryFilters(prev => checked ? [...prev, c.id] : prev.filter(x => x !== c.id))
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                     <ControlledSearchBarComponent setQuery={(query: string) => {
                         setQueryInput(query)
                     }}
                         query={queryInput}
                         placeholder="Search Charities by Title or Charity Owner's Name"
                     />
+                    <div className="flex gap-2 items-center ml-auto">
+                        <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                            <SelectTrigger className="w-[140px] h-9">
+                                <SelectValue placeholder="Sort By" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="createdAt">Created At</SelectItem>
+                                <SelectItem value="name">Name</SelectItem>
+                                <SelectItem value="updatedAt">Updated At</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-9 w-9"
+                            onClick={() => setOrder(order === 'ASC' ? 'DESC' : 'ASC')}
+                        >
+                            {order === 'ASC' ? "↑" : "↓"}
+                        </Button>
+                    </div>
                 </div>
                 <div className="flex gap-4 items-center">
                     <LinkComponent to="/create-charity">
@@ -81,8 +250,14 @@ const CharitiesPageComponent = () => {
                 </div>
             </div>
             <div className="">
-                {view === "kanban" ? <KanbanView charities={searchedRows} /> : null}
-                {view === "tabular" ? <TabularView charities={searchedRows} /> : null}
+                {isLoading ? (
+                    <DashboardSkeleton />
+                ) : (
+                    <>
+                        {view === "kanban" ? <KanbanView charities={searchedRows} /> : null}
+                        {view === "tabular" ? <TabularView charities={searchedRows} /> : null}
+                    </>
+                )}
             </div>
             <ModelComponentWithExternalControl
                 dialogContentClassName='max-w-[90vw] md:min-w-[800px] max-h-[90vh] overflow-y-auto'
@@ -92,10 +267,11 @@ const CharitiesPageComponent = () => {
                 description='Email will be sent to the charities visible in your current view.'
             >
                 <BulkEmailModal
-                    charities={DUMMY_CHARITIES.map(({ members, charityDesc, ...rest }) => rest)}
+                    charities={charities.map(({ members, charityDesc, ...rest }) => rest)}
                     onClose={() => setOpenBulkEmailModal(false)}
                 />
             </ModelComponentWithExternalControl>
+
         </div>
     )
 }

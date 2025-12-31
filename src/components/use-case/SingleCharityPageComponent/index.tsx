@@ -21,6 +21,9 @@ import { toast } from 'sonner'
 import { capitalizeWords } from '@/lib/helpers'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
 import LinkComponent from '@/components/common/LinkComponent'
+import { deleteCharityAction } from '@/app/actions/charities'
+import ConfirmActionModal from '@/components/common/ConfirmActionModal'
+import { Trash2 } from 'lucide-react'
 
 type IProps = SingleCharityType;
 
@@ -50,6 +53,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [isBackPending, startBackTransition] = useTransition()
     const [isTaskPending, startTaskTransition] = useTransition()
     const [pendingTaskId, setPendingTaskId] = useState<TaskIds | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     const handleOpenModel = (nameOfModel: TaskIds) => {
         setModelState(prevState => ({ ...prevState, nameOfModel }));
@@ -140,6 +145,12 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                         value: 'view-audit-status',
                                         label: <LinkComponent to={`/charities/${charityId}/audits`}><div className='flex gap-1 items-center cursor-pointer'><AuditStatus /><span>View Audit Status</span></div></LinkComponent>
                                     },
+                                    {
+                                        value: 'delete-charity',
+                                        label: <div className='flex gap-1 items-center text-red-600 cursor-pointer' onClick={() => setShowDeleteModal(true)}>
+                                            <Trash2 className="h-4 w-4" /><span>Delete Charity</span>
+                                        </div>
+                                    },
                                 ]}
                             />
                         </div>
@@ -212,8 +223,39 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 <EligibilityTest
                     charityTite={charityTitle}
                     charityId={charityId}
+                    onSave={() => {
+                        handleCloseModel()
+                        router.refresh()
+                    }}
+                    onCancel={handleCloseModel}
                 />
+
             </ModelComponentWithExternalControl>
+
+            <ConfirmActionModal
+                open={showDeleteModal}
+                onOpenChange={setShowDeleteModal}
+                title="Delete Charity"
+                description={`Are you sure you want to delete ${capitalizeWords(charityTitle)}? This action cannot be undone.`}
+                confirmText={isDeleting ? "Deleting..." : "Delete Charity"}
+                onConfirm={async () => {
+                    setIsDeleting(true)
+                    try {
+                        const res = await deleteCharityAction(charityId)
+                        if (res.ok) {
+                            toast.success("Charity deleted successfully")
+                            router.push('/charities')
+                        } else {
+                            toast.error(res.message || "Failed to delete charity")
+                        }
+                    } catch (error) {
+                        console.error(error)
+                        toast.error("An error occurred while deleting charity")
+                    } finally {
+                        setIsDeleting(false)
+                    }
+                }}
+            />
         </div>
     )
 }

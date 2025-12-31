@@ -1,17 +1,22 @@
 "use client"
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import ArrowIcon from '@/components/common/IconComponents/ArrowIcon'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { Button } from '@/components/ui/button'
 import LinkComponent from '@/components/common/LinkComponent'
 import SingleCharityDetails from '@/components/use-case/SingleCharityPageComponent/SingleCharityDetails'
+import { toast } from 'sonner'
+import { createCharityAction } from '@/app/actions/charities'
+
+import { CategoryEnum, SingleCharityType } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
 
 const PreviewCharityPage = () => {
     const searchParams = useSearchParams()
     const router = useRouter()
     const raw = searchParams.get('data')
+    const [isPublishing, setIsPublishing] = useState(false)
 
     const parsed = useMemo(() => {
         if (!raw) return null
@@ -23,7 +28,7 @@ const PreviewCharityPage = () => {
         }
     }, [raw])
 
-    const charity = useMemo(() => {
+    const charity = useMemo((): SingleCharityType | null => {
         if (!parsed) return null
         const start = parsed.startDate ? new Date(parsed.startDate) : null
         let totalDuration: string | undefined = undefined
@@ -38,9 +43,9 @@ const PreviewCharityPage = () => {
             charityDesc: parsed.description || '',
             members: [],
             comments: 0,
-            auditsCompleted: 0,
+            auditsCompleted: 0 as const,
             status: 'unassigned',
-            category: parsed.category || undefined,
+            category: (parsed.category || 'education') as keyof typeof CategoryEnum,
             country: undefined,
             totalDuration,
             website: parsed.website || undefined,
@@ -49,7 +54,7 @@ const PreviewCharityPage = () => {
         }
     }, [parsed])
 
-    if (!parsed) {
+    if (!parsed || !charity) {
         return (
             <div className="p-6">
                 <div className="mb-4 text-2xl font-bold italic text-gray-500">Preview Mode</div>
@@ -95,10 +100,32 @@ const PreviewCharityPage = () => {
             </div>
 
             <div className="flex items-center gap-4 mt-6">
-                <Button variant="primary" onClick={() => {
-                    // TODO: wire publish to backend
-                    console.log('Publish charity', parsed)
-                    router.push('/charities')
+                <Button variant="primary" loading={isPublishing} onClick={async () => {
+                    setIsPublishing(true)
+                    try {
+                        const payload = {
+                            name: parsed.name,
+                            isIslamic: Boolean(parsed.isIslamic),
+                            doesCharityGiveZakat: Boolean(parsed.paysZakat),
+                            description: parsed.description || "",
+                            charityCommissionWebsiteUrl: parsed.website,
+                            startDate: parsed.startDate ? new Date(parsed.startDate).toISOString().split('T')[0] : "",
+                            category: parsed.category,
+                        }
+
+                        const res = await createCharityAction(payload)
+                        if (res.ok) {
+                            toast.success("Charity published successfully!")
+                            router.push('/charities')
+                        } else {
+                            toast.error(res.message || "Failed to publish charity")
+                        }
+                    } catch (error) {
+                        console.error(error)
+                        toast.error("An unexpected error occurred")
+                    } finally {
+                        setIsPublishing(false)
+                    }
                 }}>Publish Charity</Button>
                 <Button variant="outline" onClick={() => router.push('/create-charity')}>Cancel</Button>
             </div>

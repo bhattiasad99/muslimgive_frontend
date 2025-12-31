@@ -28,8 +28,13 @@ const INITIAL_FORM_STATE: FormData = {
     startDate: null,
 }
 
+import { performEligibilityTestAction } from '@/app/actions/charities';
+import { toast } from 'sonner';
+
 const EligibilityTest: FC<IProps> = ({ charityTite, charityId, onSave, onCancel }) => {
     const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleUpdateFormData = (field: keyof FormData, value: FormData[keyof FormData]) => {
         setFormData(prevState => ({
             ...prevState,
@@ -44,8 +49,45 @@ const EligibilityTest: FC<IProps> = ({ charityTite, charityId, onSave, onCancel 
         return true;
     }
 
+    const handleSubmit = async () => {
+        if (!validation()) return;
+        setIsLoading(true);
+        try {
+            const payload = {
+                startDate: formData.startDate ? formData.startDate.toISOString().split('T')[0] : "",
+                doesCharityGiveZakat: formData.doesItPayZakat,
+                isIslamic: formData.isIslamicCharity,
+                category: formData.category!,
+            };
+
+            const res = await performEligibilityTestAction(charityId, payload);
+
+            // The backend returns a nested data object: res.payload.data.data
+            const updatedData = res.payload?.data?.data;
+            const newStatus = updatedData?.status;
+
+            if (res.ok) {
+                if (newStatus === 'ineligible') {
+                    toast.error("Charity marked as Ineligible based on the provided details.");
+                } else {
+                    toast.success(res.payload?.data?.message || "Eligibility test performed successfully");
+                }
+
+                if (onSave) onSave(charityId);
+            } else {
+                toast.error(res.message || "Failed to submit eligibility test");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("An unexpected error occurred");
+        } finally {
+            setIsLoading(false);
+        }
+
+    }
+
     return (
-        <form className='flex flex-col gap-4'>
+        <form className='flex flex-col gap-4' onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
             <TypographyComponent className='text-gray-500'>
                 Please answer the following questions regarding the {capitalizeWords(charityTite)}:
             </TypographyComponent>
@@ -90,13 +132,19 @@ const EligibilityTest: FC<IProps> = ({ charityTite, charityId, onSave, onCancel 
                     ]}
                 />
             </div>
-            <Button className="w-full" variant={"primary"} disabled={!validation()} onClick={() => {
-                if (onSave)
-                    onSave(charityId)
-            }}>Submit Eligibility Review</Button>
-            <Button className="w-full" variant={"outline"} onClick={onCancel}>Cancel</Button>
+            <Button
+                className="w-full"
+                variant={"primary"}
+                type="submit"
+                disabled={!validation()}
+                loading={isLoading}
+            >
+                Submit Eligibility Review
+            </Button>
+            <Button className="w-full" variant={"outline"} type="button" onClick={onCancel} disabled={isLoading}>Cancel</Button>
         </form>
     )
 }
+
 
 export default EligibilityTest

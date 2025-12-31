@@ -12,13 +12,18 @@ type CharityAuditPageProps = {
 
 export type CountryCode = keyof typeof CountryEnum
 
-const CharityAuditPage = ({ params, searchParams }: CharityAuditPageProps) => {
-    const { id, audit } = params;
+const CharityAuditPage = async ({ params, searchParams }: {
+    params: Promise<{ id: string; audit: string }>,
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) => {
+    const { id, audit } = await params;
+    const resolvedSearchParams = await searchParams;
 
-    // i want to get the "preview-mode" variable from URL: http://localhost:3000/charities/c1/audits/core-area-1?preview-mode=true or http://localhost:3000/charities/c1/audits/core-area-1
-    const previewModeParam = searchParams?.['preview-mode'];
+    // i want to get the "preview-mode" variable from URL
+    const previewModeParam = resolvedSearchParams?.['preview-mode'];
     const previewMode = previewModeParam === 'true';
-    const countryParam = searchParams?.country;
+    const countryParam = resolvedSearchParams?.country;
+
     const validCountries: CountryCode[] = ['usa', 'uk', 'ca']
     const countryFromQuery = validCountries.find((countryCode) => countryCode === countryParam)
     // if preview-mode is not present, it should lead to the normal audit page

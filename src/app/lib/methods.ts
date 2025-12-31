@@ -28,7 +28,7 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
             ok: false,
             payload: null,
             unauthenticated: unauth,
-            message: unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin',
+            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
         };
     }
 
@@ -36,15 +36,16 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
         ok: true,
         payload: data,
         unauthenticated: false,
-        message: 'Success!'
+        message: data?.message || 'Success!'
     };
 }
 export const _post = async (request: string, body: any, requireAuth = true): Promise<ResponseType> => {
     const { accessToken } = await getCookies();
     const url = new URL(request, serverUrl).toString()
 
-    const headers: Record<string, string> = { Accept: 'application/json' };
+    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
     if (requireAuth) {
+
         if (!accessToken) {
             return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
@@ -67,7 +68,7 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
             ok: false,
             payload: null,
             unauthenticated: unauth,
-            message: unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin',
+            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
         };
     }
 
@@ -75,15 +76,16 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
         ok: true,
         payload: data,
         unauthenticated: false,
-        message: 'Success!'
+        message: data?.message || 'Success!'
     };
 }
 export const _patch = async <K = any>(request: string, body: K, requireAuth = true): Promise<ResponseType> => {
     const { accessToken } = await getCookies();
     const url = new URL(request, serverUrl).toString()
 
-    const headers: Record<string, string> = { Accept: 'application/json' };
+    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
     if (requireAuth) {
+
         if (!accessToken) {
             return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
@@ -106,7 +108,7 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
             ok: false,
             payload: null,
             unauthenticated: unauth,
-            message: unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin',
+            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
         };
     }
 
@@ -114,6 +116,44 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
         ok: true,
         payload: data,
         unauthenticated: false,
-        message: 'Success!'
+        message: data?.message || 'Success!'
+    };
+}
+export const _delete = async (request: string, requireAuth = true): Promise<ResponseType> => {
+    const { accessToken } = await getCookies();
+    const url = new URL(request, serverUrl).toString()
+
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (requireAuth) {
+        if (!accessToken) {
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+        }
+        headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    const res = await fetch(url, {
+        method: 'DELETE',
+        headers,
+        cache: 'no-store',
+    })
+
+    let data: any = null;
+    try { data = await res.json(); } catch { /* noop */ }
+
+    if (!res.ok || data?.error) {
+        const unauth = res.status === 401;
+        return {
+            ok: false,
+            payload: null,
+            unauthenticated: unauth,
+            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
+        };
+    }
+
+    return {
+        ok: true,
+        payload: data,
+        unauthenticated: false,
+        message: data?.message || 'Success!'
     };
 }

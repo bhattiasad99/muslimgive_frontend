@@ -16,7 +16,7 @@ const AuthScreenLayoutComponent: FC<IProps> = ({ heading, subHeading, children, 
     return (
         <>
             <form action={action} className="bg-white p-4 md:p-8 rounded-lg border-[rgba(148,148,148, 0.1)] flex flex-col items-center gap-6 max-w-[528px] min-w-[300px] w-[40vw]" {...rest}>
-                <ImageComponent source='/logo__white.png' alt='MuslimGive Logo' height={63} width={252} />
+                <ImageComponent source='/logo__white.png' alt='MuslimGive Logo' height={63} width={252} priority />
                 <div className="flex flex-col gap-1 items-center">
                     <TypographyComponent variant='h4'>
                         {heading}
