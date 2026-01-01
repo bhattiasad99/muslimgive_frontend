@@ -63,5 +63,25 @@ export const AUTH_COOKIE_LABEL = 'Authentication';
 export const REFRESH_COOKIE_LABEL = 'Refresh'
 export const IS_ADMIN_COOKIE_LABEL = 'IsAdmin'
 
-export const AUTH_ROUTES = ["/charities", "/my-profile", "/users", "/access-control"];
+export const AUTH_ROUTES = ["/charities", "/profile", "/users", "/access-control"];
 export const ADMIN_ROUTES = ["/users", "/access-control"];
+
+export type UserProfile = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    dob?: string;
+    phone?: string;
+    country?: string;
+    city?: string;
+    postalCode?: string;
+    roles: string[];
+    status: string;
+    requestingPasswordReset: boolean;
+}
+
+export type ChangePasswordPayload = {
+    password: string;
+    oldPassword: string;
+}

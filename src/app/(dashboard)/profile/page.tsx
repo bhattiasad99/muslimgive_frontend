@@ -5,6 +5,10 @@ import UpdatePasswordModal from '@/components/use-case/ProfilePageComponent/Upda
 import EditPersonalInfoModal from '@/components/use-case/ProfilePageComponent/EditPersonalInfoModal'
 import EditAddressModal from '@/components/use-case/ProfilePageComponent/EditAddressModal'
 import type { Data, Role } from '@/components/use-case/UsersExpandableTable'
+import { getMeAction } from '@/app/actions/users'
+import { toast } from 'sonner'
+import DashboardSkeleton from '@/components/use-case/DashboardSkeleton'
+import { kebabToTitle } from '@/lib/helpers'
 
 const MyProfile = () => {
     // State for modals
@@ -13,41 +17,49 @@ const MyProfile = () => {
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false)
 
     // User data state
-    const [personalInfo, setPersonalInfo] = useState({
-        firstName: 'Asad',
-        lastName: 'Bhatti',
-        dateOfBirth: new Date('1993-05-06') as Date | undefined,
-        phoneNumber: '+923348506479'
-    })
+    const [profile, setProfile] = useState<Data | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
 
-    const [addressInfo, setAddressInfo] = useState({
-        country: 'Canada',
-        city: 'Toronto',
-        postalCode: 'M5A 1A1'
-    })
+    React.useEffect(() => {
+        const fetchProfile = async () => {
+            setIsLoading(true)
+            try {
+                const res = await getMeAction()
+                if (res.ok && res.payload?.data) {
+                    const u = res.payload.data;
+                    setProfile({
+                        id: u.id,
+                        firstName: u.firstName,
+                        lastName: u.lastName,
+                        email: u.email,
+                        dateOfBirth: u.dob || '',
+                        phoneNumber: u.phone || '',
+                        location: u.city && u.country ? `${u.city}, ${u.country}` : (u.city || u.country || '-'),
+                        postalCode: u.postalCode || '',
+                        roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
+                        status: (u.status === 'active' ? 'Active' : 'Inactive') as any,
+                        requestingPasswordReset: u.requestingPasswordReset
+                    })
+                } else {
+                    toast.error(res.message || "Failed to load profile")
+                }
+            } catch (error) {
+                console.error(error)
+                toast.error("An error occurred while loading profile")
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchProfile()
+    }, [])
 
-    const userId = '2fcfbdfc-ffa3-4c37-96f5-0ad2b23c32b7'
-    const userEmail = 'bhatti.asad99@gmail.com'
-    const assignedRoles: Role[] = ['Financial Auditor', 'Project Manager']
-
-    const userData: Data = {
-        id: userId,
-        firstName: personalInfo.firstName,
-        lastName: personalInfo.lastName,
-        email: userEmail,
-        dateOfBirth: personalInfo.dateOfBirth ? personalInfo.dateOfBirth.toISOString().split('T')[0] : '',
-        phoneNumber: personalInfo.phoneNumber,
-        location: `${addressInfo.city}, ${addressInfo.country}`,
-        postalCode: addressInfo.postalCode,
-        roles: assignedRoles,
-        status: 'Active',
-        requestingPasswordReset: false
-    }
+    if (isLoading) return <DashboardSkeleton />
+    if (!profile) return <div className="p-6">Profile not found.</div>
 
     return (
         <div className="flex flex-col h-full">
-            <UserData 
-                {...userData}
+            <UserData
+                {...profile}
                 onEditPersonalInfo={() => setIsPersonalInfoModalOpen(true)}
                 onEditAddress={() => setIsAddressModalOpen(true)}
                 onChangePassword={() => setIsPasswordModalOpen(true)}
@@ -55,23 +67,46 @@ const MyProfile = () => {
             />
 
             {/* Modals */}
-            <UpdatePasswordModal 
+            <UpdatePasswordModal
                 open={isPasswordModalOpen}
                 onOpenChange={setIsPasswordModalOpen}
             />
-            
+
             <EditPersonalInfoModal
                 open={isPersonalInfoModalOpen}
                 onOpenChange={setIsPersonalInfoModalOpen}
-                initialData={personalInfo}
-                onSave={setPersonalInfo}
+                initialData={{
+                    firstName: profile.firstName,
+                    lastName: profile.lastName,
+                    dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth) : undefined,
+                    phoneNumber: profile.phoneNumber
+                }}
+                onSave={(data) => {
+                    setProfile(prev => prev ? {
+                        ...prev,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        dateOfBirth: data.dateOfBirth ? data.dateOfBirth.toISOString().split('T')[0] : '',
+                        phoneNumber: data.phoneNumber
+                    } : null)
+                }}
             />
-            
+
             <EditAddressModal
                 open={isAddressModalOpen}
                 onOpenChange={setIsAddressModalOpen}
-                initialData={addressInfo}
-                onSave={setAddressInfo}
+                initialData={{
+                    country: profile.location.split(', ')[1] || '',
+                    city: profile.location.split(', ')[0] || '',
+                    postalCode: profile.postalCode
+                }}
+                onSave={(data) => {
+                    setProfile(prev => prev ? {
+                        ...prev,
+                        location: `${data.city}, ${data.country}`,
+                        postalCode: data.postalCode
+                    } : null)
+                }}
             />
         </div>
     )

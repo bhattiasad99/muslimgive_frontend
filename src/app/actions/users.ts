@@ -1,7 +1,7 @@
 'use server'
 
-import { _get } from "../lib/methods";
-import { ResponseType } from "../lib/definitions";
+import { _get, _patch } from "../lib/methods";
+import { ChangePasswordPayload, ResponseType, UserProfile } from "../lib/definitions";
 
 /**
  * Filter Params for List Users
@@ -30,4 +30,20 @@ export const listUsersAction = async (params?: ListUsersParams): Promise<Respons
 
     const endpoint = `/admin/users?${query.toString()}`;
     return await _get(endpoint);
+}
+
+/**
+ * GET /users/me
+ * Fetches the currently logged-in user's profile
+ */
+export const getMeAction = async (): Promise<ResponseType<UserProfile>> => {
+    return await _get('/users/me');
+}
+
+/**
+ * PATCH /users/change-password
+ * Updates the user's password
+ */
+export const changePasswordAction = async (payload: ChangePasswordPayload): Promise<ResponseType> => {
+    return await _patch('/users/change-password', payload);
 }

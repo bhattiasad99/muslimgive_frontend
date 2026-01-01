@@ -13,12 +13,19 @@ type MenuItemType = {
 }
 
 const SideBarComponent = async () => {
-    const { accessToken } = await getCookies();
-    if (!accessToken) {
+    const { accessToken, refreshToken } = await getCookies();
+    // Strict redirect only if BOTH tokens are missing.
+    // Use refresh token as fallback existence check so we don't bail out before the client can refresh.
+    if (!accessToken && !refreshToken) {
         redirect('/login')
     }
-    const decoded: any = jwtDecode(accessToken); // decode only, no verify here
-    const isAdmin = decoded?.isAdmin ?? false;
+    let isAdmin = false;
+    if (accessToken) {
+        try {
+            const decoded: any = jwtDecode(accessToken);
+            isAdmin = decoded?.isAdmin ?? false;
+        } catch { /* ignore invalid token */ }
+    }
     const buildPages = (name: PageType) => PAGES.filter(eachPage => eachPage.show).filter(eachPage => eachPage.type === name).map(page => ({
         name: page.name,
         title: page.heading,

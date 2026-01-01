@@ -1,27 +1,38 @@
 import { getCookies } from "./cookies";
 import { ResponseType, serverUrl } from "./definitions";
+import { refreshToken } from "../actions/refresh-token";
 
 export const _get = async (request: string, requireAuth = true): Promise<ResponseType> => {
-    const { accessToken } = await getCookies();
-    // Build URL safely: if `serverUrl` is provided use it as base, otherwise
-    // allow relative or absolute `request` values (e.g. '/roles' or full URL).
+    let { accessToken } = await getCookies();
+    
+    // Build URL safely
     let url: string
     try {
         url = serverUrl ? new URL(request, serverUrl).toString() : request
     } catch {
-        // Fallback: if URL constructor fails, treat request as-is
         url = request
     }
 
     const headers: Record<string, string> = { Accept: 'application/json' };
+    
+    // Auth logic with "missing token" handling for potential refresh
     if (requireAuth) {
         if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             // Try refreshing before failing if access token is missing but maybe refresh token exists
+             // We can't easily check for refresh token here without getting it, 
+             // but calling refreshToken() handles the check safely.
+             const refreshRes = await refreshToken();
+             if (refreshRes.ok) {
+                 const newCookies = await getCookies(); // Get the new access token
+                 accessToken = newCookies.accessToken;
+             } else {
+                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             }
         }
-        headers.Authorization = `Bearer ${accessToken}`;
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    const res = await fetch(url, {
+    let res = await fetch(url, {
         method: 'GET',
         headers,
         cache: 'no-store',
@@ -29,6 +40,23 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
 
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
+
+    // Interceptor for expired token
+    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
+        const refreshRes = await refreshToken();
+        if (refreshRes.ok) {
+            // Update token and retry
+            const { accessToken: newAccessToken } = await getCookies();
+            headers.Authorization = `Bearer ${newAccessToken}`;
+            
+            res = await fetch(url, {
+                method: 'GET',
+                headers,
+                cache: 'no-store',
+            });
+            try { data = await res.json(); } catch { /* noop */ }
+        }
+    }
 
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;
@@ -47,8 +75,10 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
         message: data?.message || 'Success!'
     };
 }
+
 export const _post = async (request: string, body: any, requireAuth = true): Promise<ResponseType> => {
-    const { accessToken } = await getCookies();
+    let { accessToken } = await getCookies();
+    
     let url: string
     try {
         url = serverUrl ? new URL(request, serverUrl).toString() : request
@@ -57,15 +87,21 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
     }
 
     const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
+    
     if (requireAuth) {
-
         if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             const refreshRes = await refreshToken();
+             if (refreshRes.ok) {
+                 const newCookies = await getCookies();
+                 accessToken = newCookies.accessToken;
+             } else {
+                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             }
         }
-        headers.Authorization = `Bearer ${accessToken}`;
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    const res = await fetch(url, {
+    let res = await fetch(url, {
         method: 'POST',
         headers,
         cache: 'no-store',
@@ -75,6 +111,22 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
 
+    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
+        const refreshRes = await refreshToken();
+        if (refreshRes.ok) {
+            const { accessToken: newAccessToken } = await getCookies();
+            headers.Authorization = `Bearer ${newAccessToken}`;
+            
+            res = await fetch(url, {
+                method: 'POST',
+                headers,
+                cache: 'no-store',
+                body: JSON.stringify(body)
+            });
+            try { data = await res.json(); } catch { /* noop */ }
+        }
+    }
+
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;
         return {
@@ -92,8 +144,10 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
         message: data?.message || 'Success!'
     };
 }
+
 export const _patch = async <K = any>(request: string, body: K, requireAuth = true): Promise<ResponseType> => {
-    const { accessToken } = await getCookies();
+    let { accessToken } = await getCookies();
+    
     let url: string
     try {
         url = serverUrl ? new URL(request, serverUrl).toString() : request
@@ -102,15 +156,21 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
     }
 
     const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
+    
     if (requireAuth) {
-
         if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             const refreshRes = await refreshToken();
+             if (refreshRes.ok) {
+                 const newCookies = await getCookies();
+                 accessToken = newCookies.accessToken;
+             } else {
+                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             }
         }
-        headers.Authorization = `Bearer ${accessToken}`;
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    const res = await fetch(url, {
+    let res = await fetch(url, {
         method: 'PATCH',
         headers,
         cache: 'no-store',
@@ -120,6 +180,22 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
 
+    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
+        const refreshRes = await refreshToken();
+        if (refreshRes.ok) {
+            const { accessToken: newAccessToken } = await getCookies();
+            headers.Authorization = `Bearer ${newAccessToken}`;
+            
+            res = await fetch(url, {
+                method: 'PATCH',
+                headers,
+                cache: 'no-store',
+                body: JSON.stringify(body)
+            });
+            try { data = await res.json(); } catch { /* noop */ }
+        }
+    }
+
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;
         return {
@@ -137,8 +213,10 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
         message: data?.message || 'Success!'
     };
 }
+
 export const _delete = async (request: string, requireAuth = true): Promise<ResponseType> => {
-    const { accessToken } = await getCookies();
+    let { accessToken } = await getCookies();
+    
     let url: string
     try {
         url = serverUrl ? new URL(request, serverUrl).toString() : request
@@ -147,14 +225,21 @@ export const _delete = async (request: string, requireAuth = true): Promise<Resp
     }
 
     const headers: Record<string, string> = { Accept: 'application/json' };
+    
     if (requireAuth) {
         if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             const refreshRes = await refreshToken();
+             if (refreshRes.ok) {
+                 const newCookies = await getCookies();
+                 accessToken = newCookies.accessToken;
+             } else {
+                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+             }
         }
-        headers.Authorization = `Bearer ${accessToken}`;
+        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    const res = await fetch(url, {
+    let res = await fetch(url, {
         method: 'DELETE',
         headers,
         cache: 'no-store',
@@ -162,6 +247,21 @@ export const _delete = async (request: string, requireAuth = true): Promise<Resp
 
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
+
+    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
+        const refreshRes = await refreshToken();
+        if (refreshRes.ok) {
+            const { accessToken: newAccessToken } = await getCookies();
+            headers.Authorization = `Bearer ${newAccessToken}`;
+            
+            res = await fetch(url, {
+                method: 'DELETE',
+                headers,
+                cache: 'no-store',
+            });
+            try { data = await res.json(); } catch { /* noop */ }
+        }
+    }
 
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;

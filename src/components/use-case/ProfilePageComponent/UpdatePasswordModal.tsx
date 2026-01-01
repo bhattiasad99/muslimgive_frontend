@@ -5,6 +5,8 @@ import { ControlledTextFieldComponent } from '@/components/common/TextFieldCompo
 import { Button } from '@/components/ui/button'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
+import { changePasswordAction } from '@/app/actions/users'
+import { toast } from 'sonner'
 
 type IProps = {
     open: boolean
@@ -24,12 +26,12 @@ const UpdatePasswordModal: FC<IProps> = ({ open, onOpenChange }) => {
 
     const handleUpdate = () => {
         setError('')
-        
+
         if (!oldPassword || !newPassword || !confirmPassword) {
             setError('All fields are required')
             return
         }
-        
+
         if (newPassword !== confirmPassword) {
             setError('Passwords do not match')
             return
@@ -43,16 +45,32 @@ const UpdatePasswordModal: FC<IProps> = ({ open, onOpenChange }) => {
         setShowConfirm(true)
     }
 
-    const confirmUpdate = () => {
-        // TODO: Call API to update password
-        console.log('Updating password...')
-        
-        // Reset and close
-        setOldPassword('')
-        setNewPassword('')
-        setConfirmPassword('')
-        setError('')
-        onOpenChange(false)
+    const confirmUpdate = async () => {
+        try {
+            const res = await changePasswordAction({
+                password: newPassword,
+                oldPassword: oldPassword
+            })
+
+            if (res.ok) {
+                toast.success('Password updated successfully')
+                // Reset and close
+                setOldPassword('')
+                setNewPassword('')
+                setConfirmPassword('')
+                setError('')
+                onOpenChange(false)
+            } else {
+                setError(res.message || 'Failed to update password')
+                toast.error(res.message || 'Failed to update password')
+            }
+        } catch (error) {
+            console.error(error)
+            setError('An unexpected error occurred')
+            toast.error('An unexpected error occurred')
+        } finally {
+            setShowConfirm(false)
+        }
     }
 
     const handleCancel = () => {
@@ -80,7 +98,7 @@ const UpdatePasswordModal: FC<IProps> = ({ open, onOpenChange }) => {
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
                     />
-                    
+
                     <ControlledTextFieldComponent
                         type="password"
                         label="New Password"
@@ -88,7 +106,7 @@ const UpdatePasswordModal: FC<IProps> = ({ open, onOpenChange }) => {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                     />
-                    
+
                     <ControlledTextFieldComponent
                         type="password"
                         label="Confirm Password"
@@ -104,16 +122,16 @@ const UpdatePasswordModal: FC<IProps> = ({ open, onOpenChange }) => {
                     )}
 
                     <div className="flex flex-col gap-3 mt-2">
-                        <Button 
-                            variant="primary" 
+                        <Button
+                            variant="primary"
                             className="w-full"
                             onClick={handleUpdate}
                             disabled={!hasChanges}
                         >
                             Update Password
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="w-full border-primary text-primary bg-white hover:bg-blue-50"
                             onClick={handleCancel}
                         >
