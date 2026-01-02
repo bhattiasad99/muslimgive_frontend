@@ -17,7 +17,8 @@ export const setJwtCookie = async (label: string, value: string) => {
             sameSite: 'lax'
         })
     } catch (err: any) {
-        throw new Error(err?.message as string)
+        // Swallow error in Server Components
+        console.warn("setJwtCookie failed (safely ignored in SC):", err.message);
     }
 }
 
@@ -31,13 +32,18 @@ export const getCookies = async () => {
 }
 
 export const clearAuthCookies = async () => {
-    const jar = await cookies()
-    const opts = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax' as const,
-        expires: new Date(0),
+    try {
+        const jar = await cookies()
+        const opts = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax' as const,
+            expires: new Date(0),
+        }
+        jar.set({ name: AUTH_COOKIE_LABEL, value: '', ...opts })
+        jar.set({ name: REFRESH_COOKIE_LABEL, value: '', ...opts })
+    } catch (error: any) {
+        // Swallow error in Server Components
+        console.warn("clearAuthCookies failed (safely ignored in SC):", error.message);
     }
-    jar.set({ name: AUTH_COOKIE_LABEL, value: '', ...opts })
-    jar.set({ name: REFRESH_COOKIE_LABEL, value: '', ...opts })
 }

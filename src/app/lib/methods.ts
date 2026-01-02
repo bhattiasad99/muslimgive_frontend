@@ -18,9 +18,6 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
     // Auth logic with "missing token" handling for potential refresh
     if (requireAuth) {
         if (!accessToken) {
-             // Try refreshing before failing if access token is missing but maybe refresh token exists
-             // We can't easily check for refresh token here without getting it, 
-             // but calling refreshToken() handles the check safely.
              const refreshRes = await refreshToken();
              if (refreshRes.ok) {
                  const newCookies = await getCookies(); // Get the new access token
