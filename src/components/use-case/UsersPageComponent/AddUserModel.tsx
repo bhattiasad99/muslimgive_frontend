@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { UserForm } from './user-page.types'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import ControlledDatePickerComponent from '@/components/common/ControlledDatePickerComponent'
@@ -9,7 +9,19 @@ import ComboboxComponent from '@/components/common/MultiSelectComboboxComponent'
 import { Badge } from '@/components/ui/badge'
 import MultiSelectComboboxComponent from '@/components/common/MultiSelectComboboxComponent'
 
-const AddUserModel = () => {
+import { createMgMemberAction } from '@/app/actions/users'
+import { listRolesAction } from '@/app/actions/roles'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+
+type IProps = {
+    onClose?: () => void
+}
+
+const AddUserModel: React.FC<IProps> = ({ onClose }) => {
+    const router = useRouter()
+    const [loading, setLoading] = useState(false)
+    const [availableRoles, setAvailableRoles] = useState<{ value: string, label: string }[]>([])
     // user -> firstName, lastName, email, dob, phone, country, city, postalcode, roles
     const [user, setUser] = useState<UserForm>({
         firstName: {
@@ -57,8 +69,62 @@ const AddUserModel = () => {
         }));
     };
 
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const res = await listRolesAction()
+                if (res.ok && res.payload?.data?.data) {
+                    const rolesData = res.payload.data.data
+                    // Map to { value: id, label: title }
+                    const mappedRoles = Array.isArray(rolesData)
+                        ? rolesData.map((r: any) => ({ value: r.id, label: r.title }))
+                        : []
+                    setAvailableRoles(mappedRoles)
+                }
+            } catch (error) {
+                console.error("Failed to fetch roles", error)
+                toast.error("Failed to load roles")
+            }
+        }
+        fetchRoles()
+    }, [])
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true)
+
+        const payload = {
+            firstName: user.firstName.value,
+            lastName: user.lastName.value,
+            email: user.email.value,
+            dateOfBirth: user.dob.value ? new Date(user.dob.value).toISOString().split('T')[0] : undefined, // Format: YYYY-MM-DD
+            phoneNumber: user.phone.value,
+            countryName: user.country.value,
+            city: user.city.value,
+            postalCode: user.postalcode.value,
+            roles: user.roles.value,
+        }
+
+        try {
+            const res = await createMgMemberAction(payload as any) // Type cast if necessary, or strict type the payload
+            if (res.ok) {
+                toast.success("User created successfully")
+                router.refresh()
+                if (onClose) onClose()
+            } else {
+                toast.error(res.message || "Failed to create user")
+            }
+        } catch (error) {
+            console.error("Failed to create user", error)
+            toast.error("An unexpected error occurred")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
-        <form className='flex flex-col gap-4'>
+        <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
             <div className="flex items-center">
                 <label htmlFor='add_user__fName' className='w-50'>
                     First Name
@@ -129,24 +195,7 @@ const AddUserModel = () => {
                 <div className="flex flex-col gap-1 w-full">
                     <MultiSelectComboboxComponent
                         value={user.roles.value} onChange={(e) => updateFormValue('roles', e)} id='add_user__roles'
-                        options={[
-                            {
-                                value: "finance-manager",
-                                label: "Finance Manager"
-                            },
-                            {
-                                value: "operations-manager",
-                                label: "Operations Manager"
-                            },
-                            {
-                                value: "project-manager",
-                                label: "Project Manager"
-                            },
-                            {
-                                value: "zakat auditor",
-                                label: "Zakat Auditor"
-                            },
-                        ]}
+                        options={availableRoles}
                     />
                     {/*  */}
                     {/* <div className="flex gap-2">
@@ -156,8 +205,8 @@ const AddUserModel = () => {
                 </div>
 
             </div>
-            <Button variant={"primary"}>Create Profile</Button>
-            <Button variant={"outline"}>Cancel</Button>
+            <Button variant={"primary"} type="submit" loading={loading}>Create Profile</Button>
+            <Button variant={"outline"} type="button" onClick={onClose} disabled={loading}>Cancel</Button>
         </form>
     )
 }

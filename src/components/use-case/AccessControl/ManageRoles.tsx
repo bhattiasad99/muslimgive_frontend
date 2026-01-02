@@ -3,12 +3,13 @@ import React, { FC, useState, useEffect } from 'react'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Edit, Settings, Plus } from 'lucide-react'
+import { Edit, Settings, Plus, Trash2 } from 'lucide-react'
 import AddRoleModal from './AddRoleModal'
 import EditRoleModal from './EditRoleModal'
 import ManagePermissionsModal from './ManagePermissionsModal'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { _get, _post, _patch } from '@/app/lib/methods'
+import { deleteRoleAction } from '@/app/actions/roles'
 import { toast } from 'sonner'
 
 type Role = {
@@ -163,6 +164,23 @@ const ManageRoles: FC = () => {
     }
   }
 
+  const handleDelete = async (role: Role) => {
+    if (!confirm(`Are you sure you want to delete the role "${role.name}"? This action cannot be undone.`)) return
+
+    try {
+      const res = await deleteRoleAction(role.id)
+      if (res.ok) {
+        setRoles(prev => prev.filter(r => r.id !== role.id))
+        toast.success("Role deleted successfully")
+      } else {
+        toast.error(res.message || "Failed to delete role")
+      }
+    } catch (error) {
+      console.error("Failed to delete role", error)
+      toast.error("An unexpected error occurred")
+    }
+  }
+
   return (
     <div className="p-4 bg-white rounded-lg border">
       <div className="flex justify-between items-center mb-4">
@@ -215,6 +233,17 @@ const ManageRoles: FC = () => {
                       Manage Permissions
                     </TooltipContent>
                   </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(r)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Delete Role
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </TableCell>
             </TableRow>
@@ -223,7 +252,7 @@ const ManageRoles: FC = () => {
       </Table>
 
       <AddRoleModal open={isAddOpen} onOpenChange={setIsAddOpen} onSave={handleAdd} permissions={permissionsList} />
-      {editingRole && <EditRoleModal open={isEditOpen} onOpenChange={setIsEditOpen} role={{...editingRole, description: editingRole.description || ''}} onSave={handleEditSave} permissions={permissionsList} />}
+      {editingRole && <EditRoleModal open={isEditOpen} onOpenChange={setIsEditOpen} role={{ ...editingRole, description: editingRole.description || '' }} onSave={handleEditSave} permissions={permissionsList} />}
       {/* Pass permissions with enabled flags for the selected role so toggles reflect current state */}
       <ManagePermissionsModal
         open={isManagePermOpen}

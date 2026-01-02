@@ -1,7 +1,24 @@
 'use server'
 
-import { _get, _patch } from "../lib/methods";
+import { _get, _patch, _post } from "../lib/methods";
 import { ChangePasswordPayload, ResponseType, UserProfile } from "../lib/definitions";
+
+export type CreateMgMemberPayload = {
+    firstName: string;
+    lastName: string;
+    email: string;
+    dateOfBirth?: string;
+    phoneNumber?: string;
+    countryName?: string;
+    city?: string;
+    postalCode?: string;
+    roles: string[];
+}
+
+export type UpdateUserRolesPayload = {
+    add: string[];
+    remove: string[];
+}
 
 /**
  * Filter Params for List Users
@@ -46,4 +63,28 @@ export const getMeAction = async (): Promise<ResponseType<UserProfile>> => {
  */
 export const changePasswordAction = async (payload: ChangePasswordPayload): Promise<ResponseType> => {
     return await _patch('/users/change-password', payload);
+}
+
+/**
+ * POST /admin/mg-member
+ * Creates a new internal staff member
+ */
+export const createMgMemberAction = async (payload: CreateMgMemberPayload): Promise<ResponseType> => {
+    return await _post('/admin/mg-member', payload);
+}
+
+/**
+ * GET /users/{id}/roles
+ * Fetches the roles for a specific user
+ */
+export const getUserRolesAction = async (userId: string): Promise<ResponseType> => {
+    return await _get(`/users/${userId}/roles`);
+}
+
+/**
+ * PATCH /roles/assign/{user_id}
+ * Updates the roles for a specific user
+ */
+export const updateUserRolesAction = async (userId: string, payload: UpdateUserRolesPayload): Promise<ResponseType> => {
+    return await _patch(`/roles/assign/${userId}`, payload);
 }

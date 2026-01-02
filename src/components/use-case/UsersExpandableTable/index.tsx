@@ -9,6 +9,9 @@ import {
 } from '@/components/ui/accordion'
 import AccordionHeader from './AccordionHeader'
 import UserData from './UserData'
+import { Button } from '@/components/ui/button'
+import { Settings } from 'lucide-react'
+import EditUserRolesModal from '../UsersPageComponent/EditUserRolesModal'
 
 export type Role =
     | "Financial Auditor"
@@ -35,6 +38,7 @@ type IProps = { rows: Data[] }
 
 const UsersExpandableTable: FC<IProps> = ({ rows }) => {
     const [openId, setOpenId] = useState<string | null>(null)
+    const [editingUser, setEditingUser] = useState<{ id: string, name: string } | null>(null)
 
     return (
         <Accordion type="single" collapsible>
@@ -58,6 +62,12 @@ const UsersExpandableTable: FC<IProps> = ({ rows }) => {
                             />
                         </AccordionTrigger>
                         <AccordionContent>
+                            <div className="flex justify-end px-6 pt-2">
+                                <Button variant="outline" size="sm" onClick={() => setEditingUser({ id: eachUser.id, name: `${eachUser.firstName} ${eachUser.lastName}` })}>
+                                    <Settings className="h-4 w-4 mr-2" />
+                                    Edit Roles
+                                </Button>
+                            </div>
                             <UserData {
                                 ...{
                                     id: eachUser.id,
@@ -77,6 +87,15 @@ const UsersExpandableTable: FC<IProps> = ({ rows }) => {
                     </AccordionItem>
                 )
             })}
+
+            {editingUser && (
+                <EditUserRolesModal
+                    open={!!editingUser}
+                    onOpenChange={(open) => !open && setEditingUser(null)}
+                    userId={editingUser.id}
+                    userName={editingUser.name}
+                />
+            )}
         </Accordion>
     )
 }
