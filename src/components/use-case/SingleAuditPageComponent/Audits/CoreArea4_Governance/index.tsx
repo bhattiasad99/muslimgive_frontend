@@ -1,7 +1,5 @@
 'use client'
-import React, { FC, useState } from 'react'
-import AuditSectionCard from '../../UI/AuditSectionCard'
-import RadioGroupComponent from '@/components/common/RadioGroupComponent'
+import React, { FC } from 'react'
 import SingleRadioQuestion from './SingleRadioQuestion'
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation'
