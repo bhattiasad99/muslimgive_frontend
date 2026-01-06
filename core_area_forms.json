@@ -1,0 +1,1251 @@
+{
+  "coreAreas": [
+    {
+      "coreArea": 1,
+      "forms": [
+        {
+          "countryCode": "uk",
+          "title": "Charity Status (UK)",
+          "questions": [
+            {
+              "id": "CS01",
+              "label": "Charity Number",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "CS02",
+              "label": "Charity Commission Profile Link",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "CS03",
+              "label": "Registration Status",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Registered"
+                },
+                {
+                  "label": "Pending Registration"
+                },
+                {
+                  "label": "Not Registered"
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "CS04",
+              "label": "Gift Aid Eligible",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes"
+                },
+                {
+                  "label": "No"
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "CS05",
+              "label": "Link to Gift Aid status",
+              "type": "text",
+              "required": false
+            },
+            {
+              "id": "CS06",
+              "label": "Evidence for Pending Registration Provided (Yes/No)",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes"
+                },
+                {
+                  "label": "No"
+                }
+              ],
+              "required": false
+            },
+            {
+              "id": "CS07",
+              "label": "Evidence Link (if applicable)",
+              "type": "text",
+              "required": false
+            },
+            {
+              "id": "CS08",
+              "label": "Status Notes",
+              "type": "paragraph",
+              "required": false
+            }
+          ],
+          "scoreLogic": "if answers['CS03'] == 'Registered' or (answers['CS03'] == 'Pending Registration' and answers['CS06'] == 'Yes') then 10 else 0"
+        },
+        {
+          "countryCode": "canada",
+          "title": "Charity Status (CANADA)",
+          "questions": [
+            {
+              "id": "CS01",
+              "label": "Charity Registration Number",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "CS02",
+              "label": "CRA Profile Link",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "CS03",
+              "label": "Registration Status",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Registered"
+                },
+                {
+                  "label": "Pending Registration"
+                },
+                {
+                  "label": "Not Registered"
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "CS04",
+              "label": "Tax-Deductible",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes"
+                },
+                {
+                  "label": "No"
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "CS05",
+              "label": "Evidence for Pending Registration Provided (Yes/No)",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes"
+                },
+                {
+                  "label": "No"
+                }
+              ],
+              "required": false
+            },
+            {
+              "id": "CS06",
+              "label": "Evidence Link (if applicable)",
+              "type": "text",
+              "required": false
+            },
+            {
+              "id": "CS07",
+              "label": "Status Notes",
+              "type": "paragraph",
+              "required": false
+            }
+          ],
+          "scoreLogic": "if answers['CS03'] == 'Registered' or (answers['CS03'] == 'Pending Registration' and answers['CS05'] == 'Yes') then 10 else 0"
+        },
+        {
+          "countryCode": "usa",
+          "title": "Charity Status (US)",
+          "questions": [
+            {
+              "id": "CS01",
+              "label": "EIN (Employer ID Number)",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "CS02",
+              "label": "IRS Profile Link",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "CS03",
+              "label": "Registration Status",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Registered"
+                },
+                {
+                  "label": "Pending Registration"
+                },
+                {
+                  "label": "Not Registered"
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "CS04",
+              "label": "Tax-Deductible",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes"
+                },
+                {
+                  "label": "No"
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "CS05",
+              "label": "Evidence for Pending Registration Provided (Yes/No)",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes"
+                },
+                {
+                  "label": "No"
+                }
+              ],
+              "required": false
+            },
+            {
+              "id": "CS06",
+              "label": "Evidence Link (if applicable)",
+              "type": "text",
+              "required": false
+            },
+            {
+              "id": "CS07",
+              "label": "Status Notes",
+              "type": "paragraph",
+              "required": false
+            }
+          ],
+          "scoreLogic": "if answers['CS03'] == 'Registered' or (answers['CS03'] == 'Pending Registration' and answers['CS05'] == 'Yes') then 10 else 0"
+        }
+      ]
+    },
+    {
+      "coreArea": 2,
+      "forms": [
+        {
+          "countryCode": "uk",
+          "title": "Financial Assessment (UK)",
+          "questions": [
+            {
+              "id": "F01",
+              "label": "Audited financial statements available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 4
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F02",
+              "label": "Previous year audited financial statements available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F03",
+              "label": "Impact report with financial information available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F04",
+              "label": "Percentage of total revenue spent on charitable programs and qualified distributions (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value>=90 then 6 elif value>=80 then 4.5 elif value>=70 then 3 elif value>=60 then 1.5 else 0"
+            },
+            {
+              "id": "F05",
+              "label": "Percentage of total revenue spent on fundraising (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value<=10 then 6 elif value<=15 then 4.5 elif value<=20 then 3 elif value<=25 then 1.5 else 0"
+            },
+            {
+              "id": "F06",
+              "label": "Percentage of total revenue spent on administrative expenses (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value<=5 then 6 elif value<=10 then 4.5 elif value<=15 then 3 elif value<=20 then 1.5 else 0"
+            },
+            {
+              "id": "F07",
+              "label": "Percentage of revenue spent per year (spent / revenue)",
+              "type": "number",
+              "scoreLogic": "if value>=100 then 3 elif value>=66.67 then 2.25 elif value>=50 then 1.5 elif value>=33.3 then 0.75 else 0"
+            }
+          ]
+        },
+        {
+          "countryCode": "usa",
+          "title": "Financial Assessment (US)",
+          "questions": [
+            {
+              "id": "F01",
+              "label": "Audited financial statements available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 4
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F02",
+              "label": "Previous year audited financial statements available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F03",
+              "label": "Impact report with financial information available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F04",
+              "label": "Percentage of total revenue spent on charitable programs and qualified distributions (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value>=90 then 6 elif value>=80 then 4.5 elif value>=70 then 3 elif value>=60 then 1.5 else 0"
+            },
+            {
+              "id": "F05",
+              "label": "Percentage of total revenue spent on fundraising (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value<=10 then 6 elif value<=15 then 4.5 elif value<=20 then 3 elif value<=25 then 1.5 else 0"
+            },
+            {
+              "id": "F06",
+              "label": "Percentage of total revenue spent on administrative expenses (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value<=5 then 6 elif value<=10 then 4.5 elif value<=15 then 3 elif value<=20 then 1.5 else 0"
+            },
+            {
+              "id": "F07",
+              "label": "Percentage of revenue spent per year (spent / revenue)",
+              "type": "number",
+              "scoreLogic": "if value>=100 then 3 elif value>=66.67 then 2.25 elif value>=50 then 1.5 elif value>=33.3 then 0.75 else 0"
+            }
+          ]
+        },
+        {
+          "countryCode": "canada",
+          "title": "Financial Assessment (CANADA)",
+          "questions": [
+            {
+              "id": "F01",
+              "label": "Audited financial statements available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 4
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F02",
+              "label": "Previous year audited financial statements available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F03",
+              "label": "Impact report with financial information available on website?",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "F04",
+              "label": "Percentage of total revenue spent on charitable programs and qualified distributions (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value>=90 then 6 elif value>=80 then 4.5 elif value>=70 then 3 elif value>=60 then 1.5 else 0"
+            },
+            {
+              "id": "F05",
+              "label": "Percentage of total revenue spent on fundraising (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value<=10 then 6 elif value<=15 then 4.5 elif value<=20 then 3 elif value<=25 then 1.5 else 0"
+            },
+            {
+              "id": "F06",
+              "label": "Percentage of total revenue spent on administrative expenses (0-100%)",
+              "type": "number",
+              "scoreLogic": "if value<=5 then 6 elif value<=10 then 4.5 elif value<=15 then 3 elif value<=20 then 1.5 else 0"
+            },
+            {
+              "id": "F07",
+              "label": "Percentage of revenue spent per year (spent / revenue)",
+              "type": "number",
+              "scoreLogic": "if value>=100 then 3 elif value>=66.67 then 2.25 elif value>=50 then 1.5 elif value>=33.3 then 0.75 else 0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "coreArea": 3,
+      "forms": [
+        {
+          "countryCode": null,
+          "title": "Zakat Policy Compliance",
+          "metrics": [
+            {
+              "metricId": "ZP01",
+              "question": "Clear public Zakat Policy available",
+              "maxScore": 5.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit6",
+                  "label": "Criterion 6",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": true
+            },
+            {
+              "metricId": "ZP02",
+              "question": "Turnaround time for Zakat distribution disclosed",
+              "maxScore": 5.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": true
+            },
+            {
+              "metricId": "ZP03",
+              "question": "Explanation and actions outlined for Zakat undistributed beyond one lunar year",
+              "maxScore": 5.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit6",
+                  "label": "Criterion 6",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit7",
+                  "label": "Criterion 7",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP04",
+              "question": "Disclosure of Zakat management/administration fees",
+              "maxScore": 5.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit6",
+                  "label": "Criterion 6",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP05",
+              "question": "Clear separation of Zakat funds from general donations",
+              "maxScore": 4.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP06",
+              "question": "Vetting process for Zakat funds application ",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 0.5
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 0.5
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP07",
+              "question": "Zakat policy clearly labeled and accessible ",
+              "maxScore": 5.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Criterion 1",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP08",
+              "question": "Shariah Advisory board established to advise, set policies, review and audit",
+              "maxScore": 7.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Criterion 1",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit6",
+                  "label": "Criterion 6",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP09",
+              "question": "Names of Shariah Advisory board listed ",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP10",
+              "question": "Individuals serving on the governing board",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP11",
+              "question": "Explanation of compliance with regulations set out by the relevant governmental authority (e.g., CRA, IRS, Charity Commission)",
+              "maxScore": 5.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit6",
+                  "label": "Criterion 6",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": true
+            },
+            {
+              "metricId": "ZP12",
+              "question": "Explanation why zakat funds are collected and distributed ",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP13",
+              "question": "Clear explanation of Zakat fund flow and transfer of ownership (taml\u012bk)",
+              "maxScore": 10.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 3.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit5",
+                  "label": "Criterion 5",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit6",
+                  "label": "Criterion 6",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit7",
+                  "label": "Criterion 7",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP14",
+              "question": "Clear mention of Zakat being used to support both adults and minors, with explanation",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP15",
+              "question": "Purpose of Zakat collecition + mention of whether zakat is distributed in cash or other forms ",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": true
+            },
+            {
+              "metricId": "ZP16",
+              "question": "Audit procedures (internal/external)",
+              "maxScore": 2.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP17",
+              "question": "Mention of Zakat eligibility criteria",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit4",
+                  "label": "Criterion 4",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP18",
+              "question": "Disclosure of public fundrasing costs",
+              "maxScore": 3.0,
+              "criteria": [],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP19",
+              "question": "Zakat calculator on the website",
+              "maxScore": 2.0,
+              "criteria": [
+                {
+                  "id": "crit2",
+                  "label": "Criterion 2",
+                  "weight": 2.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Criterion 3",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": true
+            },
+            {
+              "metricId": "ZP20",
+              "question": "Zakat education bank",
+              "maxScore": 0.0,
+              "criteria": [],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP21",
+              "question": "Live Zakat calculation support",
+              "maxScore": 3.0,
+              "criteria": [],
+              "exclusion": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "coreArea": 4,
+      "forms": [
+        {
+          "countryCode": "canada",
+          "title": "Governance & Leadership Assessment (CAN)",
+          "questions": [
+            {
+              "id": "G01",
+              "label": "Board Members\u2019 Names Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G02",
+              "label": "Board Members\u2019 Photos Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G03",
+              "label": "Leadership Team Names Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G04",
+              "label": "Leadership Photos Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G05",
+              "label": "Minimum 3 Board Members at Arm\u2019s Length",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "countryCode": "usa",
+          "title": "Governance & Leadership Assessment (US)",
+          "questions": [
+            {
+              "id": "G01",
+              "label": "Board Members\u2019 Names Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G02",
+              "label": "Board Members\u2019 Photos Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G03",
+              "label": "Leadership Team Names Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G04",
+              "label": "Leadership Photos Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G05",
+              "label": "Minimum 3 Board Members at Arm\u2019s Length",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            }
+          ]
+        },
+        {
+          "countryCode": "uk",
+          "title": "Governance & Leadership Assessment (UK)",
+          "questions": [
+            {
+              "id": "G01",
+              "label": "Board Members\u2019 Names Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G02",
+              "label": "Board Members\u2019 Photos Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G03",
+              "label": "Leadership Team Names Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G04",
+              "label": "Leadership Photos Featured on Website",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G05",
+              "label": "Minimum 3 Board Members at Arm\u2019s Length",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Yes",
+                  "score": 1
+                },
+                {
+                  "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

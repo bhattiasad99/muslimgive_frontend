@@ -1,0 +1,87 @@
+Apply these changes.
+
+Global rules
+- Use core_area_forms.json as the canonical source when the verdict says �Apply changes in UI�.
+- When verdict says �Add in JSON�, add the missing questions/metrics to core_area_forms.json and keep the existing UI question(s).
+- If a UI question exists but JSON does not, add it to JSON (do not delete UI).
+- Keep labels and required flags aligned between JSON and UI.
+
+Core Area 1 (Charity Status)
+Files:
+- core_area_forms.json
+- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea1_CharityStatus/index.tsx
+Changes:
+1) Add JSON questions for the UI-only fields:
+   - Registration Date (date input). Add a new question entry (new id) with type "date".
+   - Status Evidence selector + file upload. Add questions to represent:
+     a) Evidence Provided (Yes/No) for pending registration (if not already in JSON),
+     b) Evidence Link (if applicable),
+     c) Evidence File upload (type "file") or Evidence Type (select file/link) if you want to keep the UI behavior. Ensure JSON can represent the existing UI fields.
+   - Add scoring criteria: score 1 if registration is pending AND evidence provided is Yes; else 0.
+2) UI modifications (JSON is correct):
+   - CS01 label must be country-specific: UK "Charity Number", Canada "Charity Registration Number", US "EIN (Employer ID Number)".
+   - CS02 label must be country-specific: UK "Charity Commission Profile Link", Canada "CRA Profile Link", US "IRS Profile Link".
+   - CS03 option label must be "Pending Registration" (not "Pending").
+   - CS04 label must be "Gift Aid Eligible" (UK) and "Tax-Deductible" (Canada/US).
+   - CS05 gift aid status link input must update regardless of statusEvidence type.
+   - CS08 Status Notes must be optional.
+   - Add UI for CS06 Evidence for Pending Registration Provided (Yes/No) and CS07 Evidence Link (if applicable) if not already present.
+
+Core Area 2 (Financial Assessment)
+Files:
+- core_area_forms.json
+- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea2_FinancialAccountability/index.tsx
+Changes:
+1) Add JSON questions for existing UI fields:
+   - Financials (Link), Tax Return (Link), IRS Returns (Link), CRA's Returns (Link)
+   - End of fiscal year (date)
+   - Charitable Registration since (date)
+   - Analysis Reviewed Date / SNK Team's Analysis Date (date)
+   - Notes (textarea)
+   Add appropriate ids/types/required flags, and include them per country the same way the UI currently does.
+2) Add missing UI questions from JSON:
+   - F04 Percentage of total revenue spent on charitable programs and qualified distributions (0-100%)
+   - F05 Percentage of total revenue spent on fundraising (0-100%)
+   - F06 Percentage of total revenue spent on administrative expenses (0-100%)
+   - F07 Percentage of revenue spent per year (spent / revenue)
+   These should be number inputs with the labels exactly as in JSON.
+
+Core Area 3 (Zakat Policy Compliance)
+Files:
+- core_area_forms.json
+- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea3_Zakat/MULTI_STEP_DEFS.ts
+- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea3_Zakat/index.tsx
+Changes:
+1) Add missing metrics to JSON (currently in UI but not in JSON):
+   - Formal approval on Zakat campaigns
+   - Details on the Fuqara category and its recipients
+   - Details on the Masakin category and its recipients
+   - Details on the Amilin Alayha category in Zakat distribution
+   - Details on the Fi Ar-Riqab category and its recipients
+   - Details on the Al-Gharimin category and its recipients
+   - Details on the Fi Sabilillah category and its recipients
+   - Details on the Ibn As-Sabil category and its recipients
+   Add metricId/question/criteria entries for these in core_area_forms.json.
+2) Apply UI changes to match JSON:
+   - Update labels to match JSON exactly, including ZP11 example text "(e.g., CRA, IRS, Charity Commission)".
+   - Align ZP13 label text with JSON.
+   - Align ZP18 label text with JSON (even if misspelled there).
+   - Replace hardcoded option lists so options are driven by JSON criteria for each metric (use criteria labels as options). If criteria are empty, render a simple Yes/No or a single checkbox (use a reasonable fallback and document in code).
+
+Core Area 4 (Governance & Leadership)
+Files:
+- core_area_forms.json
+- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea4_Governance/index.tsx
+Changes:
+1) Add missing JSON question for the existing UI question:
+   - Number of Board Members (add to JSON with id/label/type/options consistent with the UI)
+2) Apply UI label changes to match JSON exactly:
+   - G01 "Board Members' Names Featured on Website"
+   - G02 "Board Members' Photos Featured on Website"
+   - G03 "Leadership Team Names Featured on Website"
+   - G04 "Leadership Photos Featured on Website"
+   - G05 "Minimum 3 Board Members at Arm's Length"
+
+After changes
+- Ensure JSON and UI are consistent for core areas 1-4.
+- Keep non-related files unchanged.

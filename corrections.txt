@@ -1,0 +1,81 @@
+Summary:
+Form Elements incorrectly built: 19
+Form Elements not built but are there in JSON: 6
+Form elements that need modification: 14
+
+Details:
+
+Core Area 1 (Charity Status)
+File: src/components/use-case/SingleAuditPageComponent/Audits/CoreArea1_CharityStatus/index.tsx
+Incorrectly built (present in UI but not in JSON):
+- Registration Date (date picker)
+- Status Evidence selector + file upload (JSON expects a Yes/No evidence question + evidence link)
+VERDICT: KEEP THIS and ADD in JSON as form inputs. Scoring criteria: 1 if pending/yes 0 if false
+
+Missing (in JSON but not built):
+- CS06 Evidence for Pending Registration Provided (Yes/No)
+- CS07 Evidence Link (if applicable)
+VERDICT: KEEP THIS and ADD in JSON as form inputs. 
+
+Needs modification:
+- CS01 label must be country-specific: UK "Charity Number", Canada "Charity Registration Number", US "EIN (Employer ID Number)"
+- CS02 label must be country-specific: UK "Charity Commission Profile Link", Canada "CRA Profile Link", US "IRS Profile Link"
+- CS03 option label should be "Pending Registration" (not "Pending")
+- CS04 label should be "Gift Aid Eligible" (UK) and "Tax-Deductible" (Canada/US)
+- CS05 Gift Aid status link input should update regardless of statusEvidence type (currently blocked by a link-only check)
+- CS08 Status Notes should be optional (JSON required: false)
+VERDICT: APPLY CHANGES IN THE FORMS, JSON is correct
+
+Core Area 2 (Financial Assessment)
+File: src/components/use-case/SingleAuditPageComponent/Audits/CoreArea2_FinancialAccountability/index.tsx
+Incorrectly built (present in UI but not in JSON):
+- Financials (Link)
+- Tax Return (Link)
+- IRS Returns (Link)
+- CRA's Returns (Link)
+- End of fiscal year (date)
+- Charitable Registration since (date)
+- Analysis Reviewed Date / SNK Team's Analysis Date (date)
+- Notes
+VERDICT: Keep these in UI, add in JSON as form inputs
+
+Missing (in JSON but not built):
+- F04 Percentage of total revenue spent on charitable programs and qualified distributions (0-100%)
+- F05 Percentage of total revenue spent on fundraising (0-100%)
+- F06 Percentage of total revenue spent on administrative expenses (0-100%)
+- F07 Percentage of revenue spent per year (spent / revenue)
+VERDICT: Add in UI
+
+Core Area 3 (Zakat Policy Compliance)
+File: src/components/use-case/SingleAuditPageComponent/Audits/CoreArea3_Zakat/MULTI_STEP_DEFS.ts
+Incorrectly built (present in UI but not in JSON):
+- Formal approval on Zakat campaigns
+- Details on the Fuqara category and its recipients
+- Details on the Masakin category and its recipients
+- Details on the Amilin Alayha category in Zakat distribution
+- Details on the Fi Ar-Riqab category and its recipients
+- Details on the Al-Gharimin category and its recipients
+- Details on the Fi Sabilillah category and its recipients
+- Details on the Ibn As-Sabil category and its recipients
+VERDICT: Add  in JSON
+
+Needs modification:
+- ZP11 label should include the example text: "(e.g., CRA, IRS, Charity Commission)"
+- ZP13 label uses "tamlik" in UI; JSON uses "tamlik" (decide which text is canonical and align)
+- ZP18 label spelling: UI uses "fundraising", JSON uses "fundrasing" (decide which text is canonical and align)
+- Question options do not match the JSON criteria lists (JSON uses generic Criterion labels + weights). Confirm whether options should be generated from JSON criteria.
+VERDICT: Apply changes in UI
+
+Core Area 4 (Governance & Leadership)
+File: src/components/use-case/SingleAuditPageComponent/Audits/CoreArea4_Governance/index.tsx
+Incorrectly built (present in UI but not in JSON):
+- Number of Board Members
+VERDICT: Add in JSON
+
+Needs modification:
+- G01 label should be "Board Members' Names Featured on Website"
+- G02 label should be "Board Members' Photos Featured on Website"
+- G03 label should be "Leadership Team Names Featured on Website"
+- G04 label should be "Leadership Photos Featured on Website"
+- G05 label should be "Minimum 3 Board Members at Arm's Length"
+VERDICT: Apply changes in UI
