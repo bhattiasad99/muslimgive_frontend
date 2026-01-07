@@ -106,11 +106,12 @@ const PreviewCharityPage = () => {
                         const payload = {
                             name: parsed.name,
                             isIslamic: Boolean(parsed.isIslamic),
-                            doesCharityGiveZakat: Boolean(parsed.paysZakat),
+                            doesCharityGiveZakat: Boolean(parsed.doesCharityGiveZakat),
                             description: parsed.description || "",
-                            charityCommissionWebsiteUrl: parsed.website,
+                            charityCommissionWebsiteUrl: parsed.charityCommissionWebsiteUrl,
                             startDate: parsed.startDate ? new Date(parsed.startDate).toISOString().split('T')[0] : "",
                             category: parsed.category,
+                            countryCode: parsed.countryCode,
                         }
 
                         const res = await createCharityAction(payload)

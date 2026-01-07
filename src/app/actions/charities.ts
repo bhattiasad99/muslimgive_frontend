@@ -33,6 +33,7 @@ export type CreateCharityPayload = {
     charityCommissionWebsiteUrl: string;
     startDate: string;
     category: string;
+    countryCode: string;
 }
 
 /**
