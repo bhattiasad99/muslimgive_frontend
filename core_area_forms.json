@@ -68,12 +68,39 @@
                   "label": "No"
                 }
               ],
-              "required": false
+              "required": false,
+              "scoreLogic": "if answers['CS03'] == 'Pending Registration' and answers['CS06'] == 'Yes' then 1 else 0"
             },
             {
               "id": "CS07",
               "label": "Evidence Link (if applicable)",
               "type": "text",
+              "required": false
+            },
+            {
+              "id": "CS09",
+              "label": "Registration Date",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "CS10",
+              "label": "Status Evidence Type",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Upload File"
+                },
+                {
+                  "label": "Provide Link"
+                }
+              ],
+              "required": false
+            },
+            {
+              "id": "CS11",
+              "label": "Status Evidence File (if applicable)",
+              "type": "file",
               "required": false
             },
             {
@@ -144,12 +171,39 @@
                   "label": "No"
                 }
               ],
-              "required": false
+              "required": false,
+              "scoreLogic": "if answers['CS03'] == 'Pending Registration' and answers['CS05'] == 'Yes' then 1 else 0"
             },
             {
               "id": "CS06",
               "label": "Evidence Link (if applicable)",
               "type": "text",
+              "required": false
+            },
+            {
+              "id": "CS09",
+              "label": "Registration Date",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "CS10",
+              "label": "Status Evidence Type",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Upload File"
+                },
+                {
+                  "label": "Provide Link"
+                }
+              ],
+              "required": false
+            },
+            {
+              "id": "CS11",
+              "label": "Status Evidence File (if applicable)",
+              "type": "file",
               "required": false
             },
             {
@@ -220,12 +274,39 @@
                   "label": "No"
                 }
               ],
-              "required": false
+              "required": false,
+              "scoreLogic": "if answers['CS03'] == 'Pending Registration' and answers['CS05'] == 'Yes' then 1 else 0"
             },
             {
               "id": "CS06",
               "label": "Evidence Link (if applicable)",
               "type": "text",
+              "required": false
+            },
+            {
+              "id": "CS09",
+              "label": "Registration Date",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "CS10",
+              "label": "Status Evidence Type",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "Upload File"
+                },
+                {
+                  "label": "Provide Link"
+                }
+              ],
+              "required": false
+            },
+            {
+              "id": "CS11",
+              "label": "Status Evidence File (if applicable)",
+              "type": "file",
               "required": false
             },
             {
@@ -317,6 +398,36 @@
               "label": "Percentage of revenue spent per year (spent / revenue)",
               "type": "number",
               "scoreLogic": "if value>=100 then 3 elif value>=66.67 then 2.25 elif value>=50 then 1.5 elif value>=33.3 then 0.75 else 0"
+            },
+            {
+              "id": "F08",
+              "label": "Financials (Link)",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "F09",
+              "label": "Tax Return (Link)",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "F12",
+              "label": "End of fiscal year",
+              "type": "date",
+              "required": true
+            },
+            {
+              "id": "F13",
+              "label": "Charitable Registration since",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "F15",
+              "label": "Notes",
+              "type": "paragraph",
+              "required": false
             }
           ]
         },
@@ -395,6 +506,42 @@
               "label": "Percentage of revenue spent per year (spent / revenue)",
               "type": "number",
               "scoreLogic": "if value>=100 then 3 elif value>=66.67 then 2.25 elif value>=50 then 1.5 elif value>=33.3 then 0.75 else 0"
+            },
+            {
+              "id": "F08",
+              "label": "Financials (Link)",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "F10",
+              "label": "IRS Returns (Link)",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "F12",
+              "label": "End of fiscal year",
+              "type": "date",
+              "required": true
+            },
+            {
+              "id": "F13",
+              "label": "Charitable Registration since",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "F14",
+              "label": "Analysis Reviewed Date",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "F15",
+              "label": "Notes",
+              "type": "paragraph",
+              "required": false
             }
           ]
         },
@@ -473,6 +620,36 @@
               "label": "Percentage of revenue spent per year (spent / revenue)",
               "type": "number",
               "scoreLogic": "if value>=100 then 3 elif value>=66.67 then 2.25 elif value>=50 then 1.5 elif value>=33.3 then 0.75 else 0"
+            },
+            {
+              "id": "F11",
+              "label": "CRA's Returns (Link)",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "F12",
+              "label": "End of fiscal year",
+              "type": "date",
+              "required": true
+            },
+            {
+              "id": "F13",
+              "label": "Charitable Registration since",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "F14",
+              "label": "SNK Team's Analysis Date",
+              "type": "date",
+              "required": false
+            },
+            {
+              "id": "F15",
+              "label": "Notes",
+              "type": "paragraph",
+              "required": false
             }
           ]
         }
@@ -979,6 +1156,190 @@
               "maxScore": 3.0,
               "criteria": [],
               "exclusion": false
+            },
+            {
+              "metricId": "ZP22",
+              "question": "Formal approval on Zakat campaigns",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Zakat campaign approval by scholars",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Written approval",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Governance",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP23",
+              "question": "Details on the Fuqara category and its recipients",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Category explained in detail",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Explanation of fund usage",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Assurance funds are properly used",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP24",
+              "question": "Details on the Masakin category and its recipients",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Category explained in detail",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Explanation of fund usage",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Assurance funds are properly used",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP25",
+              "question": "Details on the Amilin Alayha category in Zakat distribution",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Category explained in detail",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Explanation of fund usage",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Assurance funds are properly used",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP26",
+              "question": "Details on the Fi Ar-Riqab category and its recipients",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Category explained in detail",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Explanation of fund usage",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Assurance funds are properly used",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP27",
+              "question": "Details on the Al-Gharimin category and its recipients",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Category explained in detail",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Explanation of fund usage",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Assurance funds are properly used",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP28",
+              "question": "Details on the Fi Sabilillah category and its recipients",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Category explained in detail",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Explanation of fund usage",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Assurance funds are properly used",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
+            },
+            {
+              "metricId": "ZP29",
+              "question": "Details on the Ibn As-Sabil category and its recipients",
+              "maxScore": 3.0,
+              "criteria": [
+                {
+                  "id": "crit1",
+                  "label": "Category explained in detail",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit2",
+                  "label": "Explanation of fund usage",
+                  "weight": 1.0
+                },
+                {
+                  "id": "crit3",
+                  "label": "Assurance funds are properly used",
+                  "weight": 1.0
+                }
+              ],
+              "exclusion": false
             }
           ]
         }
@@ -1070,6 +1431,26 @@
                 }
               ],
               "required": true
+            },
+            {
+              "id": "G06",
+              "label": "Number of Board Members",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "3 or more",
+                  "score": 1
+                },
+                {
+                  "label": "1 to 2",
+                  "score": 0
+                },
+                {
+                  "label": "0",
+                  "score": 0
+                }
+              ],
+              "required": true
             }
           ]
         },
@@ -1156,6 +1537,26 @@
                 }
               ],
               "required": true
+            },
+            {
+              "id": "G06",
+              "label": "Number of Board Members",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "3 or more",
+                  "score": 1
+                },
+                {
+                  "label": "1 to 2",
+                  "score": 0
+                },
+                {
+                  "label": "0",
+                  "score": 0
+                }
+              ],
+              "required": true
             }
           ]
         },
@@ -1238,6 +1639,26 @@
                 },
                 {
                   "label": "No",
+                  "score": 0
+                }
+              ],
+              "required": true
+            },
+            {
+              "id": "G06",
+              "label": "Number of Board Members",
+              "type": "radio",
+              "options": [
+                {
+                  "label": "3 or more",
+                  "score": 1
+                },
+                {
+                  "label": "1 to 2",
+                  "score": 0
+                },
+                {
+                  "label": "0",
                   "score": 0
                 }
               ],
