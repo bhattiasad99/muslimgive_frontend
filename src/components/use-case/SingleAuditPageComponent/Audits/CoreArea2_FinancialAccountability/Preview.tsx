@@ -10,7 +10,7 @@ export type PreviewPageCommonProps = {
 type IProps = PreviewPageCommonProps;
 
 
-const PreviewCoreArea2: FC<IProps> = ({ country }) => {
+const PreviewCoreArea2: FC<IProps> = () => {
     const auditVals = DUMMY_AUDIT_VALUES['core-area-2'];
     return (
         <div>PreviewCoreArea2</div>

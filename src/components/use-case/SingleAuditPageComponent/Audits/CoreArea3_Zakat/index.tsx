@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import React, { FC, useState } from 'react'
 import { MULTI_STEP_DEFS, QuestionDef } from './MULTI_STEP_DEFS';
-import Page from './Page';
-import ComplexCheckboxGroup, { ComplexCheckboxGroupStatus, LinkAttached } from './ComplexCheckboxGroup';
+
+import ComplexCheckboxGroup, { ComplexCheckboxGroupStatus } from './ComplexCheckboxGroup';
 import AuditSectionCard from '../../UI/AuditSectionCard';
 import { useRouter } from 'next/navigation';
 
@@ -51,7 +51,7 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
                     return <AuditSectionCard key={eachQuestion.id}>
                         <ComplexCheckboxGroup defaultStatus={formEntries.find(eachEntry => eachEntry.id === eachQuestion.id)} id={eachQuestion.id} label={eachQuestion.label} required options={eachQuestion.options}
                             onUpdate={(update) => {
-                                let temp = [...formEntries];
+                                const temp = [...formEntries];
                                 const existingIndex = temp.findIndex(item => item.id === eachQuestion.id);
                                 if (existingIndex > -1) {
                                     temp[existingIndex] = { id: eachQuestion.id, ...update };

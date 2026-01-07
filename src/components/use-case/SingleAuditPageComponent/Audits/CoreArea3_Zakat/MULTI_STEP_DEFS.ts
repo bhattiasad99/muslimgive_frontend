@@ -1,4 +1,3 @@
-import { LinkAttached } from "./ComplexCheckboxGroup";
 
 type Option = {
     value: string;

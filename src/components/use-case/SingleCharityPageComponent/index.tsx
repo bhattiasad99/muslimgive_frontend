@@ -8,7 +8,6 @@ import { SingleCharityType } from '../CharitiesPageComponent/kanban/KanbanView'
 import ThreeDotIcon from '@/components/common/IconComponents/ThreeDotIcon'
 import IconDropdownMenuComponent from '@/components/common/IconDropdownMenuComponent'
 import EmailIcon from '@/components/common/IconComponents/EmailIcon'
-import OpenInNewTab from '@/components/common/IconComponents/OpenInNewTab'
 import MultipleUsersIcon from '@/components/common/IconComponents/MultipleUsersIcon'
 import AuditStatus from '@/components/common/IconComponents/AuditStatus'
 import SingleCharityDetails from './SingleCharityDetails'
@@ -38,8 +37,6 @@ const SingleCharityPageComponent: FC<IProps> = ({
     id: charityId,
     members,
     status,
-    comments,
-    auditsCompleted,
     country,
     category,
     totalDuration,

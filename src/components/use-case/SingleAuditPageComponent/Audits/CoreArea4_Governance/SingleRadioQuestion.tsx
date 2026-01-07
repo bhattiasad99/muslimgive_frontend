@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import AuditSectionCard from '../../UI/AuditSectionCard'
 import RadioGroupComponent from '@/components/common/RadioGroupComponent'
 

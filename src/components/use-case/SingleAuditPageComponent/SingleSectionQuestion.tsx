@@ -4,7 +4,6 @@ import AuditSectionCard from './UI/AuditSectionCard'
 import { SingleQuestionProps } from './types'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { TextFieldComponent } from '@/components/common/TextFieldComponent'
-import RadioGroupComponent from '@/components/common/RadioGroupComponent'
 import { TextAreaComponent } from '@/components/common/TextAreaComponent'
 
 type IProps = SingleQuestionProps & {

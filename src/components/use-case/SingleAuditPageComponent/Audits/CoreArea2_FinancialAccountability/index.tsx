@@ -122,7 +122,7 @@ const CoreArea2: React.FC<IProps> = ({ location, charityId }) => {
                 <AuditSectionCard>
                     <div className="flex flex-col gap-2">
                         <Label htmlFor="core_2__cra-returns-link" className="block text-sm font-semibold">
-                            CRA's Returns (Link)<span className="text-red-500">*</span>
+                            CRA&apos;s Returns (Link)<span className="text-red-500">*</span>
                         </Label>
                         <ControlledTextFieldComponent
                             id="core_2__cra-returns-link"

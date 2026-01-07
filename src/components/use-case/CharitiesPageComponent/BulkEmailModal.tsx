@@ -114,7 +114,7 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
         {
             accessorKey: 'charityOwnerName',
             header: () => {
-                return <div className="text-center">Owner's Name</div>
+                return <div className="text-center">Owner&apos;s Name</div>
             },
             cell: ({ row }) => <div className="text-center">{row.original.charityOwnerName}</div>,
         },

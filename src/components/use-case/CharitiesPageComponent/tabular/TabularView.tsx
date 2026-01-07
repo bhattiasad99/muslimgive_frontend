@@ -62,7 +62,7 @@ const TabularView: FC<Props> = ({ charities }) => {
                     <TableRow>
                         <TableHead>Charity Name</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Owner's Name</TableHead>
+                        <TableHead>Owner&apos;s Name</TableHead>
                         <TableHead className="w-[180px]">Team</TableHead>
                         <TableHead className="text-center">Audits Completed</TableHead>
                         <TableHead>Progress</TableHead>

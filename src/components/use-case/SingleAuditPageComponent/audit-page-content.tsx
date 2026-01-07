@@ -5,13 +5,13 @@ import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
-import { AUDIT_DEFINITIONS, type AuditSlug } from './AUDIT_DEFINITIONS'
+import React from 'react'
+import { type AuditSlug } from './AUDIT_DEFINITIONS'
 import CoreArea1 from './Audits/CoreArea1_CharityStatus'
 import CoreArea2 from './Audits/CoreArea2_FinancialAccountability'
 import CoreArea3 from './Audits/CoreArea3_Zakat'
 import CoreArea4 from './Audits/CoreArea4_Governance'
-import Preview from './Audits/Preview'
+
 
 type AuditPageContentProps = {
     charityId: string;

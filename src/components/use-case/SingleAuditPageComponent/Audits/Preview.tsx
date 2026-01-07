@@ -4,10 +4,8 @@ import ArrowIcon from '@/components/common/IconComponents/ArrowIcon'
 import LinkComponent from '@/components/common/LinkComponent'
 import { Button } from '@/components/ui/button'
 import { AuditIds, AuditStatus, DUMMY_AUDIT_VALUES } from '@/DUMMY_AUDIT_VALS'
-import { camelCaseToTitle, capitalizeWords, formatToReadableWithTZ, isLikelyUrl } from '@/lib/helpers'
-import { useRouter } from 'next/dist/client/components/navigation'
+import { capitalizeWords, formatToReadableWithTZ } from '@/lib/helpers'
 import React, { FC } from 'react'
-import PreviewValueLayout from '../UI/PreviewValueLayout'
 import PreviewCoreArea1 from './CoreArea1_CharityStatus/Preview'
 import PreviewCoreArea2 from './CoreArea2_FinancialAccountability/Preview'
 import PreviewCoreArea3 from './CoreArea3_Zakat/Preview'
@@ -28,7 +26,7 @@ type IProps = {
     status?: AuditStatus
 }
 
-const Preview: FC<IProps> = ({ status, showModeAndBackBtn = true, charityTitle, auditedBy, charityId, auditSlug, country }) => {
+const Preview: FC<IProps> = ({ status, showModeAndBackBtn = true, auditedBy, charityId, auditSlug, country }) => {
     const auditVals = DUMMY_AUDIT_VALUES[auditSlug] || null;
     if (!auditVals) {
         return <div>No audit values found for preview.</div>

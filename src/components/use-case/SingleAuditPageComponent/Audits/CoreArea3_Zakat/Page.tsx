@@ -1,13 +1,13 @@
 import React, { FC } from 'react'
-import AuditSectionCard from '../../UI/AuditSectionCard'
-import ComplexCheckboxGroup from './ComplexCheckboxGroup'
 import { SingleFormPageCommonProps } from '.'
 
 type IProps = SingleFormPageCommonProps
 
-const Page: FC<IProps> = ({ questions }) => {
+const Page: FC<IProps> = () => {
     return (
-       
+        <div>
+            {/* TODO: Implement Zakat page content */}
+        </div>
     )
 }
 

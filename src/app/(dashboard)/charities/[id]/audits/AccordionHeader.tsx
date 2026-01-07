@@ -1,11 +1,7 @@
 import { kanit } from '@/app/fonts';
-import ThreeDotIcon from '@/components/common/IconComponents/ThreeDotIcon';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent } from '@/components/ui/popover'
 import { AuditStatus, GradeType } from '@/DUMMY_AUDIT_VALS';
 import { capitalizeWords } from '@/lib/helpers';
 import { cn } from '@/lib/utils'
-import { PopoverTrigger } from '@radix-ui/react-popover';
 import React, { FC } from 'react'
 
 type IProps = {
@@ -19,7 +15,7 @@ type IProps = {
     close: () => void;
 }
 
-const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, score, status, isOpen, setOpenId }) => {
+const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, score, status }) => {
     const statusClassName: Record<AuditStatus, string> = {
         'submitted': 'bg-[#5CF269] border-[#57de62]',
         'draft': 'bg-[#F2C94C] border-[#e5c24b]',

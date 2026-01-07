@@ -1,5 +1,5 @@
 "use client"
-import React, { FC, ReactNode, useId } from "react"
+import React, { type FC, ReactNode, useId } from "react"
 import {
     Dialog,
     DialogContent,
@@ -7,10 +7,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
 import clsx from "clsx"
-
-import type { FC, ReactNode } from "react"
 
 type ModelComponentWithExternalControlProps = {
     open: boolean,

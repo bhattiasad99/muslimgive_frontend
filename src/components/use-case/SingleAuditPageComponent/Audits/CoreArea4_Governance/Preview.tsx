@@ -1,5 +1,5 @@
 import { CountryCode } from '@/app/(dashboard)/charities/[id]/audits/[audit]/page';
-import { AuditStatus, DUMMY_AUDIT_VALUES } from '@/DUMMY_AUDIT_VALS';
+import { AuditStatus } from '@/DUMMY_AUDIT_VALS';
 import React, { FC } from 'react'
 export type PreviewPageCommonProps = {
     country: CountryCode;
@@ -8,8 +8,7 @@ export type PreviewPageCommonProps = {
 
 type IProps = PreviewPageCommonProps;
 
-const PreviewCoreArea4: FC<IProps> = ({ country }) => {
-    const auditVals = DUMMY_AUDIT_VALUES['core-area-4'];
+const PreviewCoreArea4: FC<IProps> = () => {
     return (
         <div>PreviewCoreArea4</div>
     )
