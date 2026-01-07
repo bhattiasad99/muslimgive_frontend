@@ -20,6 +20,7 @@ const CreateCharityStandalonePage = () => {
     const [website, setWebsite] = useState('')
     const [startDate, setStartDate] = useState<Date | undefined>(undefined)
     const [category, setCategory] = useState<string>('')
+    const [country, setCountry] = useState<string>('')
     const [errors, setErrors] = useState<{ [k: string]: string }>({})
 
     const categories = useMemo(() => Object.entries(CategoryEnum).map(([k, v]) => ({ id: k, label: v })), [])
@@ -33,6 +34,7 @@ const CreateCharityStandalonePage = () => {
         if (!website.trim()) next.website = 'Website link is required'
         if (!startDate) next.startDate = 'Start date is required'
         if (!category) next.category = 'Category is required'
+        if (!country) next.country = 'Country is required'
 
         setErrors(next)
         if (Object.keys(next).length > 0) return
@@ -40,11 +42,12 @@ const CreateCharityStandalonePage = () => {
         const payload = {
             name,
             isIslamic,
-            paysZakat,
+            doesCharityGiveZakat: paysZakat,
             description,
-            website,
-            startDate: startDate ? startDate.toISOString() : null,
+            charityCommissionWebsiteUrl: website,
+            startDate: startDate ? startDate.toISOString().split('T')[0] : null,
             category,
+            countryCode: country,
         }
 
         const encoded = encodeURIComponent(JSON.stringify(payload))
@@ -96,6 +99,21 @@ const CreateCharityStandalonePage = () => {
                             <Label htmlFor="charity-startdate" className="text-sm">Select Start Date of this charity <span className="text-red-500">*</span></Label>
                             <DatePicker value={startDate} onChange={setStartDate} disabledFutureDates={true} id="charity-startdate" />
                             {errors.startDate ? <div className="text-xs text-red-500 mt-1">{errors.startDate}</div> : null}
+                        </div>
+
+                        <div className="max-w-sm">
+                            <Label className="text-sm">Select Country <span className="text-red-500">*</span></Label>
+                            <Select value={country} onValueChange={(v) => setCountry(v)}>
+                                <SelectTrigger className="h-9 w-full">
+                                    <SelectValue placeholder="Select Country" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="usa">United States</SelectItem>
+                                    <SelectItem value="uk">United Kingdom</SelectItem>
+                                    <SelectItem value="canada">Canada</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.country ? <div className="text-xs text-red-500 mt-1">{errors.country}</div> : null}
                         </div>
 
                         <div className="max-w-sm">
