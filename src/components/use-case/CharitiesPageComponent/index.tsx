@@ -216,7 +216,7 @@ const CharitiesPageComponent = () => {
                         query={queryInput}
                         placeholder="Search Charities by Title or Charity Owner's Name"
                     />
-                    <div className="flex flex-wrap gap-2 items-center md:ml-auto">
+                    <div className="flex  gap-2 items-center md:ml-auto">
                         <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
                             <SelectTrigger className="w-[140px] h-9">
                                 <SelectValue placeholder="Sort By" />
@@ -237,7 +237,7 @@ const CharitiesPageComponent = () => {
                         </Button>
                     </div>
                 </div>
-                <div className="flex flex-wrap gap-3 items-center">
+                <div className="flex  gap-3 items-center">
                     <Can anyOf={[PERMISSIONS.CREATE_CHARITY]}>
                         <LinkComponent to="/create-charity">
                             <Button variant={"primary"} className="flex items-center gap-2">
