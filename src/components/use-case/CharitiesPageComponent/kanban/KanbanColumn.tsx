@@ -11,7 +11,7 @@ type IProps = Omit<KanbanColType, 'id'> & {
 
 const KanbanColumn: FC<IProps> = ({ color, title, cards }) => {
     return (
-        <Card className='min-w-[328px] border border-[rgba(0,0,0,0.1)] bg-accent p-6 rounded-2xl flex flex-col gap-6 h-135'>
+        <Card className='min-w-[280px] sm:min-w-[328px] border border-[rgba(0,0,0,0.1)] bg-accent p-6 rounded-2xl flex flex-col gap-6 h-135'>
             <div className="flex gap-2 items-center">
                 <div style={{ backgroundColor: color }}
                     className="w-2 h-2 rounded-full">&nbsp;</div>

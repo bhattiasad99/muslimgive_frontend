@@ -19,15 +19,15 @@ type IProps = {
 
 const AccordionHeader: FC<IProps> = ({ id, firstName, lastName, status, location, isOpen, setOpenId }) => {
     return (
-        <div className="flex w-full items-center justify-between">
-            <p className={cn("min-w-[50px] text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
+        <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <p className={cn("w-fit text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
                 {id}
             </p>
-            <p className="min-w-[150px]">
+            <p className="md:min-w-[150px]">
                 {firstName} {lastName}
             </p>
-            <p className="min-w-[150px]">{location}</p>
-            <div className="w-[100px] flex justify-center items-center">
+            <p className="md:min-w-[150px]">{location}</p>
+            <div className="md:w-[100px] flex justify-center items-center">
                 <p
                     className={cn(
                         'px-3 py-0.5 text-xs rounded-lg flex justify-center border',

@@ -11,6 +11,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { _get, _post, _patch } from '@/app/lib/methods'
 import { deleteRoleAction } from '@/app/actions/roles'
 import { toast } from 'sonner'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 type Role = {
   id: string
@@ -185,10 +187,12 @@ const ManageRoles: FC = () => {
     <div className="p-4 bg-white rounded-lg border">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Manage Roles</h3>
-        <Button variant="primary" onClick={() => setIsAddOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Create New Role
-        </Button>
+        <Can anyOf={[PERMISSIONS.ROLE_CREATE, PERMISSIONS.ROLE_MANAGE]}>
+          <Button variant="primary" onClick={() => setIsAddOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create New Role
+          </Button>
+        </Can>
       </div>
 
       <Table>
@@ -212,38 +216,44 @@ const ManageRoles: FC = () => {
               </TableCell>
               <TableCell className="py-4 w-[160px]">
                 <div className="flex items-center gap-2 justify-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(r)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Edit Role
-                    </TooltipContent>
-                  </Tooltip>
+                  <Can anyOf={[PERMISSIONS.ROLE_UPDATE, PERMISSIONS.ROLE_MANAGE]}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(r)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Edit Role
+                      </TooltipContent>
+                    </Tooltip>
+                  </Can>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenManagePerm(r)}>
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Manage Permissions
-                    </TooltipContent>
-                  </Tooltip>
+                  <Can anyOf={[PERMISSIONS.ROLE_PERMISSIONS_UPDATE, PERMISSIONS.ROLE_MANAGE]}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenManagePerm(r)}>
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Manage Permissions
+                      </TooltipContent>
+                    </Tooltip>
+                  </Can>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(r)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Delete Role
-                    </TooltipContent>
-                  </Tooltip>
+                  <Can anyOf={[PERMISSIONS.ROLE_DELETE, PERMISSIONS.ROLE_MANAGE]}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(r)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Delete Role
+                      </TooltipContent>
+                    </Tooltip>
+                  </Can>
                 </div>
               </TableCell>
             </TableRow>

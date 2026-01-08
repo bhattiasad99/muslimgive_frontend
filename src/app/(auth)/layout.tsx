@@ -6,7 +6,7 @@ export default function AuthScreensLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <main className='bg-background flex justify-center items-center min-h-screen'>
+        <main className='bg-background flex justify-center items-center min-h-screen p-4'>
             {children}
         </main>
     );

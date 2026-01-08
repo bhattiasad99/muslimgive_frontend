@@ -12,6 +12,8 @@ import UserData from './UserData'
 import { Button } from '@/components/ui/button'
 import { Settings } from 'lucide-react'
 import EditUserRolesModal from '../UsersPageComponent/EditUserRolesModal'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 export type Role =
     | "Financial Auditor"
@@ -63,10 +65,12 @@ const UsersExpandableTable: FC<IProps> = ({ rows }) => {
                         </AccordionTrigger>
                         <AccordionContent>
                             <div className="flex justify-end px-6 pt-2">
-                                <Button variant="outline" size="sm" onClick={() => setEditingUser({ id: eachUser.id, name: `${eachUser.firstName} ${eachUser.lastName}` })}>
-                                    <Settings className="h-4 w-4 mr-2" />
-                                    Edit Roles
-                                </Button>
+                                <Can anyOf={[PERMISSIONS.ROLE_ASSIGN, PERMISSIONS.ROLE_MANAGE]}>
+                                    <Button variant="outline" size="sm" onClick={() => setEditingUser({ id: eachUser.id, name: `${eachUser.firstName} ${eachUser.lastName}` })}>
+                                        <Settings className="h-4 w-4 mr-2" />
+                                        Edit Roles
+                                    </Button>
+                                </Can>
                             </div>
                             <UserData {
                                 ...{

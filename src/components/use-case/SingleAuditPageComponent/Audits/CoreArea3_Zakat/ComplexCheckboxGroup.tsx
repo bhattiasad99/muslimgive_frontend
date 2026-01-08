@@ -63,13 +63,13 @@ const ComplexCheckboxGroup: FC<IProps> = ({
                         onUpdateFormInputs();
                     }} />)}
             </div>
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                 <Button className='bg-[#F7F7F7] border border-[#e6e6e6]' variant="outline" size={"icon"}>
                     <Link color='#266DD3' />
                 </Button>
                 <TypographyComponent className='text-xs text-[#666E76] italic'>2 links attached</TypographyComponent>
             </div>
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                 <Button className='bg-[#F7F7F7] border border-[#e6e6e6]' variant="outline" size={"icon"}>
                     <MessageCircleMore color='#266DD3' />
                 </Button>

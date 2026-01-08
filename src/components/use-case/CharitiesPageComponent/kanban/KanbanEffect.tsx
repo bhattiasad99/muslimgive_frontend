@@ -38,13 +38,13 @@ const KanbanEffect: FC<IProps> = ({ children }) => {
     return (
         <div
             ref={containerRef}
-            className="overflow-x-hidden scrollbar-hide cursor-grab active:cursor-grabbing"
+            className="overflow-x-auto md:overflow-x-hidden scrollbar-hide cursor-grab active:cursor-grabbing"
             onMouseDown={handleMouseDown}
             onMouseLeave={handleMouseLeave}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
         >
-            <div className="flex gap-5">
+            <div className="flex gap-5 min-w-max md:min-w-0">
                 {children}
             </div>
         </div>

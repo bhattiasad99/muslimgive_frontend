@@ -9,6 +9,8 @@ import LinkComponent from '@/components/common/LinkComponent'
 import SingleCharityDetails from '@/components/use-case/SingleCharityPageComponent/SingleCharityDetails'
 import { toast } from 'sonner'
 import { createCharityAction } from '@/app/actions/charities'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 import { CategoryEnum, SingleCharityType } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
 
@@ -79,12 +81,12 @@ const PreviewCharityPage = () => {
                 </Button>
             </div>
 
-            <div className="flex gap-[77px]">
-                <div className="w-[675px] flex flex-col gap-4 items-start">
+            <div className="flex flex-col gap-6 xl:flex-row xl:gap-[77px]">
+                <div className="w-full xl:w-[675px] flex flex-col gap-4 items-start">
                     <TypographyComponent variant="h1">{charity.charityTitle}</TypographyComponent>
                     <div className="flex flex-col gap-2">
-                        <div className="flex">
-                            <TypographyComponent variant='caption' className="w-[178px] text-[#666E76]">Owner&apos;s Name:</TypographyComponent>
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                            <TypographyComponent variant='caption' className="w-32 sm:w-[178px] text-[#666E76]">Owner&apos;s Name:</TypographyComponent>
                             <TypographyComponent variant='caption'>{charity.charityOwnerName}</TypographyComponent>
                         </div>
                     </div>
@@ -99,35 +101,37 @@ const PreviewCharityPage = () => {
                 </div>
             </div>
 
-            <div className="flex items-center gap-4 mt-6">
-                <Button variant="primary" loading={isPublishing} onClick={async () => {
-                    setIsPublishing(true)
-                    try {
-                        const payload = {
-                            name: parsed.name,
-                            isIslamic: Boolean(parsed.isIslamic),
-                            doesCharityGiveZakat: Boolean(parsed.doesCharityGiveZakat),
-                            description: parsed.description || "",
-                            charityCommissionWebsiteUrl: parsed.charityCommissionWebsiteUrl,
-                            startDate: parsed.startDate ? new Date(parsed.startDate).toISOString().split('T')[0] : "",
-                            category: parsed.category,
-                            countryCode: parsed.countryCode,
-                        }
+            <div className="flex flex-col gap-3 mt-6 sm:flex-row sm:items-center sm:gap-4">
+                <Can anyOf={[PERMISSIONS.CREATE_CHARITY]}>
+                    <Button variant="primary" loading={isPublishing} onClick={async () => {
+                        setIsPublishing(true)
+                        try {
+                            const payload = {
+                                name: parsed.name,
+                                isIslamic: Boolean(parsed.isIslamic),
+                                doesCharityGiveZakat: Boolean(parsed.doesCharityGiveZakat),
+                                description: parsed.description || "",
+                                charityCommissionWebsiteUrl: parsed.charityCommissionWebsiteUrl,
+                                startDate: parsed.startDate ? new Date(parsed.startDate).toISOString().split('T')[0] : "",
+                                category: parsed.category,
+                                countryCode: parsed.countryCode,
+                            }
 
-                        const res = await createCharityAction(payload)
-                        if (res.ok) {
-                            toast.success("Charity published successfully!")
-                            router.push('/charities')
-                        } else {
-                            toast.error(res.message || "Failed to publish charity")
+                            const res = await createCharityAction(payload)
+                            if (res.ok) {
+                                toast.success("Charity published successfully!")
+                                router.push('/charities')
+                            } else {
+                                toast.error(res.message || "Failed to publish charity")
+                            }
+                        } catch (error) {
+                            console.error(error)
+                            toast.error("An unexpected error occurred")
+                        } finally {
+                            setIsPublishing(false)
                         }
-                    } catch (error) {
-                        console.error(error)
-                        toast.error("An unexpected error occurred")
-                    } finally {
-                        setIsPublishing(false)
-                    }
-                }}>Publish Charity</Button>
+                    }}>Publish Charity</Button>
+                </Can>
                 <Button variant="outline" onClick={() => router.push('/create-charity')}>Cancel</Button>
             </div>
         </div>

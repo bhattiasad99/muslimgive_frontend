@@ -73,12 +73,12 @@ const EmailLogsPage: FC = () => {
         {filtered.map(log => (
           <AccordionItem key={log.id} value={log.id}>
             <AccordionTrigger asChild className="w-full">
-              <div className="flex items-center justify-between w-full py-3 px-2 hover:bg-slate-50 cursor-pointer">
-                <div className="min-w-[200px] text-sm font-medium">Subject: {log.subject}</div>
-                <div className="min-w-[200px] text-sm">Charity: {log.charity}</div>
-                <div className="min-w-[80px] text-sm text-center">{log.time}</div>
-                <div className="min-w-[180px] text-sm text-center">{log.dateLabel}</div>
-                <div className="min-w-[90px] flex justify-end">
+              <div className="flex flex-col gap-2 w-full py-3 px-2 hover:bg-slate-50 cursor-pointer sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm font-medium sm:min-w-[200px]">Subject: {log.subject}</div>
+                <div className="text-sm sm:min-w-[200px]">Charity: {log.charity}</div>
+                <div className="text-sm sm:min-w-[80px] sm:text-center">{log.time}</div>
+                <div className="text-sm sm:min-w-[180px] sm:text-center">{log.dateLabel}</div>
+                <div className="sm:min-w-[90px] flex sm:justify-end">
                   <Badge variant={log.status === 'Delivered' ? 'delivered' : log.status === 'Failed' ? 'destructive' : log.status === 'Received' ? 'received' : 'outline'}>{log.status}</Badge>
                 </div>
               </div>

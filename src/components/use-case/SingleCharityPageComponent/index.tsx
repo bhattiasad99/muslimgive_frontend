@@ -33,6 +33,8 @@ import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { Trash2 } from 'lucide-react'
 import ManageTeamModal from './models/ManageTeamModal'
 import ConfigureRoleModal from './models/ConfigureRoleModal'
+import { usePermissions } from '@/components/common/permissions-provider'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 type Member = SingleCharityType['members'][0]
 type IProps = SingleCharityType;
@@ -64,6 +66,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [isDeleting, setIsDeleting] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [selectedMemberForRoleEdit, setSelectedMemberForRoleEdit] = useState<Member | null>(null)
+    const { isAllowed } = usePermissions()
 
     const handleOpenModel = (nameOfModel: TaskIds | 'manage-team' | 'configure-role') => {
         setModelState(prevState => ({ ...prevState, nameOfModel }));
@@ -99,6 +102,53 @@ const SingleCharityPageComponent: FC<IProps> = ({
         startTaskTransition(() => router.push(`/charities/${charityId}/audits/${taskId}?country=${resolvedCountry}`))
     }
 
+    const canAssignPM = isAllowed({ anyOf: [PERMISSIONS.ASSIGN_PM_CHARITY] })
+    const canViewEmailLogs = isAllowed({ anyOf: [PERMISSIONS.SEND_EMAIL_CHARITY_OWNER] })
+    const canViewAuditSummary = isAllowed({
+        anyOf: [PERMISSIONS.AUDIT_CHARITY_SUMMARY_VIEW, PERMISSIONS.AUDIT_CHARITY_VIEW],
+    })
+    const canDeleteCharity = isAllowed({ anyOf: [PERMISSIONS.DELETE_CHARITY] })
+    const canSubmitAudit = isAllowed({
+        anyOf: [PERMISSIONS.AUDIT_SUBMISSION_CREATE, PERMISSIONS.AUDIT_SUBMISSION_COMPLETE],
+    })
+
+    const visibleTasks = AUDIT_TASKS.filter(({ id: taskId }) => {
+        if (taskId === "assign-project-manager") return canAssignPM;
+        if (taskId === "eligibility") return canSubmitAudit;
+        return canSubmitAudit;
+    })
+
+    const dropdownOptions = [
+        canAssignPM
+            ? {
+                value: 'manage-team',
+                label: <div className='flex gap-1 items-center cursor-pointer' onClick={() => handleOpenModel('manage-team')}>
+                    <MultipleUsersIcon /><span>Manage Team</span>
+                </div>
+            }
+            : null,
+        canViewEmailLogs
+            ? {
+                value: 'view-email-logs',
+                label: <div className='flex gap-1 items-center cursor-pointer'><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
+            }
+            : null,
+        canViewAuditSummary
+            ? {
+                value: 'view-audit-status',
+                label: <LinkComponent to={`/charities/${charityId}/audits`}><div className='flex gap-1 items-center cursor-pointer'><AuditStatus /><span>View Audit Status</span></div></LinkComponent>
+            }
+            : null,
+        canDeleteCharity
+            ? {
+                value: 'delete-charity',
+                label: <div className='flex gap-1 items-center text-red-600 cursor-pointer' onClick={() => setShowDeleteModal(true)}>
+                    <Trash2 className="h-4 w-4" /><span>Delete Charity</span>
+                </div>
+            }
+            : null,
+    ].filter(Boolean) as { value: string; label: React.ReactNode }[];
+
     return (
         <div className="flex flex-col gap-5">
             <div>
@@ -117,12 +167,12 @@ const SingleCharityPageComponent: FC<IProps> = ({
             </div>
             <div className="flex flex-col gap-6">
                 {/* top - left side: charity info, right side: other info */}
-                <div className="flex gap-[77px]">
-                    <div className="w-[675px] flex flex-col gap-4 items-start">
+                <div className="flex flex-col gap-6 xl:flex-row xl:gap-[77px]">
+                    <div className="w-full xl:w-[675px] flex flex-col gap-4 items-start">
                         <TypographyComponent variant='h1' className="">{charityTitle}</TypographyComponent>
                         <div className="flex flex-col gap-2">
-                            <div className="flex">
-                                <TypographyComponent variant='body2' className="w-[178px] text-[#666E76]">
+                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                                <TypographyComponent variant='body2' className="w-32 sm:w-[178px] text-[#666E76]">
                                     Owner&apos;s Name:
                                 </TypographyComponent>
                                 <TypographyComponent variant='body2' className="text-[#101928] font-medium">
@@ -130,8 +180,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                 </TypographyComponent>
                             </div>
                             {members.find(m => m.role === 'project-manager') ? (
-                                <div className="flex">
-                                    <TypographyComponent variant='body2' className="w-[178px] text-[#666E76]">Project Manager&apos;s Name:</TypographyComponent>
+                                <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                                    <TypographyComponent variant='body2' className="w-32 sm:w-[178px] text-[#666E76]">Project Manager&apos;s Name:</TypographyComponent>
                                     <TypographyComponent variant='body2' className="text-[#101928] font-medium">
                                         {members.find(m => m.role === 'project-manager')?.name}
                                     </TypographyComponent>
@@ -146,28 +196,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             <IconDropdownMenuComponent
                                 className='rotate-90 rounded-full border-[#E6E6E6] shadow-none border'
                                 icon={<ThreeDotIcon />}
-                                options={[
-                                    {
-                                        value: 'manage-team',
-                                        label: <div className='flex gap-1 items-center cursor-pointer' onClick={() => handleOpenModel('manage-team')}>
-                                            <MultipleUsersIcon /><span>Manage Team</span>
-                                        </div>
-                                    },
-                                    {
-                                        value: 'view-email-logs',
-                                        label: <div className='flex gap-1 items-center cursor-pointer'><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
-                                    },
-                                    {
-                                        value: 'view-audit-status',
-                                        label: <LinkComponent to={`/charities/${charityId}/audits`}><div className='flex gap-1 items-center cursor-pointer'><AuditStatus /><span>View Audit Status</span></div></LinkComponent>
-                                    },
-                                    {
-                                        value: 'delete-charity',
-                                        label: <div className='flex gap-1 items-center text-red-600 cursor-pointer' onClick={() => setShowDeleteModal(true)}>
-                                            <Trash2 className="h-4 w-4" /><span>Delete Charity</span>
-                                        </div>
-                                    },
-                                ]}
+                                options={dropdownOptions}
                             />
                         </div>
                         <SingleCharityDetails
@@ -188,8 +217,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 <div className="flex flex-col gap-4 mb-4">
                     <TypographyComponent variant='h2'>Pending Actions</TypographyComponent>
                     <div className='h-[1px] w-full bg-[rgba(178,178,178,0.4)]'>&nbsp;</div>
-                    {AUDIT_TASKS.map(({ icon, id: taskId, title }) => (
-                        <div key={taskId} className='flex items-center gap-4 w-[630px]'>
+                    {visibleTasks.map(({ icon, id: taskId, title }) => (
+                        <div key={taskId} className='flex items-center gap-4 w-full max-w-[630px]'>
                             <div className='border border-[#EFF2F6] rounded-full w-9 h-9 flex justify-center items-center'>{icon}</div>
                             <div className='grow'>{title}</div>
                             <Button
@@ -210,32 +239,34 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 onOpenChange={handleCloseModel}
                 open={modelState.nameOfModel === 'assign-project-manager'}
             >
-                <AssignProjectManager onSelection={async (userId) => {
-                    // Call the API to assign the project manager
-                    try {
-                        const payload = [{
-                            userId: userId,
-                            set: ['project-manager'] // We 'set' to ensure they have this role. Could also use 'add'.
-                        }];
+                {canAssignPM ? (
+                    <AssignProjectManager onSelection={async (userId) => {
+                        // Call the API to assign the project manager
+                        try {
+                            const payload = [{
+                                userId: userId,
+                                set: ['project-manager'] // We 'set' to ensure they have this role. Could also use 'add'.
+                            }];
 
-                        // We need to import assignRolesToCharityAction at top of file
-                        const res = await assignRolesToCharityAction(charityId, payload);
+                            // We need to import assignRolesToCharityAction at top of file
+                            const res = await assignRolesToCharityAction(charityId, payload);
 
-                        if (res.ok) {
-                            toast.success('Project manager assigned successfully!');
-                            router.refresh(); // Refresh page to show updated team
-                            handleCloseModel();
-                        } else {
-                            toast.error(res.message || "Failed to assign project manager");
+                            if (res.ok) {
+                                toast.success('Project manager assigned successfully!');
+                                router.refresh(); // Refresh page to show updated team
+                                handleCloseModel();
+                            } else {
+                                toast.error(res.message || "Failed to assign project manager");
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            toast.error("An unexpected error occurred");
                         }
-                    } catch (error) {
-                        console.error(error);
-                        toast.error("An unexpected error occurred");
-                    }
 
-                }} onCancel={() => {
-                    handleCloseModel()
-                }} />
+                    }} onCancel={() => {
+                        handleCloseModel()
+                    }} />
+                ) : null}
             </ModelComponentWithExternalControl>
 
             <ModelComponentWithExternalControl title="Eligibility Review" description={capitalizeWords(charityTitle)}
@@ -243,15 +274,17 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 open={modelState.nameOfModel === 'eligibility'}
                 dialogContentClassName='md:min-w-[700px]'
             >
-                <EligibilityTest
-                    charityTite={charityTitle}
-                    charityId={charityId}
-                    onSave={() => {
-                        handleCloseModel()
-                        router.refresh()
-                    }}
-                    onCancel={handleCloseModel}
-                />
+                {canSubmitAudit ? (
+                    <EligibilityTest
+                        charityTite={charityTitle}
+                        charityId={charityId}
+                        onSave={() => {
+                            handleCloseModel()
+                            router.refresh()
+                        }}
+                        onCancel={handleCloseModel}
+                    />
+                ) : null}
 
             </ModelComponentWithExternalControl>
 
@@ -261,19 +294,21 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 open={modelState.nameOfModel === 'manage-team'}
                 dialogContentClassName='md:min-w-[800px]'
             >
-                <ManageTeamModal
-                    members={members}
-                    onCancel={handleCloseModel}
-                    onUpdate={() => {
-                        handleCloseModel()
-                        // In a real app we would call an API here
-                        toast.success('Team updated successfully')
-                    }}
-                    onEdit={(member) => {
-                        setSelectedMemberForRoleEdit(member)
-                        handleOpenModel('configure-role')
-                    }}
-                />
+                {canAssignPM ? (
+                    <ManageTeamModal
+                        members={members}
+                        onCancel={handleCloseModel}
+                        onUpdate={() => {
+                            handleCloseModel()
+                            // In a real app we would call an API here
+                            toast.success('Team updated successfully')
+                        }}
+                        onEdit={(member) => {
+                            setSelectedMemberForRoleEdit(member)
+                            handleOpenModel('configure-role')
+                        }}
+                    />
+                ) : null}
             </ModelComponentWithExternalControl>
 
             <ModelComponentWithExternalControl
@@ -286,7 +321,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 open={modelState.nameOfModel === 'configure-role'}
                 dialogContentClassName='sm:max-w-[425px]'
             >
-                {selectedMemberForRoleEdit && (
+                {selectedMemberForRoleEdit && canAssignPM && (
                     <ConfigureRoleModal
                         member={selectedMemberForRoleEdit}
                         onCancel={() => handleOpenModel('manage-team')}
@@ -307,6 +342,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 description={`Are you sure you want to delete ${capitalizeWords(charityTitle)}? This action cannot be undone.`}
                 confirmText={isDeleting ? "Deleting..." : "Delete Charity"}
                 onConfirm={async () => {
+                    if (!canDeleteCharity) return;
                     setIsDeleting(true)
                     try {
                         const res = await deleteCharityAction(charityId)

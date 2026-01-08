@@ -35,12 +35,12 @@ const UserData: FC<IProps> = ({
 }) => {
     const [city, country] = location.split(',').map(el => el.trim())
     return (
-        <div className='p-4 flex gap-5'>
-            <div className="min-w-[342px] flex flex-col gap-4">
+        <div className='p-4 flex flex-col gap-6 lg:flex-row'>
+            <div className="w-full lg:min-w-[342px] flex flex-col gap-4">
                 <AvatarComponent fallback={`${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`} />
                 <span className='text-2xl font-semibold'>{capitalizeWords(firstName)} {capitalizeWords(lastName)}</span>
                 <span className='text-[#666E76] '>{email}</span>
-                <div className="flex gap-4 items-center">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <div className={cn("w-full bg-[rgba(187,201,222,0.2)] border border-[rgba(0,0,0,0.1)] rounded-lg py-1 px-2 text-sm ", kanit.className)}>
                         <span>
                             User ID:
@@ -138,7 +138,7 @@ const UserData: FC<IProps> = ({
                     <div className="flex flex-col gap-2">
                         <div className="flex flex-col gap-2">
                             <div className="text-xs font-normal text-[#666E76]">Roles</div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
                                 {roles.length === 0 ? <>No Role Assigned</> : <>
                                     {roles.map(eachRole => <p key={eachRole} className={cn("min-w-[50px] text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
                                         {capitalizeWords(eachRole)}

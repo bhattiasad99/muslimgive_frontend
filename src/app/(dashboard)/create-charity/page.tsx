@@ -133,7 +133,7 @@ const CreateCharityStandalonePage = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <Button variant="primary" type="submit">Preview Charity</Button>
                     <LinkComponent to="/charities">
                         <Button variant="outline" type="button">Cancel</Button>

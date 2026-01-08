@@ -17,6 +17,8 @@ import { useRouter } from 'next/navigation'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import { toast } from 'sonner'
 import AssignProjectManager from '../../SingleCharityPageComponent/models/AssignProjectManager'
+import { usePermissions } from '@/components/common/permissions-provider'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 type IProps = Omit<SingleCharityType, 'category'>
 
@@ -38,28 +40,32 @@ const SingleCharityCard: FC<IProps> = ({
         setAssignPMModelOpen(null)
     }
     const router = useRouter()
+    const { isAllowed } = usePermissions()
     const truncatedDesc =
         charityDesc.length > 100
             ? charityDesc.slice(0, 100) + '...'
             : charityDesc
+    const menuOptions = [
+        isAllowed({ anyOf: [PERMISSIONS.SEND_EMAIL_CHARITY_OWNER] })
+            ? {
+                value: 'email-logs',
+                label: <div className='flex gap-1 items-center'><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
+            }
+            : null,
+        {
+            value: 'open-charity',
+            label: <div onClick={() => {
+                router.push(`/charities/${id}`)
+            }} className='flex gap-1 items-center cursor-pointer'><OpenInNewTab /><span>Open Charity</span></div>
+        },
+    ].filter(Boolean) as { value: string; label: React.ReactNode }[];
     return (
         <Card className='p-4 flex flex-col gap-2 shadow-none bg-white'>
             <div className="flex flex-col gap-1 relative">
                 <IconDropdownMenuComponent
                     className='absolute right-0 top-0 rotate-90 rounded-full'
                     icon={<ThreeDotIcon />}
-                    options={[
-                        {
-                            value: 'email-logs',
-                            label: <div className='flex gap-1 items-center'><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
-                        },
-                        {
-                            value: 'open-charity',
-                            label: <div onClick={() => {
-                                router.push(`/charities/${id}`)
-                            }} className='flex gap-1 items-center cursor-pointer'><OpenInNewTab /><span>Open Charity</span></div>
-                        },
-                    ]}
+                    options={menuOptions}
                 />
                 <TypographyComponent variant='h5'>
                     {charityTitle}
@@ -92,7 +98,9 @@ const SingleCharityCard: FC<IProps> = ({
                         <span><DocumentIcon /></span><span>{auditsCompleted}/4 Audits Completed</span>
                     </div>
                 </div>
-                {status === 'unassigned' ? <LightButtonComponent onClick={() => handleOpenModel('assign-project-manager')} className='w-fit mt-2' icon={<AssignUserIcon />}>Assign Project Manager</LightButtonComponent> : null}
+                {status === 'unassigned' && isAllowed({ anyOf: [PERMISSIONS.ASSIGN_PM_CHARITY] }) ? (
+                    <LightButtonComponent onClick={() => handleOpenModel('assign-project-manager')} className='w-fit mt-2' icon={<AssignUserIcon />}>Assign Project Manager</LightButtonComponent>
+                ) : null}
             </div>
             <ModelComponentWithExternalControl title="Assign Project Manager"
                 onOpenChange={(choice: boolean) => {

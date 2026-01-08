@@ -63,7 +63,7 @@ export const AUTH_COOKIE_LABEL = 'Authentication';
 export const REFRESH_COOKIE_LABEL = 'Refresh'
 export const IS_ADMIN_COOKIE_LABEL = 'IsAdmin'
 
-export const AUTH_ROUTES = ["/charities", "/profile", "/users", "/access-control"];
+export const AUTH_ROUTES = ["/charities", "/profile", "/users", "/access-control", "/email-logs", "/create-charity"];
 export const ADMIN_ROUTES = ["/users", "/access-control"];
 
 export type UserProfile = {
@@ -71,12 +71,16 @@ export type UserProfile = {
     firstName: string;
     lastName: string;
     email: string;
+    isAdmin?: boolean;
+    isActive?: boolean;
+    isVerified?: boolean;
     dob?: string;
     phone?: string;
     country?: string;
     city?: string;
     postalCode?: string;
     roles: string[];
+    permissions?: string[];
     status: string;
     requestingPasswordReset: boolean;
 }

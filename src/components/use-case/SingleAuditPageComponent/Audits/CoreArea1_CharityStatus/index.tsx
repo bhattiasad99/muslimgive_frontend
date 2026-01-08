@@ -165,7 +165,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
                 try {
                     return (
                         <div key={question.id} className="flex flex-col gap-2 mb-4">
-                            <Label htmlFor={`core_1__${fieldCode}`} className="block text-sm font-semibold w-1/2">{question.label}</Label>
+                            <Label htmlFor={`core_1__${fieldCode}`} className="block text-sm font-semibold w-full sm:w-1/2">{question.label}</Label>
                             <ControlledFileUploadComponent
                                 required={question.required}
                                 value={formData[fieldCode]?.fileInfo ? [formData[fieldCode].fileInfo] : []}
@@ -206,11 +206,11 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
                 {currentForm.questions.map(question => renderQuestion(question))}
             </div>
 
-            <div className='flex gap-4 mb-8 mt-8'>
-                <Button className="w-36" variant='primary' onClick={() => {
+            <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
+                <Button className="w-full sm:w-36" variant='primary' onClick={() => {
                     router.push(`/charities/${charityId}/audits/core-area-1?preview-mode=true&country=${country}`)
                 }}>Preview</Button>
-                <Button className="w-36" variant={'outline'}>Cancel</Button>
+                <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
             </div>
         </>
     )

@@ -11,6 +11,8 @@ import TabularView from './tabular/TabularView'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import BulkEmailModal from './BulkEmailModal'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 
 import { listCharitiesAction } from '@/app/actions/charities'
@@ -134,15 +136,15 @@ const CharitiesPageComponent = () => {
 
     return (
         <div className='flex flex-col gap-5'>
-            <div className="flex justify-between items-center gap-5">
-                <div className="w-full flex gap-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="w-full flex flex-col gap-4 md:flex-row">
                     <Popover open={openFilterPopover} onOpenChange={setOpenFilterPopover}>
                         <PopoverTrigger asChild>
                             <Button size="icon" variant="secondary">
                                 <FilterIcon />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent align="start" className="w-[320px] p-4 max-h-[80vh] overflow-y-auto">
+                        <PopoverContent align="start" className="w-[90vw] sm:w-[320px] p-4 max-h-[80vh] overflow-y-auto">
                             <div className="flex flex-col gap-4">
                                 <div className="flex justify-between items-center">
                                     <span className="font-semibold">Filters</span>
@@ -214,7 +216,7 @@ const CharitiesPageComponent = () => {
                         query={queryInput}
                         placeholder="Search Charities by Title or Charity Owner's Name"
                     />
-                    <div className="flex gap-2 items-center ml-auto">
+                    <div className="flex flex-wrap gap-2 items-center md:ml-auto">
                         <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
                             <SelectTrigger className="w-[140px] h-9">
                                 <SelectValue placeholder="Sort By" />
@@ -235,17 +237,21 @@ const CharitiesPageComponent = () => {
                         </Button>
                     </div>
                 </div>
-                <div className="flex gap-4 items-center">
-                    <LinkComponent to="/create-charity">
-                        <Button variant={"primary"} className="flex items-center gap-2">
-                            <AddIcon />
-                            Create New Charity
+                <div className="flex flex-wrap gap-3 items-center">
+                    <Can anyOf={[PERMISSIONS.CREATE_CHARITY]}>
+                        <LinkComponent to="/create-charity">
+                            <Button variant={"primary"} className="flex items-center gap-2">
+                                <AddIcon />
+                                Create New Charity
+                            </Button>
+                        </LinkComponent>
+                    </Can>
+                    <Can anyOf={[PERMISSIONS.SEND_EMAIL_CHARITY_OWNER]}>
+                        <Button variant={"primary"} onClick={() => setOpenBulkEmailModal(true)}>
+                            <EmailIcon />
+                            Send Bulk Email
                         </Button>
-                    </LinkComponent>
-                    <Button variant={"primary"} onClick={() => setOpenBulkEmailModal(true)}>
-                        <EmailIcon />
-                        Send Bulk Email
-                    </Button>
+                    </Can>
                     <KanbanTabularToggle view={view} setView={setView} />
                 </div>
             </div>
@@ -259,18 +265,20 @@ const CharitiesPageComponent = () => {
                     </>
                 )}
             </div>
-            <ModelComponentWithExternalControl
-                dialogContentClassName='max-w-[90vw] md:min-w-[800px] max-h-[90vh] overflow-y-auto'
-                open={openBulkEmailModal}
-                onOpenChange={setOpenBulkEmailModal}
-                title='Send Bulk Email'
-                description='Email will be sent to the charities visible in your current view.'
-            >
-                <BulkEmailModal
-                    charities={charities.map(({ members, charityDesc, ...rest }) => rest)}
-                    onClose={() => setOpenBulkEmailModal(false)}
-                />
-            </ModelComponentWithExternalControl>
+            <Can anyOf={[PERMISSIONS.SEND_EMAIL_CHARITY_OWNER]}>
+                <ModelComponentWithExternalControl
+                    dialogContentClassName='max-w-[90vw] md:min-w-[800px] max-h-[90vh] overflow-y-auto'
+                    open={openBulkEmailModal}
+                    onOpenChange={setOpenBulkEmailModal}
+                    title='Send Bulk Email'
+                    description='Email will be sent to the charities visible in your current view.'
+                >
+                    <BulkEmailModal
+                        charities={charities.map(({ members, charityDesc, ...rest }) => rest)}
+                        onClose={() => setOpenBulkEmailModal(false)}
+                    />
+                </ModelComponentWithExternalControl>
+            </Can>
 
         </div>
     )

@@ -128,11 +128,11 @@ const CoreArea4: FC<{ charityId: string }> = ({ charityId }) => {
                     />
                 );
             })}
-            <div className='flex gap-4 mb-8'>
-                <Button className="w-36" variant='primary' disabled={Object.values(formVals).some(val => val === "")} onClick={() => {
+            <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
+                <Button className="w-full sm:w-36" variant='primary' disabled={Object.values(formVals).some(val => val === "")} onClick={() => {
                     router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true`)
                 }}>Preview</Button>
-                <Button className="w-36" variant={'outline'}>Cancel</Button>
+                <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
             </div>
         </>
     );

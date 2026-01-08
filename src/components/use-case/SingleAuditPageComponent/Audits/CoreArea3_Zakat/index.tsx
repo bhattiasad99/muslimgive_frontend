@@ -64,8 +64,8 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
                     </AuditSectionCard>
                 })}
             </div>
-            <div className='flex gap-4 mb-8'>
-                <Button className="w-36" variant='primary' onClick={() => {
+            <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
+                <Button className="w-full sm:w-36" variant='primary' onClick={() => {
                     if (step < 4) {
                         handleNext()
                     }
@@ -73,7 +73,7 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
                         router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true`)
                     }
                 }}>{step === 4 ? 'Preview' : 'Next'}</Button>
-                <Button className="w-36" variant={'outline'} onClick={() => {
+                <Button className="w-full sm:w-36" variant={'outline'} onClick={() => {
                     if (step > 0) {
                         handlePrev()
                     }

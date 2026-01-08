@@ -23,16 +23,16 @@ const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, score, status }) 
         'in-progress': 'bg-[#3B82F6] border-[#2563eb]'
     }
     return (
-        <div className="flex w-full items-center justify-between">
-            <p className={cn("min-w-[50px] text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
+        <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <p className={cn("w-fit text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
                 {capitalizeWords(title)}
             </p>
-            <p className="min-w-[150px]">
+            <p className="md:min-w-[150px]">
                 {capitalizeWords(subTitle)}
             </p>
-            <p className="min-w-[150px]">{grade}</p>
-            <p className="min-w-[150px]">{score}</p>
-            <div className="w-[100px] flex justify-center items-center">
+            <p className="md:min-w-[150px]">{grade}</p>
+            <p className="md:min-w-[150px]">{score}</p>
+            <div className="md:w-[100px] flex justify-center items-center">
                 <p
                     className={cn(
                         'px-3 py-0.5 text-xs rounded-lg flex justify-center border',

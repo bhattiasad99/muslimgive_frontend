@@ -9,8 +9,8 @@ type IProps = {
 
 const PreviewValueLayout: FC<IProps> = ({ orientation = 'horizontal', label, result }) => {
     return (
-        <div className={cn('p-4 border border-[#BBC9DE] rounded-xl gap-2 flex', orientation === 'vertical' ? 'flex-col' : 'flex-row')}>
-            <div className="font-bold w-[250px]">{label}</div>
+        <div className={cn('p-4 border border-[#BBC9DE] rounded-xl gap-2 flex', orientation === 'vertical' ? 'flex-col' : 'flex-col sm:flex-row')}>
+            <div className="font-bold w-full sm:w-[250px]">{label}</div>
             <div>{result}</div>
         </div>
     )

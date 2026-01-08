@@ -3,6 +3,7 @@ import Profile from "../../common/IconComponents/pages_icons/Profile"
 import AccessControl from "../../common/IconComponents/pages_icons/AccessControl"
 import EmailIcon from "../../common/IconComponents/EmailIcon"
 import EmailIconBlack from "@/components/common/IconComponents/EmailIconBlack"
+import { PERMISSIONS } from "@/lib/permissions-config"
 
 export type PageType = 'menu' | 'admin'
 
@@ -12,7 +13,11 @@ export type Page = {
     icon: React.ReactNode,
     name: string,
     type: PageType,
-    show: boolean
+    show: boolean,
+    permissions?: {
+        anyOf?: string[];
+        allOf?: string[];
+    }
 }
 
 export const selectPageByName = (name: string): Page | undefined => {
@@ -26,7 +31,8 @@ export const PAGES: Page[] = [
         heading: 'Charities',
         icon: <Charities />,
         type: 'menu',
-        show: true
+        show: true,
+        permissions: { anyOf: [PERMISSIONS.VIEW_CHARITIES, PERMISSIONS.CHARITY_MANAGE] },
     },
     {
         name: 'profile',
@@ -34,7 +40,7 @@ export const PAGES: Page[] = [
         heading: 'Profile',
         icon: <Profile />,
         type: 'menu',
-        show: true
+        show: true,
     },
     {
         name: 'users',
@@ -42,7 +48,8 @@ export const PAGES: Page[] = [
         heading: 'Users',
         icon: <Profile />,
         type: 'admin',
-        show: true
+        show: true,
+        permissions: { anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
     },
     {
         name: 'access-control',
@@ -50,7 +57,8 @@ export const PAGES: Page[] = [
         heading: 'Access Control',
         icon: <AccessControl />,
         type: 'admin',
-        show: true
+        show: true,
+        permissions: { anyOf: [PERMISSIONS.ROLE_LIST, PERMISSIONS.ROLE_MANAGE, PERMISSIONS.ROLE_PERMISSIONS_ALL] },
     },
     {
         name: 'email-logs',
@@ -58,7 +66,8 @@ export const PAGES: Page[] = [
         heading: 'Email Logs',
         icon: <EmailIconBlack />,
         type: 'menu',
-        show: true
+        show: true,
+        permissions: { anyOf: [PERMISSIONS.SEND_EMAIL_CHARITY_OWNER] },
     },
     {
         name: 'create-charity',
@@ -67,5 +76,6 @@ export const PAGES: Page[] = [
         icon: <EmailIcon />,
         type: 'menu',
         show: false,
+        permissions: { anyOf: [PERMISSIONS.CREATE_CHARITY] },
     },
 ]

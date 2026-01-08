@@ -87,7 +87,7 @@ const CoreArea2: FC<IProps> = ({ location = 'usa', charityId }) => {
                             <span className='font-semibold text-sm'>
                                 {question.label}{question.required ? <span className="text-red-500">*</span> : ''}
                             </span>
-                            <div className="w-[306px]">
+                            <div className="w-full sm:w-[306px]">
                                 <DatePicker
                                     label={question.label}
                                     onChange={(date) => updateFormData(fieldCode, date ?? null)}
@@ -123,11 +123,11 @@ const CoreArea2: FC<IProps> = ({ location = 'usa', charityId }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className='flex gap-4 mb-8 mt-8'>
-                <Button className="w-36" variant='primary' onClick={() => {
+            <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
+                <Button className="w-full sm:w-36" variant='primary' onClick={() => {
                     router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true&country=${location}`)
                 }}>Preview</Button>
-                <Button className="w-36" variant={'outline'}>Cancel</Button>
+                <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
             </div>
         </>
     )

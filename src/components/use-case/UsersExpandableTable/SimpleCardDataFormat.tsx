@@ -15,7 +15,7 @@ const SimpleCardDataFormat: FC<IProps> = ({ items }) => {
                 return (
                     <div
                         key={`${label}-${index}`}
-                        className="flex flex-col min-w-[100px] w-1/3"
+                        className="flex flex-col min-w-0 w-full sm:w-1/2 lg:w-1/3"
                     >
                         <span className="text-xs text-[#666E76]">{formatLabel(label)}</span>
                         <span>{value}</span>

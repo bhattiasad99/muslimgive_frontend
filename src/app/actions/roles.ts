@@ -12,6 +12,14 @@ export const listRolesAction = async (): Promise<ResponseType> => {
 }
 
 /**
+ * GET /roles/permissions
+ * Lists all available permissions (with implied permissions)
+ */
+export const listPermissionsAction = async (): Promise<ResponseType> => {
+    return await _get('/roles/permissions');
+}
+
+/**
  * DELETE /roles/{id}
  * Deletes a role
  */

@@ -14,6 +14,8 @@ import Fuse from 'fuse.js'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import AddUserModel from './AddUserModel'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 type PaginationType = {
     show: 10 | 20 | 30
@@ -173,21 +175,23 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
 
     return (
         <CardComponent>
-            <div className="flex items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <TypographyComponent variant="h2" className="w-full">
                     Manage Users
                 </TypographyComponent>
-                <Button variant="primary" onClick={() => {
-                    setOpenNewUserModal(true);
-                }}>
-                    <span>
-                        <AddUserIcon />
-                    </span>
-                    Add new MG Member
-                </Button>
+                <Can anyOf={[PERMISSIONS.USER_CREATE, PERMISSIONS.USER_MANAGE, PERMISSIONS.CREATE_USER_MG]}>
+                    <Button variant="primary" onClick={() => {
+                        setOpenNewUserModal(true);
+                    }}>
+                        <span>
+                            <AddUserIcon />
+                        </span>
+                        Add new MG Member
+                    </Button>
+                </Can>
             </div>
 
-            <div className="flex gap-4 py-4">
+            <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
                 <Popover open={openFilterPopover} onOpenChange={setOpenFilterPopover}>
                     <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button size="icon" variant="secondary">
@@ -200,7 +204,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                         onOpenAutoFocus={(e) => e.preventDefault()}
                         onPointerDown={(e) => e.stopPropagation()}
                     >
-                        <div className="flex flex-col gap-3 p-2 w-[320px]">
+                        <div className="flex flex-col gap-3 p-2 w-[90vw] sm:w-[320px]">
                             <span className="text-[10px] text-[#666E76]">Roles</span>
 
                             {ROLE_KEYS.map((role) => {
@@ -266,7 +270,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
 
             <div className="flex flex-col gap-2">
                 <UsersExpandableTable rows={pageRows.filter(eachRow => eachRow.firstName !== "")} />
-                <div className="w-full flex justify-end items-center text-xs gap-2">
+                <div className="w-full flex flex-wrap justify-end items-center text-xs gap-2">
                     <span>Rows per page:</span>
                     <select
                         name="pagination-setting"
@@ -309,9 +313,11 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                     </span>
                 </div>
             </div>
-            <ModelComponentWithExternalControl dialogContentClassName='md:!w-[50vw] md:!max-w-[50vw] w-[90vw] max-w-[90vw]' open={openNewUserModal} onOpenChange={setOpenNewUserModal} title='Add new MG Member'>
-                <AddUserModel />
-            </ModelComponentWithExternalControl>
+            <Can anyOf={[PERMISSIONS.USER_CREATE, PERMISSIONS.USER_MANAGE, PERMISSIONS.CREATE_USER_MG]}>
+                <ModelComponentWithExternalControl dialogContentClassName='md:!w-[50vw] md:!max-w-[50vw] w-[90vw] max-w-[90vw]' open={openNewUserModal} onOpenChange={setOpenNewUserModal} title='Add new MG Member'>
+                    <AddUserModel />
+                </ModelComponentWithExternalControl>
+            </Can>
         </CardComponent>
     )
 }

@@ -15,6 +15,8 @@ import {
     SelectItem,
 } from '@/components/ui/select'
 import type { SingleCharityType } from '../kanban/KanbanView'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 type Props = {
     charities: SingleCharityType[]
@@ -132,9 +134,11 @@ const TabularView: FC<Props> = ({ charities }) => {
 
                                 <TableCell className="py-4">
                                     <div className="flex items-center justify-center gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => console.log('mail', c.id)}>
-                                            <Mail className="h-4 w-4" />
-                                        </Button>
+                                        <Can anyOf={[PERMISSIONS.SEND_EMAIL_CHARITY_OWNER]}>
+                                            <Button variant="ghost" size="icon" onClick={() => console.log('mail', c.id)}>
+                                                <Mail className="h-4 w-4" />
+                                            </Button>
+                                        </Can>
                                         <Link href={`/charities/${c.id}`} className="inline-block">
                                             <Button variant="ghost" size="icon">
                                                 <ExternalLink className="h-4 w-4" />
@@ -148,7 +152,7 @@ const TabularView: FC<Props> = ({ charities }) => {
                 </TableBody>
             </Table>
 
-            <div className="flex items-center justify-end gap-4 mt-3 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-end gap-3 mt-3 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                     <span>Rows per page:</span>
                     <Select value={String(rowsPerPage)} onValueChange={(v) => { setRowsPerPage(Number(v)); setPage(1) }}>

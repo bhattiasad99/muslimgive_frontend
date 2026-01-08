@@ -5,6 +5,7 @@ import { PAGES } from '../sidebar/pages';
 import { TypographyComponent } from '@/components/common/TypographyComponent';
 import NotificationNavbar from '@/components/common/IconComponents/NotificationNavbar';
 import { AUDIT_DEFINITIONS, isAuditSlug } from '@/components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 type TitleResolver = {
     match: (segments: string[]) => boolean;
@@ -52,13 +53,18 @@ const AppbarComponent = () => {
     const pathname = usePathname();
     const pageTitle = useMemo(() => getAppbarTitle(pathname), [pathname]);
     return (
-        <div className='border-b border-[rgb(178,178,178)/10] border-opacity-10 px-4 py-[14px] flex items-center mb-5'>
-            <TypographyComponent variant='h1' className='w-full'>
-                {pageTitle}
-            </TypographyComponent>
+        <div className='border-b border-[rgb(178,178,178)/10] border-opacity-10 px-4 py-[14px] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5'>
+            <div className="flex items-center gap-3 w-full">
+                <div className="md:hidden">
+                    <SidebarTrigger />
+                </div>
+                <TypographyComponent variant='h1' className='w-full'>
+                    {pageTitle}
+                </TypographyComponent>
+            </div>
             <div className="flex gap-2 items-center">
                 <NotificationNavbar />
-                <div className="rounded-full bg-gray-300 w-[35px] text-xs  h-[35px] text-gray-600 flex justify-center items-center">MG</div>
+                <div className="rounded-full bg-gray-300 w-[35px] text-xs h-[35px] text-gray-600 flex justify-center items-center">MG</div>
             </div>
         </div>
     )

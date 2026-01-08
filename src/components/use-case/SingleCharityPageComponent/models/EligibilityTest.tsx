@@ -101,8 +101,8 @@ const EligibilityTest: FC<IProps> = ({ charityTite, charityId, onSave, onCancel 
                 checked={formData.doesItPayZakat}
                 onCheckedChange={(value) => handleUpdateFormData('doesItPayZakat', Boolean(value))}
             />
-            <div className="flex gap-4 items-center">
-                <Label htmlFor="eligibility_test__startDate" className="block text-sm font-medium w-1/2">Select Start Date of this charity</Label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <Label htmlFor="eligibility_test__startDate" className="block text-sm font-medium w-full sm:w-1/2">Select Start Date of this charity</Label>
                 <DatePicker
                     value={formData.startDate ?? undefined}
                     onChange={(updatedDate) => {
@@ -113,8 +113,8 @@ const EligibilityTest: FC<IProps> = ({ charityTite, charityId, onSave, onCancel 
                     disabledFutureDates={true}
                 />
             </div>
-            <div className="flex gap-4 items-center">
-                <Label htmlFor="eligibility_test__category" className="block text-sm font-medium w-1/2">Select the category of this charity</Label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <Label htmlFor="eligibility_test__category" className="block text-sm font-medium w-full sm:w-1/2">Select the category of this charity</Label>
                 <SelectComponent
                     id="eligibility_test__category"
                     value={formData.category}

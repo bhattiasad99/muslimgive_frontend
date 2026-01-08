@@ -10,6 +10,8 @@ import PreviewCoreArea1 from './CoreArea1_CharityStatus/Preview'
 import PreviewCoreArea2 from './CoreArea2_FinancialAccountability/Preview'
 import PreviewCoreArea3 from './CoreArea3_Zakat/Preview'
 import PreviewCoreArea4 from './CoreArea4_Governance/Preview'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 export type AuditedByType = {
     name: string,
@@ -51,7 +53,9 @@ const Preview: FC<IProps> = ({ status, showModeAndBackBtn = true, auditedBy, cha
     return (
         <div className='flex flex-col gap-6'>
             {status === 'pending' ? <div className='flex flex-col gap-2'><div className="p-4 bg-yellow-100 border border-yellow-300 rounded-lg text-yellow-800">Audit Currently Pending.</div>
-                <LinkComponent to={`/charities/${charityId}/audits/${auditSlug}?country=${country}`}><Button variant="primary">Perform Audit</Button></LinkComponent>
+                <Can anyOf={[PERMISSIONS.AUDIT_SUBMISSION_CREATE]}>
+                    <LinkComponent to={`/charities/${charityId}/audits/${auditSlug}?country=${country}`}><Button variant="primary">Perform Audit</Button></LinkComponent>
+                </Can>
             </div> : <>
                 {showModeAndBackBtn ? <>
                     <div className="text-md text-[#666E76] italic font-medium">Preview Mode</div>

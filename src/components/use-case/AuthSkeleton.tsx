@@ -3,7 +3,7 @@ import React from 'react'
 const AuthLayoutUI = () => {
     return (
         <main className='bg-background flex justify-center items-center min-h-screen'>
-            <div className="bg-white p-4 md:p-8 rounded-lg border-[rgba(148,148,148, 0.1)] flex flex-col items-center gap-6 max-w-[528px] min-w-[300px] w-[40vw]" >
+            <div className="bg-white p-4 md:p-8 rounded-lg border-[rgba(148,148,148, 0.1)] flex flex-col items-center gap-6 w-full max-w-[528px] sm:min-w-[300px] sm:w-[70vw] md:w-[40vw]" >
                 {/* Logo */}
                 <div className="h-10 w-64 rounded-xl bg-muted animate-pulse" />
 

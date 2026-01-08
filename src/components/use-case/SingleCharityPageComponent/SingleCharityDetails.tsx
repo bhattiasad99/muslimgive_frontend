@@ -13,8 +13,8 @@ type KeyValueProps = {
 }
 
 const KeyValue: FC<KeyValueProps> = ({ label, value }) => {
-    return <div className='flex gap-2 items-center py-0.5'>
-        <TypographyComponent variant='body2' className='text-[#666E76] w-[180px] flex-none'>{label}</TypographyComponent>
+    return <div className='flex flex-col gap-1 py-0.5 sm:flex-row sm:items-center sm:gap-2'>
+        <TypographyComponent variant='body2' className='text-[#666E76] w-full sm:w-[180px] sm:flex-none'>{label}</TypographyComponent>
         <div className="flex-1">
             {typeof value === 'string' || typeof value === 'number' ? (
                 <TypographyComponent variant='body2' className='text-[#101928] font-medium'>

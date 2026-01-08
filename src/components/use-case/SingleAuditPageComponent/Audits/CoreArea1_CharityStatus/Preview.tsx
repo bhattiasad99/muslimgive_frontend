@@ -50,8 +50,8 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status }) => {
             <PreviewValueLayout label='Link to Gift Aid Status' result={<LinkComponent openInNewTab className='hover:underline text-primary' to={auditVals.giftStatusEvidenceUrl}>{auditVals.giftStatusEvidenceUrl}</LinkComponent>} />
             <PreviewValueLayout orientation='vertical' label='Status Notes' result={auditVals.statusNotes} />
             {status === 'draft' ? <>
-                <div className='flex gap-4 mb-8'>
-                    <Button className="w-36" variant='primary' onClick={() => {
+                <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
+                    <Button className="w-full sm:w-36" variant='primary' onClick={() => {
                         setShowSubmittedModel(true);
 
                         setTimeout(() => {
@@ -62,8 +62,8 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status }) => {
                 </div>
             </> : null}
             {status === 'in-progress' ? <>
-                <div className='flex gap-4 mb-8'>
-                    <Button className="w-36" variant='primary' onClick={() => {
+                <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
+                    <Button className="w-full sm:w-36" variant='primary' onClick={() => {
                         router.push(`/charities/${charityId}/audits/core-area-1?country=${country}`)
                     }}>Continue Form</Button>
                 </div>

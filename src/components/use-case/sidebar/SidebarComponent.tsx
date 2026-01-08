@@ -6,46 +6,60 @@ import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar"
 import { getCookies } from "@/app/lib/cookies";
 import { jwtDecode } from "jwt-decode";
 import { redirect } from "next/navigation";
+import { isAllowed, toPermissionSet } from "@/lib/permissions";
 
 type MenuItemType = {
     title: string,
     items: Item[]
 }
 
-const SideBarComponent = async () => {
+type SideBarComponentProps = {
+    permissions: string[];
+    isAdmin: boolean;
+}
+
+const SideBarComponent = async ({ permissions, isAdmin }: SideBarComponentProps) => {
     const { accessToken, refreshToken } = await getCookies();
     // Strict redirect only if BOTH tokens are missing.
     // Use refresh token as fallback existence check so we don't bail out before the client can refresh.
     if (!accessToken && !refreshToken) {
         redirect('/login')
     }
-    let isAdmin = false;
+    let tokenAdmin = false;
     if (accessToken) {
         try {
             const decoded: any = jwtDecode(accessToken);
-            isAdmin = decoded?.isAdmin ?? false;
+            tokenAdmin = decoded?.isAdmin ?? false;
         } catch { /* ignore invalid token */ }
     }
-    const buildPages = (name: PageType) => PAGES.filter(eachPage => eachPage.show).filter(eachPage => eachPage.type === name).map(page => ({
-        name: page.name,
-        title: page.heading,
-        action: {
-            type: "url" as const,
-            target: page.path
-        },
-        icon: page.icon
-    }));
+    const adminBypass = isAdmin || tokenAdmin;
+    const permissionSet = toPermissionSet(permissions);
+
+    const buildPages = (name: PageType) => PAGES
+        .filter(eachPage => eachPage.show)
+        .filter(eachPage => eachPage.type === name)
+        .filter(eachPage => adminBypass || isAllowed(permissionSet, eachPage.permissions))
+        .map(page => ({
+            name: page.name,
+            title: page.heading,
+            action: {
+                type: "url" as const,
+                target: page.path
+            },
+            icon: page.icon
+        }));
+    const menuItems = buildPages("menu");
+    const adminItems = buildPages("admin");
     const menu: MenuItemType[] = [
         {
             title: "Menu",
-            items: buildPages("menu"),
+            items: menuItems,
         },
-        // only push Admin menu if admin
-        ...(isAdmin
+        ...(adminBypass || adminItems.length
             ? [
                 {
                     title: "Admin",
-                    items: buildPages("admin"),
+                    items: adminItems,
                 },
             ]
             : []),
