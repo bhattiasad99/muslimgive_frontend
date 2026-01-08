@@ -15,11 +15,20 @@ type EmailLog = {
   charity: string
   time: string
   dateLabel: string
-  status: 'Delivered' | 'Failed' | 'Pending'
+  status: 'Delivered' | 'Failed' | 'Pending' | 'Received'
   body: string
 }
 
 const sampleLogs: EmailLog[] = [
+  {
+    id: 'e0',
+    subject: 'Welcome to MuslimGive',
+    charity: 'System',
+    time: '14:55',
+    dateLabel: 'Mon / May 05, 2025',
+    status: 'Received',
+    body: 'This is a received email example.'
+  },
   {
     id: 'e1',
     subject: 'Some Subject',
@@ -70,7 +79,7 @@ const EmailLogsPage: FC = () => {
                 <div className="min-w-[80px] text-sm text-center">{log.time}</div>
                 <div className="min-w-[180px] text-sm text-center">{log.dateLabel}</div>
                 <div className="min-w-[90px] flex justify-end">
-                  <Badge variant={log.status === 'Delivered' ? 'delivered' : log.status === 'Failed' ? 'destructive' : 'outline'}>{log.status}</Badge>
+                  <Badge variant={log.status === 'Delivered' ? 'delivered' : log.status === 'Failed' ? 'destructive' : log.status === 'Received' ? 'received' : 'outline'}>{log.status}</Badge>
                 </div>
               </div>
             </AccordionTrigger>

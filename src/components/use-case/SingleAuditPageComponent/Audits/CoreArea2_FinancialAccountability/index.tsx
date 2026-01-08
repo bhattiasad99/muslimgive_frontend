@@ -1,252 +1,131 @@
-import React, { useState } from 'react'
+import React, { FC, useMemo, useState } from 'react'
 import SingleSectionQuestion from '../../SingleSectionQuestion'
-import { Link } from 'lucide-react'
 import AuditSectionCard from '../../UI/AuditSectionCard'
 import RadioGroupComponent from '@/components/common/RadioGroupComponent'
-import { TypographyComponent } from '@/components/common/TypographyComponent'
 import DatePicker from '@/components/common/ControlledDatePickerComponent'
-import { Label } from '@/components/ui/label'
-import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
-
-type FormDataType = {
-    financialsLink?: string;
-    taxReturnLink?: string;
-    irsReturnsLink?: string;
-    craReturnsLink?: string;
-    endOfFiscalYear: Date | null;
-    charitableRegistrationSince: Date | null;
-    analysisDate?: Date | null;
-    auditedStatementsAvailable: string;
-    pyAuditedStatementsAvailable: string;
-    impactReportAvailable: string;
-    notes: string;
-}
-
-const INITIAL_FORM_DATA: FormDataType = {
-    financialsLink: '',
-    taxReturnLink: '',
-    irsReturnsLink: '',
-    craReturnsLink: '',
-    endOfFiscalYear: null,
-    charitableRegistrationSince: null,
-    analysisDate: null,
-    auditedStatementsAvailable: '',
-    pyAuditedStatementsAvailable: '',
-    impactReportAvailable: '',
-    notes: '',
-}
+import { CORE_AREA_2_FORMS } from '@/lib/audit-forms/core-area-2'
+import { Question } from '@/lib/audit-forms/types'
 
 type IProps = {
     location: 'ca' | 'uk' | 'usa';
     charityId: string;
 }
 
-const CoreArea2: React.FC<IProps> = ({ location, charityId }) => {
-    const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
+const CoreArea2: FC<IProps> = ({ location = 'usa', charityId }) => {
+    const router = useRouter();
+    const [formData, setFormData] = useState<Record<string, any>>({});
 
-    const updateFormData = (field: keyof FormDataType, value: FormDataType[keyof FormDataType]) => {
+    const formDefinition = useMemo(() => {
+        let countryCode = location
+        if (location === 'ca') countryCode = 'canada' as any
+
+        return CORE_AREA_2_FORMS.find(f => f.countryCode === countryCode) || CORE_AREA_2_FORMS.find(f => f.countryCode === 'usa')
+    }, [location])
+
+
+    const updateFormData = (field: string, value: any) => {
         setFormData((prev) => ({
             ...prev,
             [field]: value,
         }))
     }
 
-    const router = useRouter();
+    if (!formDefinition) return <div>Form not found for location: {location}</div>
 
-    return (
-        <>
-            {/* Financials Link - UK and US only */}
-            {(location === 'uk' || location === 'usa') && (
-                <AuditSectionCard>
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="core_2__financials-link" className="block text-sm font-semibold">
-                            Financials (Link)<span className="text-red-500">*</span>
-                        </Label>
-                        <ControlledTextFieldComponent
-                            id="core_2__financials-link"
-                            value={formData.financialsLink || ''}
-                            onChange={(e) => updateFormData('financialsLink', e.target.value)}
-                            icon={{
-                                component: <Link size={14} color="#266dd3" />,
-                                direction: 'left'
-                            }}
+    const renderQuestion = (question: Question) => {
+        // Basic dependency check based on simplistic scoreLogic parsing or custom logic if needed.
+        // The provided JSON has scoreLogic strings like "if answers['CS03'] == 'Registered' ...".
+        // Evaluating this string dynamically is complex. purely for visibility, we might check simple dependencies if strictly required.
+        // For Core Area 2, most fields seem independent except maybe hidden ones.
+        // Looking at the JSON, questions like "Status Evidence Type" seem to depend conceptually, but scoreLogic is null for them in JSON provided for Core Area 2?
+        // Wait, looking at Core Area 2 JSON: 
+        // Most fields are simple.
+        // Let's implement basic rendering first.
+
+        const fieldCode = question.code;
+
+        switch (question.type) {
+            case 'text':
+            case 'number':
+                return (
+                    <SingleSectionQuestion
+                        key={question.id}
+                        type="text" // reusing text for number for now as SingleSectionQuestion supports it via props if we adjust, or just text input
+                        heading={question.label}
+                        id={`core_2__${fieldCode}`}
+                        required={question.required}
+                        onInputChange={(_name, value) => updateFormData(fieldCode, value)}
+                        inputProps={{
+                            type: question.type === 'number' ? 'number' : 'text',
+                            value: formData[fieldCode] || ''
+                        }}
+                    />
+                )
+            case 'radio':
+                return (
+                    <AuditSectionCard key={question.id}>
+                        <RadioGroupComponent
+                            value={formData[fieldCode] || ''}
+                            onChange={(newVal) => updateFormData(fieldCode, newVal)}
+                            label={question.label}
+                            labelClassNames='text-sm'
+                            name={`core_2__${fieldCode}`}
+                            required={question.required}
+                            options={question.options.map(opt => ({
+                                label: opt.label,
+                                value: opt.label // Using label as value based on options logic often seen, or we should use ID? Usually string value 'Yes'/'No'
+                            }))}
                         />
-                    </div>
-                </AuditSectionCard>
-            )}
-
-            {/* Tax Return Link - UK only */}
-            {location === 'uk' && (
-                <AuditSectionCard>
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="core_2__tax-return-link" className="block text-sm font-semibold">
-                            Tax Return (Link)<span className="text-red-500">*</span>
-                        </Label>
-                        <ControlledTextFieldComponent
-                            id="core_2__tax-return-link"
-                            value={formData.taxReturnLink || ''}
-                            onChange={(e) => updateFormData('taxReturnLink', e.target.value)}
-                            icon={{
-                                component: <Link size={14} color="#266dd3" />,
-                                direction: 'left'
-                            }}
-                        />
-                    </div>
-                </AuditSectionCard>
-            )}
-
-            {/* IRS Returns Link - US only */}
-            {location === 'usa' && (
-                <AuditSectionCard>
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="core_2__irs-returns-link" className="block text-sm font-semibold">
-                            IRS Returns (Link)<span className="text-red-500">*</span>
-                        </Label>
-                        <ControlledTextFieldComponent
-                            id="core_2__irs-returns-link"
-                            value={formData.irsReturnsLink || ''}
-                            onChange={(e) => updateFormData('irsReturnsLink', e.target.value)}
-                            icon={{
-                                component: <Link size={14} color="#266dd3" />,
-                                direction: 'left'
-                            }}
-                        />
-                    </div>
-                </AuditSectionCard>
-            )}
-
-            {/* CRA's Returns Link - Canada only */}
-            {location === 'ca' && (
-                <AuditSectionCard>
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="core_2__cra-returns-link" className="block text-sm font-semibold">
-                            CRA&apos;s Returns (Link)<span className="text-red-500">*</span>
-                        </Label>
-                        <ControlledTextFieldComponent
-                            id="core_2__cra-returns-link"
-                            value={formData.craReturnsLink || ''}
-                            onChange={(e) => updateFormData('craReturnsLink', e.target.value)}
-                            icon={{
-                                component: <Link size={14} color="#266dd3" />,
-                                direction: 'left'
-                            }}
-                        />
-                    </div>
-                </AuditSectionCard>
-            )}
-
-            {/* Date Pickers Section */}
-            <AuditSectionCard>
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-2">
-                        <TypographyComponent className='font-semibold text-sm'>
-                            End of fiscal year<span className="text-red-500">*</span>
-                        </TypographyComponent>
-                        <div className="w-[306px]">
-                            <DatePicker
-                                label='End of fiscal year'
-                                onChange={(date) => updateFormData('endOfFiscalYear', date ?? null)}
-                                value={formData.endOfFiscalYear ?? undefined}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <TypographyComponent className='font-semibold text-sm'>
-                            Charitable Registration since
-                        </TypographyComponent>
-                        <div className="w-[306px]">
-                            <DatePicker
-                                disabledFutureDates
-                                label='Charitable Registration since'
-                                onChange={(date) => updateFormData('charitableRegistrationSince', date ?? null)}
-                                value={formData.charitableRegistrationSince ?? undefined}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Analysis Date - US and Canada only */}
-                    {(location === 'usa' || location === 'ca') && (
+                    </AuditSectionCard>
+                )
+            case 'date':
+                return (
+                    <AuditSectionCard key={question.id}>
                         <div className="flex flex-col gap-2">
-                            <TypographyComponent className='font-semibold text-sm'>
-                                {location === 'usa' ? 'Analysis Reviewed Date' : "SNK Team's Analysis Date"}
-                            </TypographyComponent>
+                            <span className='font-semibold text-sm'>
+                                {question.label}{question.required ? <span className="text-red-500">*</span> : ''}
+                            </span>
                             <div className="w-[306px]">
                                 <DatePicker
-                                    label={location === 'usa' ? 'Analysis Reviewed Date' : "SNK Team's Analysis Date"}
-                                    onChange={(date) => updateFormData('analysisDate', date ?? null)}
-                                    value={formData.analysisDate ?? undefined}
+                                    label={question.label}
+                                    onChange={(date) => updateFormData(fieldCode, date ?? null)}
+                                    value={formData[fieldCode] || undefined}
                                 />
                             </div>
                         </div>
-                    )}
-                </div>
-            </AuditSectionCard>
+                    </AuditSectionCard>
+                )
+            case 'paragraph':
+            case 'textarea' as any: // Handle if type comes as textarea
+                return (
+                    <SingleSectionQuestion
+                        key={question.id}
+                        type="textarea"
+                        heading={question.label}
+                        lines={6}
+                        id={`core_2__${fieldCode}`}
+                        required={question.required}
+                        value={formData[fieldCode] || ''}
+                        onInputChange={(_name, value) => updateFormData(fieldCode, value)}
+                    />
+                )
+            default:
+                return null
+        }
+    }
 
-            {/* Audited Financial Statements Available */}
-            <AuditSectionCard>
-                <RadioGroupComponent
-                    value={formData.auditedStatementsAvailable}
-                    onChange={(newVal) => updateFormData('auditedStatementsAvailable', newVal)}
-                    label="Audited Financial Statements Available on Website?"
-                    labelClassNames='text-sm'
-                    name="core_2__audited-statements-available"
-                    required={true}
-                    options={[
-                        { label: 'Yes', value: 'yes' },
-                        { label: 'No', value: 'no' }
-                    ]}
-                />
-            </AuditSectionCard>
-
-            {/* P.Y Audited Financial Statements Available */}
-            <AuditSectionCard>
-                <RadioGroupComponent
-                    value={formData.pyAuditedStatementsAvailable}
-                    onChange={(newVal) => updateFormData('pyAuditedStatementsAvailable', newVal)}
-                    label="P.Y Audited Financial Statements Available on Website?"
-                    labelClassNames='text-sm'
-                    name="core_2__py-audited-statements-available"
-                    required={true}
-                    options={[
-                        { label: 'Yes', value: 'yes' },
-                        { label: 'No', value: 'no' }
-                    ]}
-                />
-            </AuditSectionCard>
-
-            {/* Impact Report Available */}
-            <AuditSectionCard>
-                <RadioGroupComponent
-                    value={formData.impactReportAvailable}
-                    onChange={(newVal) => updateFormData('impactReportAvailable', newVal)}
-                    label="Impact Report Available with Financial info on website?"
-                    labelClassNames='text-sm'
-                    name="core_2__impact-report-available"
-                    required={true}
-                    options={[
-                        { label: 'Yes', value: 'yes' },
-                        { label: 'No', value: 'no' }
-                    ]}
-                />
-            </AuditSectionCard>
-
-            {/* Notes Section */}
-            <SingleSectionQuestion
-                type="textarea"
-                heading='Notes'
-                lines={6}
-                id='core_2__notes'
-                required={false}
-                className='h-[127px] resize-none'
-            />
+    return (
+        <>
+            <div className='flex flex-col gap-6'>
+                {formDefinition.questions.map(q => renderQuestion(q))}
+            </div>
 
             {/* Action Buttons */}
-            <div className='flex gap-4 mb-8'>
+            <div className='flex gap-4 mb-8 mt-8'>
                 <Button className="w-36" variant='primary' onClick={() => {
-                    router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true`)
+                    router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true&country=${location}`)
                 }}>Preview</Button>
                 <Button className="w-36" variant={'outline'}>Cancel</Button>
             </div>

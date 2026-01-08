@@ -1,4 +1,4 @@
-import { DUMMY_CHARITIES } from '@/DUMMY_CHARITIES'
+import { getCharityAction } from '@/app/actions/charities'
 import AuditPageContent from '../../../../../../components/use-case/SingleAuditPageComponent/audit-page-content'
 import { AUDIT_DEFINITIONS, isAuditSlug } from '../../../../../../components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS'
 import { notFound } from 'next/navigation'
@@ -30,18 +30,41 @@ const CharityAuditPage = async ({ params, searchParams }: {
     // if preview-mode is true, it should lead to the preview audit page
     // if preview-mode is false, it should lead to the normal audit page
 
+    const res = await getCharityAction(id)
+
     if (!isAuditSlug(audit)) {
         return notFound()
     }
 
-    const charity = DUMMY_CHARITIES.find((eachCharity) => eachCharity.id === id)
-    const auditDefinition = AUDIT_DEFINITIONS[audit]
-
-    if (!charity || !auditDefinition) {
+    if (!res.ok || !res.payload?.data?.data) {
         return notFound()
     }
 
-    const resolvedCountry: CountryCode = countryFromQuery || charity.country || 'usa'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const c = res.payload.data.data;
+    const charity = {
+        id: c.id,
+        charityTitle: c.name,
+        country: c.countryCode || c.country,
+    }
+
+    const auditDefinition = AUDIT_DEFINITIONS[audit]
+
+    if (!auditDefinition) {
+        return notFound()
+    }
+
+    // Map backend country codes (e.g., 'uk', 'usa') to frontend CountryCode keys if needed
+    // Assuming backend returns 'uk', 'usa', 'canada' or similar which need to be mapped to 'uk', 'usa', 'ca'
+    let fetchedCountryCode: CountryCode = 'usa';
+    if (charity.country) {
+        const lowerCountry = charity.country.toLowerCase();
+        if (lowerCountry === 'uk' || lowerCountry === 'united kingdom') fetchedCountryCode = 'uk';
+        else if (lowerCountry === 'usa' || lowerCountry === 'united states' || lowerCountry === 'us') fetchedCountryCode = 'usa';
+        else if (lowerCountry === 'ca' || lowerCountry === 'canada') fetchedCountryCode = 'ca';
+    }
+
+    const resolvedCountry: CountryCode = countryFromQuery || fetchedCountryCode;
     const resolvedCountryName = CountryEnum[resolvedCountry] || CountryEnum.usa
 
     const charityTitle = `${charity.charityTitle} (${resolvedCountryName} Version)`

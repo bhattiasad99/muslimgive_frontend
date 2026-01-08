@@ -34,7 +34,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
         auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
         status: c.status || 'unassigned',
         category: c.category || 'education',
-        country: c.country,
+        country: c.countryCode || c.country,
         website: c.charityCommissionWebsiteUrl,
         isThisMuslimCharity: c.isIslamic,
         doTheyPayZakat: c.doesCharityGiveZakat,

@@ -33,7 +33,7 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
     const renderAudit = (auditId: AuditSlug) => {
         switch (auditId) {
             case "core-area-1": {
-                return <CoreArea1 charityId={charityId} />
+                return <CoreArea1 charityId={charityId} country={location} />
             }
             case "core-area-2": {
                 return <CoreArea2 charityId={charityId} location={location} />
@@ -63,10 +63,6 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
                 </div>
                 <div className="flex flex-col gap-3">
                     <TypographyComponent variant='h2'>{charityTitle}</TypographyComponent>
-                    <div className="flex gap-3">
-                        <TypographyComponent>Current Score</TypographyComponent>
-                        <Badge variant="default">5/10</Badge>
-                    </div>
                     <TypographyComponent className='text-gray-400 text-sm'>Please enter relevant information regarding the charity</TypographyComponent>
                 </div>
             </div>

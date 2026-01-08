@@ -1,4 +1,5 @@
-import React, { FC, useState } from 'react'
+
+import React, { FC, useMemo, useState } from 'react'
 import SingleSectionQuestion from '../../SingleSectionQuestion'
 import { Link } from 'lucide-react'
 import AuditSectionCard from '../../UI/AuditSectionCard'
@@ -12,6 +13,8 @@ import ControlledFileUploadComponent, { UploadedItem } from '@/components/common
 import { Button } from '@/components/ui/button'
 import { isValidUrl } from '@/lib/helpers'
 import { useRouter } from 'next/navigation'
+import { CORE_AREA_1_FORMS } from '@/lib/audit-forms/core-area-1'
+import { Question } from '@/lib/audit-forms/types'
 
 export type FileStatusEvidence = {
     type: 'file';
@@ -23,40 +26,40 @@ export type LinkStatusEvidence = {
     linkUrl: string;
 }
 
-type FormDataType = {
-    charityNumber: number;
-    charityCommissionProfileLink: string;
-    registrationStatus: 'registered' | 'not_registered' | 'pending';
-    eligibleForGiftAid: boolean;
-    registrationDate: Date | null;
-    statusEvidence: FileStatusEvidence | LinkStatusEvidence | null;
-    giftStatusEvidenceUrl: string;
-    statusNotes: string;
+// We use a flexible type for form data since fields depend on the country
+type FormDataType = Record<string, any>;
+
+const INITIAL_FORM_DATA: FormDataType = {}
+
+type CoreArea1Props = {
+    charityId: string;
+    country?: 'uk' | 'usa' | 'ca';
 }
 
-const INITIAL_FORM_DATA: FormDataType = {
-    charityNumber: 0,
-    charityCommissionProfileLink: '',
-    registrationStatus: 'not_registered',
-    eligibleForGiftAid: false,
-    registrationDate: null,
-    statusEvidence: null,
-    giftStatusEvidenceUrl: '',
-    statusNotes: '',
-}
-
-const CoreArea1: FC<{ charityId: string }> = ({ charityId }) => {
+const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
     const router = useRouter()
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
-    const updateFormData = (field: keyof FormDataType, value: FormDataType[keyof FormDataType]) => {
+    const [linkBlurred, setLinkBlurred] = useState<Record<string, boolean>>({})
+
+    const currentForm = useMemo(() => {
+        // Map app country codes to form definition country codes
+        const countryMap: Record<string, 'uk' | 'usa' | 'canada'> = {
+            'uk': 'uk',
+            'usa': 'usa',
+            'ca': 'canada'
+        };
+        const mappedCountry = countryMap[country] || 'uk';
+        return CORE_AREA_1_FORMS.find(f => f.countryCode === mappedCountry) || CORE_AREA_1_FORMS[0];
+    }, [country]);
+
+    const updateFormData = (field: string, value: any) => {
         setFormData((prev) => ({
             ...prev,
             [field]: value,
         }))
     }
 
-    const handleUpload = async (incoming: File[]) => {
-        // send to backend or storage, then set state with returned ids
+    const handleUpload = async (incoming: File[], fieldCode: string) => {
         const mapped = incoming.map((f) => ({
             id: crypto.randomUUID(),
             name: f.name,
@@ -65,150 +68,147 @@ const CoreArea1: FC<{ charityId: string }> = ({ charityId }) => {
             file: f,
         }));
 
-        updateFormData('statusEvidence', {
+        updateFormData(fieldCode, {
             type: 'file',
-            fileInfo: mapped[0] // assuming single file upload for status evidence
+            fileInfo: mapped[0]
         })
     };
 
-    const [linkBlurred, setLinkBlurred] = useState<boolean>(false);
+    const renderQuestion = (question: Question) => {
+        const fieldCode = question.code; // e.g., CS01
+
+        // Helper logic to check dependencies (scoreLogic-like conditions for visibility)
+        // This is a simplified check based on "Evidence for Pending Registration" dependency
+        // In a full implementation, we'd parse the scoreLogic or have explicit `dependency` fields
+        if (question.code === 'CS06' && formData['CS03'] !== 'Pending Registration') return null; // Logic from JSON: if answers['CS03'] == 'Pending Registration'...
+
+        // Similar dependency for Evidence/Link if applicable fields (CS10 -> CS11/Link)
+        if (question.code === 'CS11' && formData['CS10'] !== 'Upload File') return null;
+
+        // Additional dependency for CS05 logic (Link for Gift Aid) or similiar could be added here
+
+        switch (question.type) {
+            case 'text':
+                try {
+                    // Specific handling for link fields to add the link icon
+                    if (question.label.toLowerCase().includes('link')) {
+                        return (
+                            <SingleSectionQuestion
+                                key={question.id}
+                                heading={question.label}
+                                type='text'
+                                id={`core_1__${fieldCode}`}
+                                required={question.required}
+                                inputProps={{
+                                    type: 'text',
+                                    value: formData[fieldCode] || '',
+                                    onChange: (e: any) => updateFormData(fieldCode, e.target.value),
+                                    icon: {
+                                        component: <Link size={14} color="#266dd3" />,
+                                        direction: 'left'
+                                    }
+                                }}
+                            />
+                        )
+                    }
+                    return (
+                        <SingleSectionQuestion
+                            key={question.id}
+                            heading={question.label}
+                            type='text'
+                            id={`core_1__${fieldCode}`}
+                            required={question.required}
+                            inputProps={{
+                                type: 'text', // Fallback to text, though CS01 might be number for UK but text for others
+                                value: formData[fieldCode] || '',
+                                onChange: (e: any) => updateFormData(fieldCode, e.target.value),
+                            }}
+                        />
+                    )
+                } catch (e) { return null }
+
+            case 'radio':
+                try {
+                    return (
+                        <AuditSectionCard key={question.id}>
+                            <RadioGroupComponent
+                                value={formData[fieldCode]}
+                                onChange={(newVal) => updateFormData(fieldCode, newVal)}
+                                label={question.label}
+                                labelClassNames='text-sm'
+                                name={`core_1__${fieldCode}`}
+                                required={question.required}
+                                options={question.options.map(opt => ({ label: opt.label, value: opt.label }))} // Using label as value for simplicity based on JSON scoreLogic
+                            />
+                        </AuditSectionCard>
+                    )
+                } catch (e) { return null }
+
+            case 'date':
+                try {
+                    return (
+                        <div key={question.id} className="flex flex-col gap-2 mb-4">
+                            <TypographyComponent className='font-semibold text-sm'>
+                                {question.label}
+                            </TypographyComponent>
+                            <DatePicker
+                                disabledFutureDates
+                                label={question.label}
+                                onChange={(date) => updateFormData(fieldCode, date ?? null)}
+                                value={formData[fieldCode] ?? undefined}
+                            />
+                        </div>
+                    )
+                } catch (e) { return null }
+
+            case 'file':
+                try {
+                    return (
+                        <div key={question.id} className="flex flex-col gap-2 mb-4">
+                            <Label htmlFor={`core_1__${fieldCode}`} className="block text-sm font-semibold w-1/2">{question.label}</Label>
+                            <ControlledFileUploadComponent
+                                required={question.required}
+                                value={formData[fieldCode]?.fileInfo ? [formData[fieldCode].fileInfo] : []}
+                                onFileUpload={(files) => handleUpload(files, fieldCode)}
+                                onRemove={() => updateFormData(fieldCode, null)}
+                                limit={1}
+                                disabled={formData[fieldCode]?.fileInfo !== undefined && formData[fieldCode]?.fileInfo !== null}
+                            />
+                        </div>
+                    )
+                } catch (e) { return null }
+
+            case 'paragraph':
+                try {
+                    return (
+                        <SingleSectionQuestion
+                            key={question.id}
+                            type="textarea"
+                            heading={question.label}
+                            lines={6}
+                            id={`core_1__${fieldCode}`}
+                            required={question.required}
+                            value={formData[fieldCode] || ''}
+                            onInputChange={(_name, value) => updateFormData(fieldCode, value)}
+                        />
+                    )
+                } catch (e) { return null }
+
+            default:
+                return null;
+        }
+    }
+
     return (
         <>
-            <SingleSectionQuestion heading='Enter Charity Number' type='text' id='core_1__charity-number' required={true} inputProps={{
-                type: 'number',
-            }} />
-            <SingleSectionQuestion heading='Enter Charity Commission Profile Link' type='text' id='core_1__charity-commission-profile-link' required={true} inputProps={{
-                type: 'text',
-                icon: {
-                    component: <Link size={14} color="#266dd3" />,
-                    direction: 'left'
-                }
-            }} />
-            <AuditSectionCard>
-                <div className="flex flex-col gap-4">
-                    <RadioGroupComponent
-                        value={formData.registrationStatus}
-                        onChange={(newVal) => {
-                            updateFormData('registrationStatus', newVal)
-                        }}
-                        label="Registration Status"
-                        labelClassNames='text-sm'
-                        name="core_1__registration-status"
+            <div className="flex flex-col gap-4">
+                <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
+                {currentForm.questions.map(question => renderQuestion(question))}
+            </div>
 
-                        required={true} options={[
-                            { label: 'Registered', value: 'registered' },
-                            { label: 'Not Registered', value: 'not_registered' },
-                            { label: 'Pending', value: 'pending' }
-                        ]} />
-                    {formData.registrationStatus === 'registered' || formData.registrationStatus === 'pending' ? <>
-                        <div className="flex flex-col gap-2">
-                            <TypographyComponent className='font-semibold text-sm'>
-
-                                Select Registration Date of this charity
-
-                            </TypographyComponent>
-                            <DatePicker disabledFutureDates label='Select Registration Date of this charity' onChange={(date) => {
-                                updateFormData('registrationDate', date ?? null)
-                            }} value={formData.registrationDate ?? undefined} />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="core_1__status-evidence" className="block text-sm font-semibold w-1/2">Upload Status Evidence</Label>
-                            <SelectComponent
-                                id="core_1__status-evidence"
-                                value={formData.statusEvidence?.type}
-                                onChange={(option) => {
-                                    if (option === 'file') {
-                                        updateFormData('statusEvidence', {
-                                            type: 'file',
-                                            fileInfo: null
-                                        })
-                                    } else if (option === 'link') {
-                                        updateFormData('statusEvidence', {
-                                            type: 'link',
-                                            linkUrl: ''
-                                        })
-                                    } else {
-                                        updateFormData('statusEvidence', null)
-                                    }
-                                }}
-                                options={[
-                                    { label: 'Upload File', value: 'file' },
-                                    { label: 'Provide Link', value: 'link' },
-                                ]}
-                            />
-                        </div>
-                        {formData.statusEvidence?.type === 'link' ? <>
-                            <ControlledTextFieldComponent
-                                value={formData.statusEvidence.linkUrl}
-                                onChange={(e) => {
-                                    setLinkBlurred(false);
-                                    if (formData.statusEvidence?.type === 'link') {
-                                        updateFormData('statusEvidence', {
-                                            ...formData.statusEvidence,
-                                            linkUrl: e.target.value
-                                        })
-                                    }
-                                }}
-                                onBlur={() => setLinkBlurred(true)}
-                                icon={{
-                                    component: <Link size={14} color="#266dd3" />,
-                                    direction: 'left'
-                                }}
-                            />
-                            {linkBlurred && !isValidUrl(formData.statusEvidence.linkUrl, false) ? <p className='text-red-400 text-xs'>The URL provided is not valid.</p> : null}
-                        </> : null}
-                        {formData.statusEvidence?.type === 'file' ? <>
-                            <ControlledFileUploadComponent
-                                required={true}
-                                value={formData.statusEvidence.fileInfo ? [formData.statusEvidence.fileInfo] : []}
-                                onFileUpload={handleUpload}
-                                onRemove={() => updateFormData('statusEvidence', {
-                                    type: 'file',
-                                    fileInfo: null
-                                })}
-                                limit={1}
-                                disabled={formData.statusEvidence.fileInfo !== null}
-                            />
-                        </> : null}
-                    </> : null}
-                </div>
-            </AuditSectionCard>
-            <AuditSectionCard>
-                <RadioGroupComponent
-                    value={formData.eligibleForGiftAid.toString()}
-                    onChange={(newVal) => {
-                        updateFormData('eligibleForGiftAid', newVal === 'true')
-                    }}
-                    label="Is this charity eligible for Gift aid?" labelClassNames='text-sm'
-                    name="core_1__eligible-gift-aid"
-
-                    required={true} options={[
-                        { label: 'Yes', value: 'true' },
-                        { label: 'No', value: 'false' }
-                    ]} />
-            </AuditSectionCard>
-            <AuditSectionCard>
-                <Label htmlFor="core_1__gift-status-evidence-url" className="block text-sm font-semibold w-1/2">Link to Gift Aid status </Label>
-                <ControlledTextFieldComponent
-                    id="core_1__gift-status-evidence-url"
-                    value={formData.giftStatusEvidenceUrl}
-                    onChange={(e) => {
-                        setLinkBlurred(false);
-                        if (formData.statusEvidence?.type === 'link') {
-                            updateFormData('giftStatusEvidenceUrl', e.target.value);
-                        }
-                    }}
-                    onBlur={() => setLinkBlurred(true)}
-                    icon={{
-                        component: <Link size={14} color="#266dd3" />,
-                        direction: 'left'
-                    }}
-                />
-            </AuditSectionCard>
-            <SingleSectionQuestion type="textarea" heading='Status Notes' lines={6} id='core_1__status-notes' required={true} />
-            <div className='flex gap-4 mb-8'>
+            <div className='flex gap-4 mb-8 mt-8'>
                 <Button className="w-36" variant='primary' onClick={() => {
-                    router.push(`/charities/${charityId}/audits/core-area-1?preview-mode=true`)
+                    router.push(`/charities/${charityId}/audits/core-area-1?preview-mode=true&country=${country}`)
                 }}>Preview</Button>
                 <Button className="w-36" variant={'outline'}>Cancel</Button>
             </div>

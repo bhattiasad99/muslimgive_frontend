@@ -37,6 +37,7 @@ const SingleSectionQuestion: FC<IProps> = (p) => {
                         placeholder={p.placeholder}
                         lines={p.lines}
                         className={p.className}
+                        value={p.value}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                             if (onInputChange) onInputChange(id, e.target.value)
                         }}

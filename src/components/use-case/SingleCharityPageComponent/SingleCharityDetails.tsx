@@ -13,10 +13,16 @@ type KeyValueProps = {
 }
 
 const KeyValue: FC<KeyValueProps> = ({ label, value }) => {
-    return <div className='flex gap-2 items-center'>
-        <TypographyComponent variant='caption' className='#666E76 w-[155px]'>{label}</TypographyComponent>
-        <div className="">
-            {value}
+    return <div className='flex gap-2 items-center py-0.5'>
+        <TypographyComponent variant='body2' className='text-[#666E76] w-[180px] flex-none'>{label}</TypographyComponent>
+        <div className="flex-1">
+            {typeof value === 'string' || typeof value === 'number' ? (
+                <TypographyComponent variant='body2' className='text-[#101928] font-medium'>
+                    {value}
+                </TypographyComponent>
+            ) : (
+                value
+            )}
         </div>
     </div>
 }
@@ -36,11 +42,11 @@ const SingleCharityDetails: FC<IProps> = ({
 
     return (
         <div className='flex flex-col gap-2'>
-            <KeyValue label='Status:' value={<StatusTypeComp status={status as StatusType} />} />
+            <KeyValue label='Status:' value={<StatusTypeComp status={status as StatusType} className='justify-start' />} />
             {category ? <KeyValue label='Category:' value={kebabToTitle(category) || '-'} /> : null}
             {country ? <KeyValue label='Registered Country:' value={capitalizeWords(country) || '-'} /> : null}
             {totalDuration ? <KeyValue label='Total Duration:' value={totalDuration || '-'} /> : null}
-            {website ? <KeyValue label='Website:' value={<a href={website} target='_blank' className='text-blue-600 underline'>Click here to visit Website</a>} /> : null}
+            {website ? <KeyValue label='Website:' value={<a href={website.startsWith('http') ? website : `https://${website}`} target='_blank' className='text-blue-600 underline text-sm font-medium'>Click here to visit Website</a>} /> : null}
             <KeyValue label='Is this a Muslim charity?' value={isThisMuslimCharity ? <YesIcon /> : <NoIcon />} />
             <KeyValue label='Do they pay Zakat?' value={doTheyPayZakat ? <YesIcon /> : <NoIcon />} />
             <KeyValue label='Members:' value={<div className="">

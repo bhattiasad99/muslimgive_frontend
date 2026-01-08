@@ -1,6 +1,5 @@
 import { SingleCharityType } from "./components/use-case/CharitiesPageComponent/kanban/KanbanView"
-import AssignIcon from "./components/use-case/SingleCharityPageComponent/icons/AssignIcon"
-import TestIcon from "./components/use-case/SingleCharityPageComponent/icons/TestIcon"
+
 
 export const DUMMY_CHARITIES: SingleCharityType[] = [
     {
@@ -361,55 +360,4 @@ export const DUMMY_CHARITIES: SingleCharityType[] = [
         isThisMuslimCharity: false,
         doTheyPayZakat: false,
     },
-]
-
-// export const DUMMY_TASKS = {
-//     'core-area-1': 'Perform Charity Status (Core Area 1) audit',
-//     'core-area-2': 'Perform Financial Accountability Core Area 2 audit',
-//     'core-area-3': 'Perform Zakat Assessment (Core Area 3) audit',
-//     'core-area-4': 'Perform Governance & Leadership (Core Area 4) audit',
-//     'eligibility': "Perform Eligibility Test",
-//     "assign-project-manager": "Assign Project Manager",
-// }
-
-export type TaskIds = 'assign-project-manager' | 'eligibility' | 'core-area-1' | 'core-area-2' | 'core-area-3' | 'core-area-4';
-
-export type TaskType = {
-    id: TaskIds;
-    title: string;
-    icon: React.ReactNode;
-}
-
-
-export const DUMMY_TASKS: TaskType[] = [
-    {
-        id: "assign-project-manager",
-        title: "Assign Project Manager",
-        icon: <AssignIcon />
-    },
-    {
-        id: 'eligibility',
-        title: "Perform Eligibility Test",
-        icon: <TestIcon />
-    },
-    {
-        id: 'core-area-1',
-        title: 'Perform Charity Status (Core Area 1) audit',
-        icon: <TestIcon />
-    },
-    {
-        id: 'core-area-2',
-        title: 'Perform Financial Accountability (Core Area 2) audit',
-        icon: <TestIcon />
-    },
-    {
-        id: 'core-area-3',
-        title: 'Perform Zakat Assessment (Core Area 3) audit',
-        icon: <TestIcon />
-    },
-    {
-        id: 'core-area-4',
-        title: 'Perform Governance & Leadership (Core Area 4) audit',
-        icon: <TestIcon />
-    }
 ]

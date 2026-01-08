@@ -1,6 +1,7 @@
 'use client'
 
 import React, { FC, useMemo, useState, useEffect } from 'react'
+import clsx from 'clsx'
 import { Button } from '@/components/ui/button'
 import { TableComponent } from '@/components/common/TableComponent'
 import { ColumnDef } from '@tanstack/react-table'
@@ -11,10 +12,11 @@ import ControlledSearchBarComponent from '@/components/common/SearchBarComponent
 export type CharityWithoutMembersAndDesc = Omit<SingleCharityType, 'members' | 'charityDesc'>
 
 type StatusTypeCompProps = {
-    status: StatusType
+    status: StatusType,
+    className?: string
 }
 
-export const StatusTypeComp: FC<StatusTypeCompProps> = ({ status }) => {
+export const StatusTypeComp: FC<StatusTypeCompProps> = ({ status, className }) => {
     const statusColors: Record<StatusType, string> = {
         'pending-eligibility': 'bg-red-500 text-white font-normal',
         'unassigned': 'bg-pink-400 text-white font-normal',
@@ -25,7 +27,7 @@ export const StatusTypeComp: FC<StatusTypeCompProps> = ({ status }) => {
     }
 
     return (
-        <div className="flex items-center justify-center">
+        <div className={clsx("flex items-center", className || "justify-center")}>
             <span
                 className={`px-2 inline-flex text-xs leading-5 rounded-full ${statusColors[status]}`}
             >

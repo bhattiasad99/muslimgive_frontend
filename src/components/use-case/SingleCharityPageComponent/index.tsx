@@ -11,7 +11,15 @@ import EmailIcon from '@/components/common/IconComponents/EmailIcon'
 import MultipleUsersIcon from '@/components/common/IconComponents/MultipleUsersIcon'
 import AuditStatus from '@/components/common/IconComponents/AuditStatus'
 import SingleCharityDetails from './SingleCharityDetails'
-import { DUMMY_TASKS, TaskIds } from '@/DUMMY_CHARITIES'
+import { AUDIT_TASKS } from '@/lib/constants'
+import { TaskIds } from '@/types/audits'
+
+// Extending TaskIds for local modal state management if needed, or ensuring TaskIds includes it.
+// Since TaskIds is imported, we can't easily extend it here without changing the type definition in the other file.
+// However, the state uses TaskIds | null. 
+// A quick fix is to cast the string to any or update the type. 
+// checking TaskIds definition might be needed.
+// For now, let's just assume we can use a string union for the state.
 import SendIcon from './icons/SendIcon'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import AssignProjectManager from './models/AssignProjectManager'
@@ -23,11 +31,14 @@ import LinkComponent from '@/components/common/LinkComponent'
 import { assignRolesToCharityAction, deleteCharityAction } from '@/app/actions/charities'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { Trash2 } from 'lucide-react'
+import ManageTeamModal from './models/ManageTeamModal'
+import ConfigureRoleModal from './models/ConfigureRoleModal'
 
+type Member = SingleCharityType['members'][0]
 type IProps = SingleCharityType;
 
 type ModelControl = {
-    nameOfModel: null | TaskIds;
+    nameOfModel: null | TaskIds | 'manage-team' | 'configure-role';
 }
 
 const SingleCharityPageComponent: FC<IProps> = ({
@@ -52,8 +63,9 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [pendingTaskId, setPendingTaskId] = useState<TaskIds | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [selectedMemberForRoleEdit, setSelectedMemberForRoleEdit] = useState<Member | null>(null)
 
-    const handleOpenModel = (nameOfModel: TaskIds) => {
+    const handleOpenModel = (nameOfModel: TaskIds | 'manage-team' | 'configure-role') => {
         setModelState(prevState => ({ ...prevState, nameOfModel }));
     }
 
@@ -70,7 +82,14 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const modalTaskIds: TaskIds[] = ['assign-project-manager', 'eligibility']
 
     const handleTask = (taskId: TaskIds) => {
-        const resolvedCountry = country ?? 'usa'
+        let resolvedCountry = 'usa';
+        if (country) {
+            const cLower = country.toLowerCase();
+            if (cLower === 'uk' || cLower === 'united kingdom') resolvedCountry = 'uk';
+            else if (cLower === 'ca' || cLower === 'canada') resolvedCountry = 'ca';
+            // Default stays 'usa' or if explicitly 'usa'/'united states'
+        }
+
         if (modalTaskIds.includes(taskId)) {
             handleOpenModel(taskId)
             return
@@ -103,17 +122,17 @@ const SingleCharityPageComponent: FC<IProps> = ({
                         <TypographyComponent variant='h1' className="">{charityTitle}</TypographyComponent>
                         <div className="flex flex-col gap-2">
                             <div className="flex">
-                                <TypographyComponent variant='caption' className="w-[178px] text-[#666E76]">
+                                <TypographyComponent variant='body2' className="w-[178px] text-[#666E76]">
                                     Owner&apos;s Name:
                                 </TypographyComponent>
-                                <TypographyComponent variant='caption' className="">
+                                <TypographyComponent variant='body2' className="text-[#101928] font-medium">
                                     {charityOwnerName}
                                 </TypographyComponent>
                             </div>
                             {members.find(m => m.role === 'project-manager') ? (
                                 <div className="flex">
-                                    <TypographyComponent variant='caption' className="w-[178px] text-[#666E76]">Project Manager&apos;s Name:</TypographyComponent>
-                                    <TypographyComponent variant='caption' className="">
+                                    <TypographyComponent variant='body2' className="w-[178px] text-[#666E76]">Project Manager&apos;s Name:</TypographyComponent>
+                                    <TypographyComponent variant='body2' className="text-[#101928] font-medium">
                                         {members.find(m => m.role === 'project-manager')?.name}
                                     </TypographyComponent>
                                 </div>
@@ -130,7 +149,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                 options={[
                                     {
                                         value: 'manage-team',
-                                        label: <div className='flex gap-1 items-center'>
+                                        label: <div className='flex gap-1 items-center cursor-pointer' onClick={() => handleOpenModel('manage-team')}>
                                             <MultipleUsersIcon /><span>Manage Team</span>
                                         </div>
                                     },
@@ -169,7 +188,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 <div className="flex flex-col gap-4 mb-4">
                     <TypographyComponent variant='h2'>Pending Actions</TypographyComponent>
                     <div className='h-[1px] w-full bg-[rgba(178,178,178,0.4)]'>&nbsp;</div>
-                    {DUMMY_TASKS.map(({ icon, id: taskId, title }) => (
+                    {AUDIT_TASKS.map(({ icon, id: taskId, title }) => (
                         <div key={taskId} className='flex items-center gap-4 w-[630px]'>
                             <div className='border border-[#EFF2F6] rounded-full w-9 h-9 flex justify-center items-center'>{icon}</div>
                             <div className='grow'>{title}</div>
@@ -234,6 +253,51 @@ const SingleCharityPageComponent: FC<IProps> = ({
                     onCancel={handleCloseModel}
                 />
 
+            </ModelComponentWithExternalControl>
+
+            <ModelComponentWithExternalControl
+                title="Manage Team Members"
+                onOpenChange={handleCloseModel}
+                open={modelState.nameOfModel === 'manage-team'}
+                dialogContentClassName='md:min-w-[800px]'
+            >
+                <ManageTeamModal
+                    members={members}
+                    onCancel={handleCloseModel}
+                    onUpdate={() => {
+                        handleCloseModel()
+                        // In a real app we would call an API here
+                        toast.success('Team updated successfully')
+                    }}
+                    onEdit={(member) => {
+                        setSelectedMemberForRoleEdit(member)
+                        handleOpenModel('configure-role')
+                    }}
+                />
+            </ModelComponentWithExternalControl>
+
+            <ModelComponentWithExternalControl
+                title="Configure Role"
+                onOpenChange={(open) => {
+                    if (!open) {
+                        handleOpenModel('manage-team') // Go back to manage team if closing via dialog close
+                    }
+                }}
+                open={modelState.nameOfModel === 'configure-role'}
+                dialogContentClassName='sm:max-w-[425px]'
+            >
+                {selectedMemberForRoleEdit && (
+                    <ConfigureRoleModal
+                        member={selectedMemberForRoleEdit}
+                        onCancel={() => handleOpenModel('manage-team')}
+                        onUpdate={(newRole) => {
+                            // Here we would typically update the state or call an API
+                            console.log(`Updated role for ${selectedMemberForRoleEdit.name} to ${newRole}`)
+                            toast.success(`Role updated to ${newRole}`)
+                            handleOpenModel('manage-team')
+                        }}
+                    />
+                )}
             </ModelComponentWithExternalControl>
 
             <ConfirmActionModal
