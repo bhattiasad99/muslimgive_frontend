@@ -13,12 +13,17 @@ import { deleteRoleAction } from '@/app/actions/roles'
 import { toast } from 'sonner'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
+import { capitalizeWords } from '@/lib/helpers'
+import { cn } from '@/lib/utils'
 
 type Role = {
   id: string
   name: string
   description?: string
   permissionIds?: string[]
+  rolePolicy?: string
+  canEditDelete?: boolean
+  canUpdatePermissions?: boolean
 }
 
 type Permission = {
@@ -54,7 +59,10 @@ const ManageRoles: FC = () => {
             id: ar.id || ar._id || String(ar._id || ar.id),
             name: ar.title || ar.name,
             description: ar.description || '',
-            permissionIds: (ar.permissions || []).map((pp: any) => pp.permissionId || pp.id || pp)
+            permissionIds: (ar.permissions || []).map((pp: any) => pp.permissionId || pp.id || pp),
+            rolePolicy: ar.rolePolicy,
+            canEditDelete: ar.can_edit_delete,
+            canUpdatePermissions: ar.can_update_permissions
           }))
           setRoles(mapped)
         } else {
@@ -96,7 +104,10 @@ const ManageRoles: FC = () => {
             id: ar.id || ar._id || String(ar._id || ar.id),
             name: ar.title || ar.name,
             description: ar.description || '',
-            permissionIds: (ar.permissions || []).map((pp: any) => pp.permissionId || pp.id || pp)
+            permissionIds: (ar.permissions || []).map((pp: any) => pp.permissionId || pp.id || pp),
+            rolePolicy: ar.rolePolicy,
+            canEditDelete: ar.can_edit_delete,
+            canUpdatePermissions: ar.can_update_permissions
           }))
           setRoles(mapped)
         }
@@ -183,6 +194,19 @@ const ManageRoles: FC = () => {
     }
   }
 
+  type RolePolicy = 'custom' | 'managed' | 'system'
+
+  const defineColor = (rolePolicy: RolePolicy) => {
+    switch (rolePolicy) {
+      case 'custom':
+        return 'bg-blue-100 text-blue-800'
+      case 'managed':
+        return 'bg-green-100 text-green-800'
+      case 'system':
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
   return (
     <div className="p-4 bg-white rounded-lg border">
       <div className="flex justify-between items-center mb-4">
@@ -200,6 +224,7 @@ const ManageRoles: FC = () => {
           <TableRow>
             <TableHead>Role Name</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead>Category</TableHead>
             <TableHead className="w-[160px] text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -214,46 +239,55 @@ const ManageRoles: FC = () => {
               <TableCell className="py-4">
                 <Badge variant="outline" className="px-3 py-1 bg-gray-50">{r.description}</Badge>
               </TableCell>
+              <TableCell className="py-4">
+                <Badge variant="outline" className={cn("px-3 py-1 bg-gray-50", defineColor(r.rolePolicy as RolePolicy))}>{capitalizeWords(r.rolePolicy) || '-'}</Badge>
+              </TableCell>
               <TableCell className="py-4 w-[160px]">
                 <div className="flex items-center gap-2 justify-center">
-                  <Can anyOf={[PERMISSIONS.ROLE_UPDATE, PERMISSIONS.ROLE_MANAGE]}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(r)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Edit Role
-                      </TooltipContent>
-                    </Tooltip>
-                  </Can>
+                  {r.canEditDelete !== false && (
+                    <Can anyOf={[PERMISSIONS.ROLE_UPDATE, PERMISSIONS.ROLE_MANAGE]}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(r)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Edit Role
+                        </TooltipContent>
+                      </Tooltip>
+                    </Can>
+                  )}
 
-                  <Can anyOf={[PERMISSIONS.ROLE_PERMISSIONS_UPDATE, PERMISSIONS.ROLE_MANAGE]}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenManagePerm(r)}>
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Manage Permissions
-                      </TooltipContent>
-                    </Tooltip>
-                  </Can>
+                  {r.canUpdatePermissions !== false && (
+                    <Can anyOf={[PERMISSIONS.ROLE_PERMISSIONS_UPDATE, PERMISSIONS.ROLE_MANAGE]}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenManagePerm(r)}>
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Manage Permissions
+                        </TooltipContent>
+                      </Tooltip>
+                    </Can>
+                  )}
 
-                  <Can anyOf={[PERMISSIONS.ROLE_DELETE, PERMISSIONS.ROLE_MANAGE]}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(r)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Delete Role
-                      </TooltipContent>
-                    </Tooltip>
-                  </Can>
+                  {r.canEditDelete !== false && (
+                    <Can anyOf={[PERMISSIONS.ROLE_DELETE, PERMISSIONS.ROLE_MANAGE]}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(r)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Delete Role
+                        </TooltipContent>
+                      </Tooltip>
+                    </Can>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

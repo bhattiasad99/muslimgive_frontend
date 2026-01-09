@@ -22,7 +22,7 @@ const ModelComponentWithExternalControl: FC<ModelComponentWithExternalControlPro
     const descriptionId = useId();
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent aria-describedby={description ? descriptionId : undefined} className={clsx("sm:max-w-[425px]", dialogContentClassName)}>
+            <DialogContent aria-describedby={description ? descriptionId : undefined} className={clsx("sm:max-w-[425px] max-h-[90vh] overflow-y-auto", dialogContentClassName)}>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     {description ? <DialogDescription id={descriptionId}>
