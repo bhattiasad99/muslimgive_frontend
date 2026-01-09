@@ -90,20 +90,35 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
 
                     currentForm.questions.forEach(q => {
                         const key = toSnakeCase(q.label);
-                        const ans = answers[key];
+                        // Check if we have a specific override for this question
+                        let ans = answers[key];
+
+                        if (q.code === "CS11" && !ans) {
+                            // CS11 (Status Evidence Link) maps to 'evidence_link_if_applicable'
+                            ans = answers['evidence_link_if_applicable'];
+                        }
+
                         if (ans !== undefined && ans !== null) {
                             // Handle file/date/radio mapping if needed
                             if (q.type === 'file' && typeof ans === 'string') {
-                                // Assume it's a URL
-                                newFormData[q.code] = {
-                                    type: 'file',
-                                    fileInfo: {
-                                        name: 'Uploaded Evidence',
-                                        url: ans,
-                                        size: 0,
-                                        type: 'application/octet-stream'
-                                    }
-                                };
+                                // If it's a string URL (which fits the new CS11 text input usage), just use it string.
+                                // BUT wait, if CS11 is rendered as TEXT now, we can just assign the string directly!
+                                // We changed CS11 to render as text in 'renderQuestion', so we should treat it as text data here.
+
+                                if (q.code === 'CS11') {
+                                    newFormData[q.code] = ans;
+                                } else {
+                                    // Legacy file handling for other file fields or if CS11 was still file
+                                    newFormData[q.code] = {
+                                        type: 'file',
+                                        fileInfo: {
+                                            name: 'Uploaded Evidence',
+                                            url: ans,
+                                            size: 0,
+                                            type: 'application/octet-stream'
+                                        }
+                                    };
+                                }
                             } else if (q.type === 'date' && typeof ans === 'string') {
                                 // Convert date string to Date object
                                 const dateObj = new Date(ans);
@@ -148,14 +163,18 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
         const fieldCode = question.code; // e.g., CS01
 
         // Helper logic to check dependencies (scoreLogic-like conditions for visibility)
-        // This is a simplified check based on "Evidence for Pending Registration" dependency
-        // In a full implementation, we'd parse the scoreLogic or have explicit `dependency` fields
-        if (question.code === 'CS06' && formData['CS03'] !== 'Pending Registration') return null; // Logic from JSON: if answers['CS03'] == 'Pending Registration'...
+        // Simplified check based on "Evidence for Pending Registration" dependency
+        if (question.code === 'CS06' && formData['CS03'] !== 'Pending Registration') return null; // Logic from JSON
 
-        // Similar dependency for Evidence/Link if applicable fields (CS10 -> CS11/Link)
-        if (question.code === 'CS11' && formData['CS10'] !== 'Upload File') return null;
+        // User Request: Remove Status Evidence Type (CS10) box completely.
+        if (question.code === 'CS10') return null;
 
-        // Additional dependency for CS05 logic (Link for Gift Aid) or similiar could be added here
+        // User Request: Remove Status Evidence File (CS11) completely (rendered inside CS09 card instead).
+        if (question.code === 'CS11') return null;
+
+        // User Request: Hide standalone "Evidence Link (if applicable)" field (CS07 UK, CS06 US/CA)
+        // We're already showing "Status Evidence Link" inside the Registration Date card
+        if (question.label === 'Evidence Link (if applicable)') return null;
 
         switch (question.type) {
             case 'text':
@@ -216,6 +235,50 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
 
             case 'date':
                 try {
+                    // Group CS09 (Date) and CS11 (Evidence Link) into one card per user request
+                    if (fieldCode === 'CS09') {
+                        // Hide this card if Registration Status is 'Registered'
+                        if (formData['CS03'] === 'Registered') return null;
+
+                        const cs11 = currentForm.questions.find(q => q.code === 'CS11');
+                        return (
+                            <AuditSectionCard key={question.id}>
+                                <div className="flex flex-col gap-6">
+                                    {/* Registration Date */}
+                                    <div className="flex flex-col gap-2">
+                                        <TypographyComponent className='font-semibold text-sm'>
+                                            {question.label}
+                                        </TypographyComponent>
+                                        <DatePicker
+                                            disabledFutureDates
+                                            label={question.label}
+                                            onChange={(date) => updateFormData(fieldCode, date ?? null)}
+                                            value={formData[fieldCode] ?? undefined}
+                                        />
+                                    </div>
+
+                                    {/* Status Evidence Link (CS11) */}
+                                    {cs11 && (
+                                        <div className="flex flex-col gap-2">
+                                            <TypographyComponent className='font-semibold text-sm'>
+                                                Status Evidence Link (if applicable)
+                                            </TypographyComponent>
+                                            <ControlledTextFieldComponent
+                                                type='text'
+                                                value={formData['CS11'] || ''}
+                                                onChange={(e: any) => updateFormData('CS11', e.target.value)}
+                                                icon={{
+                                                    component: <Link size={14} color="#266dd3" />,
+                                                    direction: 'left'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </AuditSectionCard>
+                        );
+                    }
+
                     return (
                         <div key={question.id} className="flex flex-col gap-2 mb-4">
                             <TypographyComponent className='font-semibold text-sm'>
@@ -233,6 +296,9 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
 
             case 'file':
                 try {
+                    // Skip CS11 here as it is rendered with CS09
+                    if (fieldCode === 'CS11') return null;
+
                     return (
                         <div key={question.id} className="flex flex-col gap-2 mb-4">
                             <Label htmlFor={`core_1__${fieldCode}`} className="block text-sm font-semibold w-full sm:w-1/2">{question.label}</Label>
@@ -281,20 +347,35 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
         currentForm.questions.forEach(q => {
             const key = toSnakeCaseConverted(q.label);
             const val = formData[q.code];
+
+            // Special handling for CS06 - always include it (even as null)
+            if (q.code === 'CS06') {
+                answers['evidence_for_pending_registration_provided_yes_no'] = val || null;
+                return;
+            }
+
             if (val !== undefined && val !== null && val !== "") {
-                if (q.type === 'file' && val?.fileInfo?.url) {
+                if (q.code === 'CS11') {
+                    // Map to 'evidence_link_if_applicable' as requested
+                    answers['evidence_link_if_applicable'] = val;
+                } else if (q.type === 'file' && val?.fileInfo?.url) {
                     // If it's a file and has a URL (already uploaded/prefilled), send the URL
                     answers[key] = val.fileInfo.url;
                 } else if (q.type === 'file' && val?.fileInfo?.file) {
-                    // If it's a new file, we can't send the file object directly in this payload structure easily unless we upload first.
-                    // For now, we skip or send a placeholder if not handled. 
-                    // The previous logic assumed string URL. 
-                    // Warning: New file uploads might not be persisted to API here without an upload step.
+                    // new file upload logic - skipped for now
+                } else if (q.type === 'date' && val instanceof Date) {
+                    // Format date as YYYY-MM-DD
+                    const year = val.getFullYear();
+                    const month = String(val.getMonth() + 1).padStart(2, '0');
+                    const day = String(val.getDate()).padStart(2, '0');
+                    answers[key] = `${year}-${month}-${day}`;
                 } else {
                     answers[key] = val;
                 }
             }
         });
+
+        console.log('Core Area 1 Draft Payload:', { charityId, coreArea: 1, answers });
 
         if (Object.keys(answers).length > 0) {
             try {
@@ -310,11 +391,27 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
         }
     }
 
+    // Reorder questions to show Registration Date + Status Evidence Link right after Registration Status
+    const reorderedQuestions = useMemo(() => {
+        const questions = [...currentForm.questions];
+        const cs03Index = questions.findIndex(q => q.code === 'CS03');
+        const cs09Index = questions.findIndex(q => q.code === 'CS09');
+
+        if (cs03Index !== -1 && cs09Index !== -1 && cs09Index > cs03Index) {
+            // Remove CS09 from its current position
+            const [cs09] = questions.splice(cs09Index, 1);
+            // Insert it right after CS03
+            questions.splice(cs03Index + 1, 0, cs09);
+        }
+
+        return questions;
+    }, [currentForm.questions]);
+
     return (
         <>
             <div className="flex flex-col gap-4">
                 <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
-                {currentForm.questions.map(question => renderQuestion(question))}
+                {reorderedQuestions.map(question => renderQuestion(question))}
             </div>
 
             <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
