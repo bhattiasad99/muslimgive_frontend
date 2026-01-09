@@ -84,6 +84,21 @@ export type SingleCharityType = {
     website?: string,
     isThisMuslimCharity?: boolean,
     doTheyPayZakat?: boolean,
+    verificationSummary?: {
+        eligibility: {
+            pending: boolean
+            result: string
+        }
+        audits: {
+            coreArea1: string
+            coreArea2: string
+            coreArea3: string
+            coreArea4: string
+            completed: number
+            total: number
+        }
+        projectManagerAssigned: boolean
+    }
 }
 
 type IProps = {
