@@ -5,7 +5,6 @@ import { getMeAction } from '@/app/actions/users';
 import { listPermissionsAction } from '@/app/actions/roles';
 import { resolvePermissions } from '@/lib/permissions';
 import React from 'react'
-import { SidebarProvider } from '@/components/ui/sidebar';
 
 export default async function DashboardScreensLayout({
     children,

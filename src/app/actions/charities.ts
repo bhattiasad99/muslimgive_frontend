@@ -52,7 +52,7 @@ export type EligibilityTestPayload = {
  */
 export const listCharitiesAction = async (params: ListCharitiesParams): Promise<ResponseType> => {
     const query = new URLSearchParams();
-    
+
     if (params.page) query.append('page', params.page.toString());
     if (params.limit) query.append('limit', params.limit.toString());
     if (params.search) query.append('search', params.search);
@@ -64,11 +64,11 @@ export const listCharitiesAction = async (params: ListCharitiesParams): Promise<
     if (params.createdByUserId) query.append('createdByUserId', params.createdByUserId);
     if (params.doesCharityGiveZakat !== undefined) query.append('doesCharityGiveZakat', params.doesCharityGiveZakat.toString());
     if (params.isIslamic !== undefined) query.append('isIslamic', params.isIslamic.toString());
-    
+
     if (params.status && params.status.length > 0) {
         query.append('status', params.status.join(','));
     }
-    
+
     if (params.categories && params.categories.length > 0) {
         query.append('categories', params.categories.join(','));
     }
@@ -120,6 +120,6 @@ export type AssignRolePayload = {
 }[]
 
 export const assignRolesToCharityAction = async (charityId: string, payload: AssignRolePayload): Promise<ResponseType> => {
-    return await _patch(`/charities/${charityId}/assignments`, payload);
+    return await _patch(`/charities/${charityId}/assign`, { assignments: payload });
 }
 

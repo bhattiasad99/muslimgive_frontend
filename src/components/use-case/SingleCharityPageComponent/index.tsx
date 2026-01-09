@@ -113,7 +113,6 @@ const SingleCharityPageComponent: FC<IProps> = ({
         anyOf: [PERMISSIONS.AUDIT_SUBMISSION_CREATE, PERMISSIONS.AUDIT_SUBMISSION_COMPLETE],
     })
 
-    console.log('verificationSummary:', verificationSummary);
     const visibleTasks = AUDIT_TASKS.filter(({ id: taskId }) => {
         if (taskId === "assign-project-manager") {
             return canAssignPM && !verificationSummary?.projectManagerAssigned;
@@ -127,8 +126,11 @@ const SingleCharityPageComponent: FC<IProps> = ({
             // Convert kebab-case (core-area-1) to camelCase (coreArea1) to match API response
             const auditKey = taskId.replace(/-([a-z0-9])/g, (g) => g[1].toUpperCase());
             // Check if the audit key exists in verificationSummary.audits and if it is 'pending'
+            // Check if the audit key exists in verificationSummary.audits and if it is not 'completed'
+            // User requested: "in progress will also show only completed will not show"
             type AuditKey = keyof NonNullable<typeof verificationSummary>['audits'];
-            return canSubmitAudit && verificationSummary?.audits?.[auditKey as AuditKey] === 'pending';
+            const status = verificationSummary?.audits?.[auditKey as AuditKey];
+            return canSubmitAudit && status !== 'completed';
         }
 
         return canSubmitAudit;
@@ -261,7 +263,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
                         try {
                             const payload = [{
                                 userId: userId,
-                                set: ['project-manager'] // We 'set' to ensure they have this role. Could also use 'add'.
+                                add: ['project-manager'],
+                                remove: []
                             }];
 
                             // We need to import assignRolesToCharityAction at top of file

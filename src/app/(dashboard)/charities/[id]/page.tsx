@@ -3,11 +3,7 @@ import { getCharityAction } from '@/app/actions/charities'
 import React from 'react'
 import { SingleCharityType } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
 
-type CharityDetailsPageProps = {
-    params: {
-        id: string
-    }
-}
+
 
 const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params

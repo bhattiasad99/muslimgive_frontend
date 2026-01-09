@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 import AssignProjectManager from '../../SingleCharityPageComponent/models/AssignProjectManager'
 import { usePermissions } from '@/components/common/permissions-provider'
 import { PERMISSIONS } from '@/lib/permissions-config'
+import { assignRolesToCharityAction } from '@/app/actions/charities'
 
 type IProps = Omit<SingleCharityType, 'category'>
 
@@ -98,7 +99,7 @@ const SingleCharityCard: FC<IProps> = ({
                         <span><DocumentIcon /></span><span>{auditsCompleted}/4 Audits Completed</span>
                     </div>
                 </div>
-                {status === 'unassigned' && isAllowed({ anyOf: [PERMISSIONS.ASSIGN_PM_CHARITY] }) ? (
+                {status === 'unassigned' && isAllowed({ anyOf: [PERMISSIONS.ASSIGN_PM_CHARITY] }) && !members.some(m => m.role === 'project-manager') ? (
                     <LightButtonComponent onClick={() => handleOpenModel('assign-project-manager')} className='w-fit mt-2' icon={<AssignUserIcon />}>Assign Project Manager</LightButtonComponent>
                 ) : null}
             </div>
@@ -112,22 +113,27 @@ const SingleCharityCard: FC<IProps> = ({
                 }}
                 open={!!assignPMModelOpen}
             >
-                <AssignProjectManager onSelection={() => {
-                    toast.success('Project manager assigned successfully!', {
-                        duration: 2000,
-                        // actionButtonStyle: {
-                        //     backgroundColor: '#2563EB',
-                        //     color: '#FFFFFF',
-                        // },
-                        // action: {
-                        //     label: 'Go to Charities',
-                        //     onClick: () => {
-                        //         console.log("clicked")
-                        //     }
-                        // }
-                    });
-                    router.refresh();
-                    handleCloseModel();
+                <AssignProjectManager onSelection={async (userId) => {
+                    try {
+                        const payload = [{
+                            userId: userId,
+                            add: ['project-manager'],
+                            remove: []
+                        }];
+
+                        const res = await assignRolesToCharityAction(id, payload);
+
+                        if (res.ok) {
+                            toast.success('Project manager assigned successfully!');
+                            router.refresh(); // Refresh page to show updated team
+                            handleCloseModel();
+                        } else {
+                            toast.error(res.message || "Failed to assign project manager");
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        toast.error("An unexpected error occurred");
+                    }
 
                 }} onCancel={() => {
                     handleCloseModel()

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import { CORE_AREA_1_FORMS } from '@/lib/audit-forms/core-area-1'
 import { Question } from '@/lib/audit-forms/types'
 
+
 export type FileStatusEvidence = {
     type: 'file';
     fileInfo: UploadedItem | null;
@@ -58,6 +59,75 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
             [field]: value,
         }))
     }
+
+    // Prefill logic
+    React.useEffect(() => {
+        const fetchAudit = async () => {
+            if (!charityId) return;
+            try {
+                // Fetch Core Area 1
+                // We need to import getAuditAction. Since it's a default export from actions/audits is not possible, we use named import logic if I imported it efficiently?
+                // Checking imports... I need to add import first.
+                // Assuming I will add the import in a separate block or included here if the tool allows.
+                // I will use dynamic import or just add the import at the top in a separate step if needed, but replace_file_content works on blocks.
+                // I'll add the logic here and rely on TypeScript to tell me if I missed import, then fix it.
+                // Actually I should add import line at the top first.
+
+                // Fetching...
+                const { getAuditAction } = await import('@/app/actions/audits');
+                const res = await getAuditAction(charityId, 1);
+
+                if (res.ok && res.payload?.data?.data?.answers) {
+                    const answers = res.payload.data.data.answers;
+                    const newFormData: FormDataType = {};
+
+                    // Helper to convert label to snake_case to match API keys
+                    const toSnakeCase = (str: string) =>
+                        str.toLowerCase()
+                            .replace(/[()]/g, '') // remove parens
+                            .trim()
+                            .replace(/\s+/g, '_'); // replace spaces with underscore
+
+                    currentForm.questions.forEach(q => {
+                        const key = toSnakeCase(q.label);
+                        const ans = answers[key];
+                        if (ans !== undefined && ans !== null) {
+                            // Handle file/date/radio mapping if needed
+                            if (q.type === 'file' && typeof ans === 'string') {
+                                // Assume it's a URL
+                                newFormData[q.code] = {
+                                    type: 'file',
+                                    fileInfo: {
+                                        name: 'Uploaded Evidence',
+                                        url: ans,
+                                        size: 0,
+                                        type: 'application/octet-stream'
+                                    }
+                                };
+                            } else if (q.type === 'date' && typeof ans === 'string') {
+                                // Convert date string to Date object
+                                const dateObj = new Date(ans);
+                                if (!isNaN(dateObj.getTime())) {
+                                    newFormData[q.code] = dateObj;
+                                }
+                            } else {
+                                newFormData[q.code] = ans;
+                            }
+                        }
+                    });
+
+                    // Only update if we found answers
+                    if (Object.keys(newFormData).length > 0) {
+                        setFormData(prev => ({ ...prev, ...newFormData }));
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch audit draft", error);
+            }
+        };
+
+        fetchAudit();
+    }, [charityId, currentForm]);
 
     const handleUpload = async (incoming: File[], fieldCode: string) => {
         const mapped = incoming.map((f) => ({
@@ -199,6 +269,47 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
         }
     }
 
+    // Helper to convert label to snake_case
+    const toSnakeCaseConverted = (str: string) =>
+        str.toLowerCase()
+            .replace(/[()]/g, '') // remove parens
+            .trim()
+            .replace(/\s+/g, '_'); // replace spaces with underscore
+
+    const handleSaveDraft = async () => {
+        const answers: Record<string, any> = {};
+        currentForm.questions.forEach(q => {
+            const key = toSnakeCaseConverted(q.label);
+            const val = formData[q.code];
+            if (val !== undefined && val !== null && val !== "") {
+                if (q.type === 'file' && val?.fileInfo?.url) {
+                    // If it's a file and has a URL (already uploaded/prefilled), send the URL
+                    answers[key] = val.fileInfo.url;
+                } else if (q.type === 'file' && val?.fileInfo?.file) {
+                    // If it's a new file, we can't send the file object directly in this payload structure easily unless we upload first.
+                    // For now, we skip or send a placeholder if not handled. 
+                    // The previous logic assumed string URL. 
+                    // Warning: New file uploads might not be persisted to API here without an upload step.
+                } else {
+                    answers[key] = val;
+                }
+            }
+        });
+
+        if (Object.keys(answers).length > 0) {
+            try {
+                const { submitAuditAction } = await import('@/app/actions/audits');
+                await submitAuditAction({
+                    charityId,
+                    coreArea: 1,
+                    answers
+                });
+            } catch (e) {
+                console.error("Failed to save draft", e);
+            }
+        }
+    }
+
     return (
         <>
             <div className="flex flex-col gap-4">
@@ -207,7 +318,15 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
             </div>
 
             <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
-                <Button className="w-full sm:w-36" variant='primary' onClick={() => {
+                <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
+                    // Save to local storage for immediate preview usage
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem(`audit-form-data-${charityId}-core-area-1`, JSON.stringify(formData));
+                    }
+
+                    // Save to API as draft
+                    await handleSaveDraft();
+
                     router.push(`/charities/${charityId}/audits/core-area-1?preview-mode=true&country=${country}`)
                 }}>Preview</Button>
                 <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>

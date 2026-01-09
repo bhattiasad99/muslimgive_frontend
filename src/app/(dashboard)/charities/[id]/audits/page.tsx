@@ -1,5 +1,5 @@
 'use client'
-import React, { FC, useState } from 'react'
+import React, { useState } from 'react'
 import {
     Accordion,
     AccordionContent,

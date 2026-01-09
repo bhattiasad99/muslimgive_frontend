@@ -32,6 +32,54 @@ const CoreArea2: FC<IProps> = ({ location = 'usa', charityId }) => {
         }))
     }
 
+    // Prefill logic
+    React.useEffect(() => {
+        const fetchAudit = async () => {
+            if (!charityId || !formDefinition) return;
+            try {
+                const { getAuditAction } = await import('@/app/actions/audits');
+                const res = await getAuditAction(charityId, 2);
+
+                if (res.ok && res.payload?.data?.data?.answers) {
+                    const answers = res.payload.data.data.answers;
+                    const newFormData: Record<string, any> = {};
+
+                    const toSnakeCase = (str: string) =>
+                        str.toLowerCase()
+                            .replace(/[?]/g, '') // remove question marks
+                            .replace(/[()]/g, '')
+                            .replace(/%/g, '') // remove %
+                            .replace(/\//g, '') // remove forward slashes
+                            .trim()
+                            .replace(/[\s-]+/g, '_'); // replace spaces and hyphens with underscore
+
+                    formDefinition.questions.forEach(q => {
+                        const key = toSnakeCase(q.label);
+                        const ans = answers[key];
+                        if (ans !== undefined && ans !== null) {
+                            if (q.type === 'date' && typeof ans === 'string') {
+                                const dateObj = new Date(ans);
+                                if (!isNaN(dateObj.getTime())) {
+                                    newFormData[q.code] = dateObj;
+                                }
+                            } else {
+                                newFormData[q.code] = ans;
+                            }
+                        }
+                    });
+
+                    if (Object.keys(newFormData).length > 0) {
+                        setFormData(prev => ({ ...prev, ...newFormData }));
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch audit draft", error);
+            }
+        };
+
+        fetchAudit();
+    }, [charityId, formDefinition]);
+
     if (!formDefinition) return <div>Form not found for location: {location}</div>
 
     const renderQuestion = (question: Question) => {
@@ -116,6 +164,53 @@ const CoreArea2: FC<IProps> = ({ location = 'usa', charityId }) => {
         }
     }
 
+    // Helper to convert label to snake_case
+    const toSnakeCaseConverted = (str: string) =>
+        str.toLowerCase()
+            .replace(/[?]/g, '') // remove question marks
+            .replace(/[()]/g, '')
+            .replace(/%/g, '') // remove %
+            .replace(/\//g, '') // remove forward slashes
+            .trim()
+            .replace(/[\s-]+/g, '_'); // replace spaces and hyphens with underscore
+
+    const handleSaveDraft = async () => {
+        const answers: Record<string, any> = {};
+        if (!formDefinition) return;
+
+        formDefinition.questions.forEach(q => {
+            const key = toSnakeCaseConverted(q.label);
+            const val = formData[q.code];
+            if (val !== undefined && val !== null && val !== "") {
+                if (q.type === 'number') {
+                    // Ensure we send a number, parse float/int
+                    const num = Number(val);
+                    if (!isNaN(num)) {
+                        answers[key] = num;
+                    }
+                } else if (q.type === 'date' && val instanceof Date) {
+                    // Format date as YYYY-MM-DD
+                    answers[key] = val.toISOString().split('T')[0];
+                } else {
+                    answers[key] = val;
+                }
+            }
+        });
+
+        if (Object.keys(answers).length > 0) {
+            try {
+                const { submitAuditAction } = await import('@/app/actions/audits');
+                await submitAuditAction({
+                    charityId,
+                    coreArea: 2,
+                    answers
+                });
+            } catch (e) {
+                console.error("Failed to save draft", e);
+            }
+        }
+    }
+
     return (
         <>
             <div className='flex flex-col gap-6'>
@@ -124,7 +219,13 @@ const CoreArea2: FC<IProps> = ({ location = 'usa', charityId }) => {
 
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
-                <Button className="w-full sm:w-36" variant='primary' onClick={() => {
+                <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem(`audit-form-data-${charityId}-core-area-2`, JSON.stringify(formData));
+                    }
+
+                    await handleSaveDraft();
+
                     router.push(`/charities/${charityId}/audits/core-area-2?preview-mode=true&country=${location}`)
                 }}>Preview</Button>
                 <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
