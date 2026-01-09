@@ -37,7 +37,7 @@ const MyProfile = () => {
                         location: u.city && u.country ? `${u.city}, ${u.country}` : (u.city || u.country || '-'),
                         postalCode: u.postalCode || '',
                         roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
-                        status: (u.status === 'active' ? 'Active' : 'Inactive') as any,
+                        status: (u.isActive ? 'Active' : 'Inactive') as any,
                         requestingPasswordReset: u.requestingPasswordReset
                     })
                 } else {

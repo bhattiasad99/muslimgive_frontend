@@ -26,8 +26,8 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 
 const STATUS_KEYS = [
-    { id: 'pending-eligibility', label: 'Pending Eligibility Review' },
     { id: 'unassigned', label: 'Unassigned' },
+    { id: 'pending-eligibility', label: 'Pending Eligibility Review' },
     { id: 'open-to-review', label: 'Open To Review' },
     { id: 'pending-admin-review', label: 'Pending Admin Review' },
     { id: 'approved', label: 'Approved' },

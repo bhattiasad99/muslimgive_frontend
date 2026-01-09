@@ -100,14 +100,14 @@ const KanbanView: FC<IProps> = ({ charities }) => {
     })
     const COLS: KanbanColType[] = [
         {
-            color: '#F25F5C',
-            title: 'Pending Eligibility Review',
-            id: 'pending-eligibility',
-        },
-        {
             color: '#F25CD4',
             title: 'Unassigned',
             id: 'unassigned',
+        },
+        {
+            color: '#F25F5C',
+            title: 'Pending Eligibility Review',
+            id: 'pending-eligibility',
         },
         {
             color: '#5CD9F2',
