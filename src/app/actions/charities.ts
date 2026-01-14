@@ -27,6 +27,10 @@ export type ListCharitiesParams = {
  */
 export type CreateCharityPayload = {
     name: string;
+    ownerFirstName: string;
+    ownerLastName: string;
+    ownerEmail: string;
+    ownerPhoneNumber: string;
     isIslamic: boolean;
     doesCharityGiveZakat: boolean;
     description: string;

@@ -40,7 +40,7 @@ const PreviewCharityPage = () => {
         return {
             id: 'preview',
             charityTitle: parsed.name || 'Untitled Charity',
-            charityOwnerName: parsed.ownerName || '-',
+            charityOwnerName: parsed.ownerFirstName + ' ' + parsed.ownerLastName || '-',
             charityDesc: parsed.description || '',
             members: [],
             comments: 0,
@@ -51,7 +51,7 @@ const PreviewCharityPage = () => {
             totalDuration,
             website: parsed.website || undefined,
             isThisMuslimCharity: Boolean(parsed.isIslamic),
-            doTheyPayZakat: Boolean(parsed.paysZakat),
+            doTheyPayZakat: Boolean(parsed.doesCharityGiveZakat),
         }
     }, [parsed])
 
@@ -61,7 +61,7 @@ const PreviewCharityPage = () => {
                 <div className="mb-4 text-2xl font-bold italic text-gray-500">Preview Mode</div>
                 <div className="mb-4">No preview data provided.</div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="text-blue-600 border-gray-200" onClick={() => router.push('/create-charity')}>
+                    <Button variant="outline" className="text-blue-600 border-gray-200" onClick={() => router.push(`/create-charity?data=${encodeURIComponent(JSON.stringify(parsed))}`)}>
                         <span className="mr-2"><ArrowIcon /></span>
                         <span className="text-blue-600">Back to Editing</span>
                     </Button>
@@ -74,7 +74,7 @@ const PreviewCharityPage = () => {
         <div className="p-6">
             <div className="mb-4 text-2xl font-bold italic text-gray-500">Preview Mode</div>
             <div className="mb-4">
-                <Button variant="outline" className="mr-2 text-blue-600 border-gray-200 flex items-center" onClick={() => router.push('/create-charity')}>
+                <Button variant="outline" className="mr-2 text-blue-600 border-gray-200 flex items-center" onClick={() => router.push(`/create-charity?data=${encodeURIComponent(JSON.stringify(parsed))}`)}>
                     <span className="mr-2"><ArrowIcon /></span>
                     <span className="text-blue-600">Back to Editing</span>
                 </Button>
@@ -107,6 +107,10 @@ const PreviewCharityPage = () => {
                         try {
                             const payload = {
                                 name: parsed.name,
+                                ownerFirstName: parsed.ownerFirstName,
+                                ownerLastName: parsed.ownerLastName,
+                                ownerEmail: parsed.ownerEmail,
+                                ownerPhoneNumber: parsed.ownerPhoneNumber,
                                 isIslamic: Boolean(parsed.isIslamic),
                                 doesCharityGiveZakat: Boolean(parsed.doesCharityGiveZakat),
                                 description: parsed.description || "",
@@ -118,7 +122,16 @@ const PreviewCharityPage = () => {
 
                             const res = await createCharityAction(payload)
                             if (res.ok) {
-                                toast.success("Charity published successfully!")
+                                const charityData = res.payload?.data?.data
+                                const status = charityData?.status
+                                const formatStatus = (status: string) => {
+                                    return status
+                                        .split('-')
+                                        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+                                        .join(' ')
+                                }
+                                const statusText = status ? ` with status "${formatStatus(status)}"` : ''
+                                toast.success(`Charity published successfully${statusText}`)
                                 router.push('/charities')
                             } else {
                                 toast.error(res.message || "Failed to publish charity")
@@ -131,9 +144,9 @@ const PreviewCharityPage = () => {
                         }
                     }}>Publish Charity</Button>
                 </Can>
-                <Button variant="outline" onClick={() => router.push('/create-charity')}>Cancel</Button>
+                <Button variant="outline" onClick={() => router.push(`/create-charity?data=${encodeURIComponent(JSON.stringify(parsed))}`)}>Cancel</Button>
             </div>
-        </div>
+        </div >
     )
 }
 

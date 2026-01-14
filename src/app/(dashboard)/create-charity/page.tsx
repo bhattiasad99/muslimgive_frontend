@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import LinkComponent from '@/components/common/LinkComponent'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import { TextAreaComponent } from '@/components/common/TextAreaComponent'
@@ -21,16 +21,55 @@ const CreateCharityStandalonePage = () => {
     const [startDate, setStartDate] = useState<Date | undefined>(undefined)
     const [category, setCategory] = useState<string>('')
     const [country, setCountry] = useState<string>('')
+
+    // Charity Owner Info
+    const [ownerFirstName, setOwnerFirstName] = useState('')
+    const [ownerLastName, setOwnerLastName] = useState('')
+    const [ownerEmail, setOwnerEmail] = useState('')
+    const [ownerPhoneNumber, setOwnerPhoneNumber] = useState('')
+
     const [errors, setErrors] = useState<{ [k: string]: string }>({})
 
     const categories = useMemo(() => Object.entries(CategoryEnum).map(([k, v]) => ({ id: k, label: v })), [])
 
     const router = useRouter()
+    const searchParams = useSearchParams()
+
+    React.useEffect(() => {
+        const raw = searchParams.get('data')
+        if (raw) {
+            try {
+                const parsed = JSON.parse(decodeURIComponent(raw))
+                if (parsed.name) setName(parsed.name)
+                if (parsed.isIslamic) setIsIslamic(parsed.isIslamic)
+                if (parsed.doesCharityGiveZakat) setPaysZakat(parsed.doesCharityGiveZakat)
+                if (parsed.description) setDescription(parsed.description)
+                if (parsed.charityCommissionWebsiteUrl) setWebsite(parsed.charityCommissionWebsiteUrl)
+                if (parsed.startDate) setStartDate(new Date(parsed.startDate))
+                if (parsed.category) setCategory(parsed.category)
+                if (parsed.countryCode) setCountry(parsed.countryCode)
+                if (parsed.ownerFirstName) setOwnerFirstName(parsed.ownerFirstName)
+                if (parsed.ownerLastName) setOwnerLastName(parsed.ownerLastName)
+                if (parsed.ownerEmail) setOwnerEmail(parsed.ownerEmail)
+                if (parsed.ownerPhoneNumber) setOwnerPhoneNumber(parsed.ownerPhoneNumber)
+            } catch (error) {
+                console.error('Failed to parse data provided', error)
+            }
+        }
+    }, [searchParams])
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         const next: { [k: string]: string } = {}
         if (!name.trim()) next.name = 'Name is required'
+        if (!ownerFirstName.trim()) next.ownerFirstName = 'Owner First Name is required'
+        if (!ownerLastName.trim()) next.ownerLastName = 'Owner Last Name is required'
+        if (!ownerEmail.trim()) {
+            next.ownerEmail = 'Owner Email is required'
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
+            next.ownerEmail = 'Invalid email address'
+        }
+        if (!ownerPhoneNumber.trim()) next.ownerPhoneNumber = 'Owner Phone Number is required'
         if (!website.trim()) next.website = 'Website link is required'
         if (!startDate) next.startDate = 'Start date is required'
         if (!category) next.category = 'Category is required'
@@ -41,6 +80,10 @@ const CreateCharityStandalonePage = () => {
 
         const payload = {
             name,
+            ownerFirstName,
+            ownerLastName,
+            ownerEmail,
+            ownerPhoneNumber,
             isIslamic,
             doesCharityGiveZakat: paysZakat,
             description,
@@ -87,6 +130,57 @@ const CreateCharityStandalonePage = () => {
                     <TextAreaComponent label="Description" value={description} onChange={(e) => setDescription(e.target.value)} lines={6} />
                 </div>
 
+                {/* Charity Owner Information Section */}
+                <div className="bg-white border rounded-md p-4">
+                    <div className="mb-4">
+                        <h2 className="text-lg font-semibold">Charity Owner Information</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="owner-firstname" className="text-sm">First Name</Label>
+                            <ControlledTextFieldComponent
+                                id="owner-firstname"
+                                value={ownerFirstName}
+                                onChange={(e) => setOwnerFirstName(e.target.value)}
+                                placeholder="Owner First Name"
+                            />
+                            {errors.ownerFirstName ? <div className="text-xs text-red-500 mt-1">{errors.ownerFirstName}</div> : null}
+                        </div>
+                        <div>
+                            <Label htmlFor="owner-lastname" className="text-sm">Last Name</Label>
+                            <ControlledTextFieldComponent
+                                id="owner-lastname"
+                                value={ownerLastName}
+                                onChange={(e) => setOwnerLastName(e.target.value)}
+                                placeholder="Owner Last Name"
+                            />
+                            {errors.ownerLastName ? <div className="text-xs text-red-500 mt-1">{errors.ownerLastName}</div> : null}
+                        </div>
+                        <div>
+                            <Label htmlFor="owner-email" className="text-sm">Email</Label>
+                            <ControlledTextFieldComponent
+                                id="owner-email"
+                                value={ownerEmail}
+                                onChange={(e) => setOwnerEmail(e.target.value)}
+                                placeholder="Owner Email"
+                                type="email"
+                            />
+                            {errors.ownerEmail ? <div className="text-xs text-red-500 mt-1">{errors.ownerEmail}</div> : null}
+                        </div>
+                        <div>
+                            <Label htmlFor="owner-phone" className="text-sm">Phone Number</Label>
+                            <ControlledTextFieldComponent
+                                id="owner-phone"
+                                value={ownerPhoneNumber}
+                                onChange={(e) => setOwnerPhoneNumber(e.target.value)}
+                                placeholder="Owner Phone Number"
+                                type="tel"
+                            />
+                            {errors.ownerPhoneNumber ? <div className="text-xs text-red-500 mt-1">{errors.ownerPhoneNumber}</div> : null}
+                        </div>
+                    </div>
+                </div>
+
                 <div className="bg-white border rounded-md p-4 grid grid-cols-1 gap-4">
                     <div>
                         <Label htmlFor="charity-website" className="text-sm">Enter Charity Commission Website Link <span className="text-red-500">*</span></Label>
@@ -103,7 +197,7 @@ const CreateCharityStandalonePage = () => {
 
                         <div className="max-w-sm">
                             <Label className="text-sm">Select Country <span className="text-red-500">*</span></Label>
-                            <Select value={country} onValueChange={(v) => setCountry(v)}>
+                            <Select key={country} value={country} onValueChange={(v) => setCountry(v)}>
                                 <SelectTrigger className="h-9 w-full">
                                     <SelectValue placeholder="Select Country" />
                                 </SelectTrigger>
@@ -118,7 +212,7 @@ const CreateCharityStandalonePage = () => {
 
                         <div className="max-w-sm">
                             <Label className="text-sm">Select the category of this charity <span className="text-red-500">*</span></Label>
-                            <Select value={category} onValueChange={(v) => setCategory(v)}>
+                            <Select key={category} value={category} onValueChange={(v) => setCategory(v)}>
                                 <SelectTrigger className="h-9 w-full">
                                     <SelectValue placeholder="Select Category" />
                                 </SelectTrigger>

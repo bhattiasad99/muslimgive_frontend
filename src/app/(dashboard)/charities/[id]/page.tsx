@@ -16,6 +16,10 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
 
     const c = res.payload.data.data;
     console.log('Page Value Verification:', JSON.stringify(c.verificationSummary, null, 2));
+    
+    // Extract eligibility test data from the first eligibility test if available
+    const eligibilityTest = c.eligibilityTests?.[0];
+    
     const charity: SingleCharityType = {
         id: c.id,
         charityTitle: c.name,
@@ -30,12 +34,12 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
         comments: c.commentsCount || 0,
         auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
         status: c.status || 'unassigned',
-        category: c.category || 'education',
+        category: eligibilityTest?.category || c.category || 'education',
         country: c.countryCode || c.country,
         website: c.charityCommissionWebsiteUrl,
-        isThisMuslimCharity: c.isIslamic,
-        doTheyPayZakat: c.doesCharityGiveZakat,
-        totalDuration: c.startDate ? `${Math.max(1, Math.floor((Date.now() - new Date(c.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365)))} years` : undefined,
+        isThisMuslimCharity: eligibilityTest?.isIslamic ?? c.isIslamic,
+        doTheyPayZakat: eligibilityTest?.doesCharityGiveZakat ?? c.doesCharityGiveZakat,
+        totalDuration: eligibilityTest?.startDate ? `${Math.max(1, Math.floor((Date.now() - new Date(eligibilityTest.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365)))} years` : undefined,
         verificationSummary: c.verificationSummary,
     }
 
