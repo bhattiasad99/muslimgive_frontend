@@ -106,53 +106,69 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status }) => {
 
     const getValue = (code: string) => auditVals[code];
 
+    const getFieldCode = (field: 'giftAid' | 'link' | 'notes') => {
+        if (country === 'uk') {
+            return {
+                giftAid: 'CS04',
+                link: 'CS05',
+                notes: 'CS08'
+            }[field];
+        } else {
+            // US and Canada
+            return {
+                giftAid: 'CS04',
+                link: 'CS06',
+                notes: 'CS07'
+            }[field];
+        }
+    };
+
+    const getLabel = (field: 'giftAid' | 'link' | 'notes') => {
+        if (country === 'uk') {
+            return {
+                giftAid: 'Gift Aid Eligibility',
+                link: 'Link to Gift Aid Status',
+                notes: 'Status Notes'
+            }[field];
+        } else {
+            return {
+                giftAid: 'Tax-Deductible',
+                link: 'Evidence Link',
+                notes: 'Status Notes'
+            }[field];
+        }
+    };
+
     return (
         <div className='flex flex-col gap-4'>
 
-            <PreviewValueLayout label='Charity Number' result={`${getValue('CS01') || '-'}`} />
+            <PreviewValueLayout label={country === 'uk' ? 'Charity Number' : country === 'usa' ? 'EIN' : 'Charity Registration Number'} result={`${getValue('CS01') || '-'}`} />
 
-            <PreviewValueLayout label='Charity Commission Profile URL' result={
+            <PreviewValueLayout label={country === 'uk' ? 'Charity Commission Profile URL' : country === 'usa' ? 'IRS Profile Link' : 'CRA Profile Link'} result={
                 getValue('CS02') ? <LinkComponent openInNewTab className='hover:underline text-primary' to={getValue('CS02')}>{getValue('CS02')}</LinkComponent> : '-'
             } />
 
             <PreviewValueLayout label="Registration Status" result={
                 <span className='flex gap-2 items-center'>
                     <span>{capitalizeWords(getValue('CS03') || '-')}</span>
-                    {/* Evidence handling: The formData for file upload stores { type: 'file', fileInfo: ... } */}
-                    {/* For link: { type: 'link', linkUrl: '...' } - wait, check index.tsx handleUpload and structure */}
 
-                    {/* In index.tsx, handleUpload sets: { type: 'file', fileInfo: mapped[0] } */}
-                    {/* CS04 is usually the evidence field. */}
-
-                    {getValue('CS04')?.type === 'file' && (
-                        <Button variant={'outline'} onClick={(e) => {
-                            e.preventDefault();
-                            const fileInfo = getValue('CS04').fileInfo;
-                            if (fileInfo?.url) {
-                                // If we have a URL (uploaded), download it. If it's a raw file object (local), we might not be able to download in preview easily without ObjectURL
-                                // Assuming fileInfo has url or we can create ObjectURL if it's a File object persisted (localStorage won't stringify File object well!)
-                                // CRITICAL: localStorage cannot store File objects. 
-                                // Ideally we should have uploaded first. 
-                                // Since we are using localStorage, the File object will be empty object or broken.
-                                // For this task, we assume the user understands the limitation or we skip file preview for now.
-                                // But wait, handleUpload creates an object with `file: f`. `JSON.stringify` will lose the file data.
-                                // `fileInfo` has `name`, `size`, `type`. 
-                                // So we can show the name at least.
-                            }
-                        }}>
-                            {getValue('CS04').fileInfo?.name || 'Evidence File'}
-                        </Button>
+                    {/* Registration Date & Evidence Link (if 'Pending Registration') */}
+                    {getValue('CS03') === 'Pending Registration' && (
+                        <div className="flex flex-col gap-1 text-xs text-muted-foreground ml-4 border-l pl-4">
+                            {getValue('CS09') && <div>Date: {new Date(getValue('CS09')).toLocaleDateString()}</div>}
+                            {getValue('CS11') && <div>Link: <LinkComponent openInNewTab to={getValue('CS11')} className="underline">{getValue('CS11')}</LinkComponent></div>}
+                        </div>
                     )}
                 </span>
             } />
 
-            <PreviewValueLayout label='Gift Aid Eligibility' result={`${getValue('CS05') || '-'}`} />
+            <PreviewValueLayout label={getLabel('giftAid')!} result={`${getValue(getFieldCode('giftAid')!) || '-'}`} />
 
-            <PreviewValueLayout label='Link to Gift Aid Status' result={
-                getValue('CS06') ? <LinkComponent openInNewTab className='hover:underline text-primary' to={getValue('CS06')}>{getValue('CS06')}</LinkComponent> : '-'
+            <PreviewValueLayout label={getLabel('link')!} result={
+                getValue(getFieldCode('link')!) ? <LinkComponent openInNewTab className='hover:underline text-primary' to={getValue(getFieldCode('link')!)}>{getValue(getFieldCode('link')!)}</LinkComponent> : '-'
             } />
 
-            <PreviewValueLayout orientation='vertical' label='Status Notes' result={getValue('CS07') || '-'} />
+            <PreviewValueLayout orientation='vertical' label={getLabel('notes')!} result={getValue(getFieldCode('notes')!) || '-'} />
 
             <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
                 <Button

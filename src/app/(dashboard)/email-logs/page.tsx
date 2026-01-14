@@ -1,5 +1,6 @@
 'use client'
 import React, { FC, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   Accordion,
   AccordionContent,
@@ -8,6 +9,8 @@ import {
 } from '@/components/ui/accordion'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import EmailReplyModal from '@/components/use-case/email-logs/EmailReplyModal'
 
 type EmailLog = {
   id: string
@@ -60,8 +63,25 @@ const sampleLogs: EmailLog[] = [
 ]
 
 const EmailLogsPage: FC = () => {
-  const [query, setQuery] = useState('')
+  const searchParams = useSearchParams()
+  const charityParam = searchParams.get('charity')
+
+  const [query, setQuery] = useState(charityParam || '')
+  const [selectedLog, setSelectedLog] = useState<EmailLog | null>(null)
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
+
   const filtered = sampleLogs.filter(l => l.subject.toLowerCase().includes(query.toLowerCase()) || l.charity.toLowerCase().includes(query.toLowerCase()))
+
+  const handleReply = (log: EmailLog) => {
+    setSelectedLog(log)
+    setIsReplyModalOpen(true)
+  }
+
+  const handleSendReply = (subject: string, body: string) => {
+    console.log('Sending reply:', { subject, body, originalLogId: selectedLog?.id })
+    // TODO: Implement actual send reply logic here
+    setIsReplyModalOpen(false)
+  }
 
   return (
     <div className="p-6">
@@ -84,14 +104,29 @@ const EmailLogsPage: FC = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="py-3 px-2">
-                <div className="mb-2 font-semibold">Subject: {log.subject}</div>
-                <div className="text-sm text-[#333] whitespace-pre-line">{log.body}</div>
+              <div className="py-3 px-2 flex justify-between items-start gap-4">
+                <div className="flex-1">
+                  <div className="mb-2 font-semibold">Subject: {log.subject}</div>
+                  <div className="text-sm text-[#333] whitespace-pre-line">{log.body}</div>
+                </div>
+                {log.status === 'Received' && (
+                  <Button variant="outline" size="sm" onClick={() => handleReply(log)}>Reply</Button>
+                )}
+                {log.status === 'Failed' && (
+                  <Button variant="destructive" size="sm" onClick={() => handleReply(log)}>Reply Again</Button>
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>
+
+      <EmailReplyModal
+        open={isReplyModalOpen}
+        onOpenChange={setIsReplyModalOpen}
+        defaultSubject={selectedLog ? `Re: ${selectedLog.subject}` : ''}
+        onSend={handleSendReply}
+      />
     </div>
   )
 }

@@ -11,6 +11,7 @@ type IProps = {
     description?: string
     confirmText?: string
     cancelText?: string
+    isLoading?: boolean
 }
 
 const ConfirmActionModal: FC<IProps> = ({
@@ -20,11 +21,11 @@ const ConfirmActionModal: FC<IProps> = ({
     title = "Confirm Action",
     description = "Are you sure you want to proceed with this action?",
     confirmText = "Confirm",
-    cancelText = "Cancel"
+    cancelText = "Cancel",
+    isLoading = false
 }) => {
     const handleConfirm = () => {
         onConfirm()
-        onOpenChange(false)
     }
 
     return (
@@ -36,17 +37,19 @@ const ConfirmActionModal: FC<IProps> = ({
             dialogContentClassName="sm:max-w-[450px]"
         >
             <div className="flex flex-col gap-3 mt-2">
-                <Button 
-                    variant="primary" 
+                <Button
+                    variant="primary"
                     className="w-full"
                     onClick={handleConfirm}
+                    disabled={isLoading}
                 >
-                    {confirmText}
+                    {isLoading ? 'Processing...' : confirmText}
                 </Button>
-                <Button 
-                    variant="outline" 
+                <Button
+                    variant="outline"
                     className="w-full border-primary text-primary bg-white hover:bg-blue-50"
                     onClick={() => onOpenChange(false)}
+                    disabled={isLoading}
                 >
                     {cancelText}
                 </Button>
@@ -56,3 +59,4 @@ const ConfirmActionModal: FC<IProps> = ({
 }
 
 export default ConfirmActionModal
+

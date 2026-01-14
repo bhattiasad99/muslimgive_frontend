@@ -85,6 +85,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
                     const toSnakeCase = (str: string) =>
                         str.toLowerCase()
                             .replace(/[()]/g, '') // remove parens
+                            .replace(/\//g, ' ') // replace slashes with spaces
                             .trim()
                             .replace(/\s+/g, '_'); // replace spaces with underscore
 

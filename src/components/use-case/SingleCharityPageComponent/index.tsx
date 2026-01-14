@@ -148,7 +148,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
         canViewEmailLogs
             ? {
                 value: 'view-email-logs',
-                label: <div className='flex gap-1 items-center cursor-pointer'><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
+                label: <div className='flex gap-1 items-center cursor-pointer' onClick={() => router.push(`/email-logs?charity=${encodeURIComponent(charityTitle)}`)}><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
             }
             : null,
         canViewAuditSummary

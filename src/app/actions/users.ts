@@ -28,7 +28,7 @@ export type ListUsersParams = {
     page?: number;
     limit?: number;
     search?: string;
-    role?: string; 
+    role?: string;
 }
 
 /**
@@ -37,7 +37,7 @@ export type ListUsersParams = {
  */
 export const listUsersAction = async (params?: ListUsersParams): Promise<ResponseType> => {
     const query = new URLSearchParams();
-    
+
     // Although the user query showed no params, typically listing endpoints support at least searching
     // Adding basics here securely. If backend ignores them, no harm done.
     if (params?.page) query.append('page', params.page.toString());
@@ -87,4 +87,25 @@ export const getUserRolesAction = async (userId: string): Promise<ResponseType> 
  */
 export const updateUserRolesAction = async (userId: string, payload: UpdateUserRolesPayload): Promise<ResponseType> => {
     return await _patch(`/roles/assign/${userId}`, payload);
+}
+
+/**
+ * Payload for updating the current user's profile
+ */
+export type UpdateMePayload = {
+    firstName?: string;
+    lastName?: string;
+    dateOfBirth?: string;
+    phoneNumber?: string;
+    countryName?: string;
+    city?: string;
+    postalCode?: string;
+}
+
+/**
+ * PATCH /users/me
+ * Updates the currently logged-in user's profile (partial updates supported)
+ */
+export const updateMeAction = async (payload: UpdateMePayload): Promise<ResponseType> => {
+    return await _patch('/users/me', payload);
 }

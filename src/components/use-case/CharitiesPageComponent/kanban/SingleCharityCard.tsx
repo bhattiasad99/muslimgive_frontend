@@ -50,7 +50,7 @@ const SingleCharityCard: FC<IProps> = ({
         isAllowed({ anyOf: [PERMISSIONS.SEND_EMAIL_CHARITY_OWNER] })
             ? {
                 value: 'email-logs',
-                label: <div className='flex gap-1 items-center'><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
+                label: <div className='flex gap-1 items-center cursor-pointer' onClick={() => router.push(`/email-logs?charity=${encodeURIComponent(charityTitle)}`)}><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
             }
             : null,
         {

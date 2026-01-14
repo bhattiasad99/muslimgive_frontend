@@ -6,6 +6,8 @@ import DatePicker from '@/components/common/ControlledDatePickerComponent'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
+import { updateMeAction, UpdateMePayload } from '@/app/actions/users'
+import { toast } from 'sonner'
 
 type PersonalInfo = {
     firstName: string
@@ -27,6 +29,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
     const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
     const [phoneNumber, setPhoneNumber] = useState('')
     const [showConfirm, setShowConfirm] = useState(false)
+    const [isUpdating, setIsUpdating] = useState(false)
     const [capturedInitial, setCapturedInitial] = useState<PersonalInfo>({
         firstName: '',
         lastName: '',
@@ -57,14 +60,38 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
         setShowConfirm(true)
     }
 
-    const confirmUpdate = () => {
-        onSave({
-            firstName,
-            lastName,
-            dateOfBirth,
-            phoneNumber
-        })
-        onOpenChange(false)
+    const confirmUpdate = async () => {
+        // Build payload with only changed fields
+        const changedPayload: UpdateMePayload = {}
+        if (firstName !== capturedInitial.firstName) changedPayload.firstName = firstName
+        if (lastName !== capturedInitial.lastName) changedPayload.lastName = lastName
+        if (dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime()) {
+            changedPayload.dateOfBirth = dateOfBirth?.toISOString().split('T')[0]
+        }
+        if (phoneNumber !== capturedInitial.phoneNumber) changedPayload.phoneNumber = phoneNumber
+
+        setIsUpdating(true)
+        try {
+            const res = await updateMeAction(changedPayload)
+            if (res.ok) {
+                toast.success('Personal information updated successfully')
+                onSave({
+                    firstName,
+                    lastName,
+                    dateOfBirth,
+                    phoneNumber
+                })
+                onOpenChange(false)
+            } else {
+                toast.error(res.message || 'Failed to update personal information')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An error occurred while updating')
+        } finally {
+            setIsUpdating(false)
+            setShowConfirm(false)
+        }
     }
 
     const handleCancel = () => {
@@ -90,14 +117,14 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                 />
-                
+
                 <ControlledTextFieldComponent
                     label="Last Name"
                     placeholder="Enter last name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                 />
-                
+
                 <div className="flex flex-col gap-1">
                     <Label className="text-sm">Date of Birth</Label>
                     <DatePicker
@@ -116,16 +143,16 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                 />
 
                 <div className="flex flex-col gap-3 mt-2">
-                    <Button 
-                        variant="primary" 
+                    <Button
+                        variant="primary"
                         className="w-full"
                         onClick={handleUpdate}
                         disabled={!hasChanges}
                     >
                         Update Profile
                     </Button>
-                    <Button 
-                        variant="outline" 
+                    <Button
+                        variant="outline"
                         className="w-full border-primary text-primary bg-white hover:bg-blue-50"
                         onClick={handleCancel}
                     >
@@ -141,6 +168,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                 title="Confirm Update"
                 description="Are you sure you want to update your personal information?"
                 confirmText="Update Profile"
+                isLoading={isUpdating}
             />
         </ModelComponentWithExternalControl>
     )

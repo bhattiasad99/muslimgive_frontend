@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
+import { updateMeAction, UpdateMePayload } from '@/app/actions/users'
+import { toast } from 'sonner'
 
 type AddressInfo = {
     country: string
@@ -31,6 +33,7 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
     const [city, setCity] = useState('')
     const [postalCode, setPostalCode] = useState('')
     const [showConfirm, setShowConfirm] = useState(false)
+    const [isUpdating, setIsUpdating] = useState(false)
     const [capturedInitial, setCapturedInitial] = useState<AddressInfo>({
         country: '',
         city: '',
@@ -58,13 +61,34 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
         setShowConfirm(true)
     }
 
-    const confirmUpdate = () => {
-        onSave({
-            country,
-            city,
-            postalCode
-        })
-        onOpenChange(false)
+    const confirmUpdate = async () => {
+        // Build payload with only changed fields (map country -> countryName for API)
+        const changedPayload: UpdateMePayload = {}
+        if (country !== capturedInitial.country) changedPayload.countryName = country.toLowerCase()
+        if (city !== capturedInitial.city) changedPayload.city = city
+        if (postalCode !== capturedInitial.postalCode) changedPayload.postalCode = postalCode
+
+        setIsUpdating(true)
+        try {
+            const res = await updateMeAction(changedPayload)
+            if (res.ok) {
+                toast.success('Address updated successfully')
+                onSave({
+                    country,
+                    city,
+                    postalCode
+                })
+                onOpenChange(false)
+            } else {
+                toast.error(res.message || 'Failed to update address')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An error occurred while updating')
+        } finally {
+            setIsUpdating(false)
+            setShowConfirm(false)
+        }
     }
 
     const handleCancel = () => {
@@ -99,14 +123,14 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
                             </SelectContent>
                         </Select>
                     </div>
-                    
+
                     <ControlledTextFieldComponent
                         label="City"
                         placeholder="Enter city"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                     />
-                    
+
                     <ControlledTextFieldComponent
                         label="Postal Code"
                         placeholder="Enter postal code"
@@ -115,16 +139,16 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
                     />
 
                     <div className="flex flex-col gap-3 mt-2">
-                        <Button 
-                            variant="primary" 
+                        <Button
+                            variant="primary"
                             className="w-full"
                             onClick={handleUpdate}
                             disabled={!hasChanges}
                         >
                             Update Profile
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="w-full border-primary text-primary bg-white hover:bg-blue-50"
                             onClick={handleCancel}
                         >
@@ -141,6 +165,7 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
                 description="Are you sure you want to update your address information?"
                 confirmText="Update"
                 cancelText="Cancel"
+                isLoading={isUpdating}
             />
         </>
     )

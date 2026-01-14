@@ -4,7 +4,7 @@ import { refreshToken } from "../actions/refresh-token";
 
 export const _get = async (request: string, requireAuth = true): Promise<ResponseType> => {
     let { accessToken } = await getCookies();
-    
+
     // Build URL safely
     let url: string
     try {
@@ -14,17 +14,17 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
     }
 
     const headers: Record<string, string> = { Accept: 'application/json' };
-    
+
     // Auth logic with "missing token" handling for potential refresh
     if (requireAuth) {
         if (!accessToken) {
-             const refreshRes = await refreshToken();
-             if (refreshRes.ok) {
-                 const newCookies = await getCookies(); // Get the new access token
-                 accessToken = newCookies.accessToken;
-             } else {
-                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-             }
+            const refreshRes = await refreshToken();
+            if (refreshRes.ok) {
+                const newCookies = await getCookies(); // Get the new access token
+                accessToken = newCookies.accessToken;
+            } else {
+                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+            }
         }
         if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -45,7 +45,7 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
             // Update token and retry
             const { accessToken: newAccessToken } = await getCookies();
             headers.Authorization = `Bearer ${newAccessToken}`;
-            
+
             res = await fetch(url, {
                 method: 'GET',
                 headers,
@@ -75,7 +75,7 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
 
 export const _post = async (request: string, body: any, requireAuth = true): Promise<ResponseType> => {
     let { accessToken } = await getCookies();
-    
+
     let url: string
     try {
         url = serverUrl ? new URL(request, serverUrl).toString() : request
@@ -84,16 +84,16 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
     }
 
     const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
-    
+
     if (requireAuth) {
         if (!accessToken) {
-             const refreshRes = await refreshToken();
-             if (refreshRes.ok) {
-                 const newCookies = await getCookies();
-                 accessToken = newCookies.accessToken;
-             } else {
-                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-             }
+            const refreshRes = await refreshToken();
+            if (refreshRes.ok) {
+                const newCookies = await getCookies();
+                accessToken = newCookies.accessToken;
+            } else {
+                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+            }
         }
         if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -113,7 +113,7 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
         if (refreshRes.ok) {
             const { accessToken: newAccessToken } = await getCookies();
             headers.Authorization = `Bearer ${newAccessToken}`;
-            
+
             res = await fetch(url, {
                 method: 'POST',
                 headers,
@@ -144,7 +144,7 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
 
 export const _patch = async <K = any>(request: string, body: K, requireAuth = true): Promise<ResponseType> => {
     let { accessToken } = await getCookies();
-    
+
     let url: string
     try {
         url = serverUrl ? new URL(request, serverUrl).toString() : request
@@ -153,16 +153,16 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
     }
 
     const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
-    
+
     if (requireAuth) {
         if (!accessToken) {
-             const refreshRes = await refreshToken();
-             if (refreshRes.ok) {
-                 const newCookies = await getCookies();
-                 accessToken = newCookies.accessToken;
-             } else {
-                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-             }
+            const refreshRes = await refreshToken();
+            if (refreshRes.ok) {
+                const newCookies = await getCookies();
+                accessToken = newCookies.accessToken;
+            } else {
+                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+            }
         }
         if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -182,7 +182,7 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
         if (refreshRes.ok) {
             const { accessToken: newAccessToken } = await getCookies();
             headers.Authorization = `Bearer ${newAccessToken}`;
-            
+
             res = await fetch(url, {
                 method: 'PATCH',
                 headers,
@@ -213,7 +213,7 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
 
 export const _delete = async (request: string, requireAuth = true): Promise<ResponseType> => {
     let { accessToken } = await getCookies();
-    
+
     let url: string
     try {
         url = serverUrl ? new URL(request, serverUrl).toString() : request
@@ -222,16 +222,16 @@ export const _delete = async (request: string, requireAuth = true): Promise<Resp
     }
 
     const headers: Record<string, string> = { Accept: 'application/json' };
-    
+
     if (requireAuth) {
         if (!accessToken) {
-             const refreshRes = await refreshToken();
-             if (refreshRes.ok) {
-                 const newCookies = await getCookies();
-                 accessToken = newCookies.accessToken;
-             } else {
-                 return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-             }
+            const refreshRes = await refreshToken();
+            if (refreshRes.ok) {
+                const newCookies = await getCookies();
+                accessToken = newCookies.accessToken;
+            } else {
+                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+            }
         }
         if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -250,7 +250,7 @@ export const _delete = async (request: string, requireAuth = true): Promise<Resp
         if (refreshRes.ok) {
             const { accessToken: newAccessToken } = await getCookies();
             headers.Authorization = `Bearer ${newAccessToken}`;
-            
+
             res = await fetch(url, {
                 method: 'DELETE',
                 headers,
