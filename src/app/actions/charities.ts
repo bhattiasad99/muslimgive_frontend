@@ -127,3 +127,15 @@ export const assignRolesToCharityAction = async (charityId: string, payload: Ass
     return await _patch(`/charities/${charityId}/assign`, { assignments: payload });
 }
 
+/**
+ * POST /report
+ * Sends bulk email to selected charities
+ */
+export type SendBulkEmailPayload = {
+    charities: string[];
+}
+
+export const sendBulkEmailReportAction = async (payload: SendBulkEmailPayload): Promise<ResponseType> => {
+    return await _post('/report', payload);
+}
+

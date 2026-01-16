@@ -6,3 +6,11 @@ export const baseEndPoint = async (): Promise<ResponseType> => {
     const profileRes = await _get('/', false);
     return profileRes;
 }
+
+/**
+ * GET /emails
+ * Fetches all email logs
+ */
+export const getEmailsAction = async (): Promise<ResponseType> => {
+    return await _get('/emails');
+}

@@ -8,13 +8,15 @@ import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from '../../Audits/CoreArea1_CharityStatus/SubmittedSymbol';
-import { submitAuditAction, completeAuditAction } from '@/app/actions/audits';
+import { submitAuditAction, completeAuditAction, getAuditAction } from '@/app/actions/audits';
 import { toast } from 'sonner';
 import { MULTI_STEP_DEFS, QuestionDef } from './MULTI_STEP_DEFS';
 
 export type PreviewPageCommonProps = {
     country: CountryCode;
-    status: AuditStatus
+    status: AuditStatus;
+    charityId: string;
+    fetchFromAPI?: boolean;
 }
 
 type IProps = PreviewPageCommonProps;
@@ -44,24 +46,62 @@ type StoredFormEntry = {
     commentsAdded: string;
 }
 
-const PreviewCoreArea3: FC<IProps> = ({ country }) => {
+const PreviewCoreArea3: FC<IProps> = ({ country, charityId, fetchFromAPI = false }) => {
     const [auditVals, setAuditVals] = useState<StoredFormEntry[] | null>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
-    const charityId = pathname.split('/')[2];
 
     useEffect(() => {
-        const stored = localStorage.getItem(`audit-form-data-${charityId}-core-area-3`);
-        if (stored) {
-            try {
-                setAuditVals(JSON.parse(stored));
-            } catch (e) {
-                console.error("Failed to parse stored audit data", e);
+        const fetchData = async () => {
+            if (fetchFromAPI) {
+                try {
+                    const res = await getAuditAction(charityId, 3);
+                    if (res.ok && res.payload?.data?.data?.answers) {
+                        const answers = res.payload.data.data.answers;
+                        // Transform object to array format expected by the component
+                        // API returns: { "key": { selections, links, note }, ... }
+                        // Component expects: [{ id: "key", selectedOptions, linksAdded, commentsAdded }, ...]
+                        if (typeof answers === 'object' && !Array.isArray(answers)) {
+                            const transformedArray: StoredFormEntry[] = Object.entries(answers).map(([key, value]: [string, any]) => ({
+                                id: key,
+                                selectedOptions: value.selections || [],
+                                linksAdded: (value.links || []).map((link: string) => ({ label: link, url: link })),
+                                commentsAdded: value.note || ''
+                            }));
+                            setAuditVals(transformedArray);
+                        } else if (Array.isArray(answers)) {
+                            setAuditVals(answers);
+                        } else {
+                            console.error('API returned answers in unexpected format');
+                            setAuditVals([]);
+                        }
+                    } else {
+                        console.error('Failed to fetch audit data from API');
+                        setAuditVals([]);
+                    }
+                } catch (error) {
+                    console.error('Error fetching audit data:', error);
+                    setAuditVals([]);
+                }
+            } else {
+                const stored = localStorage.getItem(`audit-form-data-${charityId}-core-area-3`);
+                if (stored) {
+                    try {
+                        setAuditVals(JSON.parse(stored));
+                    } catch (e) {
+                        console.error("Failed to parse stored audit data", e);
+                        setAuditVals([]);
+                    }
+                } else {
+                    setAuditVals([]);
+                }
             }
-        }
-    }, [charityId]);
+        };
+
+        fetchData();
+    }, [charityId, fetchFromAPI]);
 
     const handleSubmit = async () => {
         if (!auditVals) return;
@@ -116,6 +156,14 @@ const PreviewCoreArea3: FC<IProps> = ({ country }) => {
 
     if (!auditVals) {
         return <div>Loading preview...</div>
+    }
+
+    if (!Array.isArray(auditVals)) {
+        return <div>Invalid audit data format</div>
+    }
+
+    if (auditVals.length === 0) {
+        return <div>No audit data available</div>
     }
 
     return (

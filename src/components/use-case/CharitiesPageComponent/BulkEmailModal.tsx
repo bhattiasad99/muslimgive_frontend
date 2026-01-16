@@ -8,6 +8,8 @@ import { ColumnDef } from '@tanstack/react-table'
 import { SingleCharityType, StatusType } from './kanban/KanbanView'
 import { Checkbox } from '@/components/ui/checkbox'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
+import { sendBulkEmailReportAction } from '@/app/actions/charities'
+import { toast } from 'sonner'
 
 export type CharityWithoutMembersAndDesc = Omit<SingleCharityType, 'members' | 'charityDesc'>
 
@@ -54,6 +56,7 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
     const [queryInput, setQueryInput] = useState('')
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCharities, setSelectedCharities] = useState<string[]>([])
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const allIds = useMemo(() => charities.map(c => c.id), [charities])
     const allSelected = selectedCharities.length > 0 && selectedCharities.length === allIds.length
@@ -138,9 +141,30 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
         return `Email will be sent to ${selectedCharities.length} charities from the current view.`
     }, [selectedCharities])
 
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        onClose?.()
+        
+        if (selectedCharities.length === 0) {
+            toast.error('Please select at least one charity')
+            return
+        }
+
+        setIsSubmitting(true)
+        try {
+            const res = await sendBulkEmailReportAction({ charities: selectedCharities })
+            
+            if (res.ok) {
+                toast.success(`Bulk email sent successfully to ${selectedCharities.length} ${selectedCharities.length === 1 ? 'charity' : 'charities'}`)
+                onClose?.()
+            } else {
+                toast.error(res.message || 'Failed to send bulk email')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An error occurred while sending bulk email')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -177,13 +201,19 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
                     <Button
                         type="submit"
                         variant={'primary'}
-                        disabled={selectedCharities.length === 0}
+                        disabled={selectedCharities.length === 0 || isSubmitting}
                         className="w-full"
                     >
-                        {selectedCharities.length === 0 ? <>Select Charities to Send Email</> : <>Send Email to {selectedCharities.length} Charity</>}
+                        {isSubmitting ? (
+                            <>Sending...</>
+                        ) : selectedCharities.length === 0 ? (
+                            <>Select Charities to Send Email</>
+                        ) : (
+                            <>Send Email to {selectedCharities.length} {selectedCharities.length === 1 ? 'Charity' : 'Charities'}</>
+                        )}
                     </Button>
 
-                    <Button type="button" variant={'outline'} onClick={onClose} className="w-full">
+                    <Button type="button" variant={'outline'} onClick={onClose} className="w-full" disabled={isSubmitting}>
                         Back to charities
                     </Button>
                 </div>

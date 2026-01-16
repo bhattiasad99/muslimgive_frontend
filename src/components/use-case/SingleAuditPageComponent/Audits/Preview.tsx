@@ -34,16 +34,19 @@ const Preview: FC<IProps> = ({ status, showModeAndBackBtn = true, auditedBy, cha
         return <div>No audit values found for preview.</div>
     }
 
+    // Determine if we should fetch from API (audit history) or localStorage (editing mode)
+    const shouldFetchFromAPI = !showModeAndBackBtn;
+
     const renderPreview = (auditId: AuditIds, country: CountryCode) => {
         switch (auditId) {
             case 'core-area-1':
-                return <PreviewCoreArea1 status={status ? status : 'pending'} country={country} />;
+                return <PreviewCoreArea1 status={status ? status : 'pending'} country={country} charityId={charityId} fetchFromAPI={shouldFetchFromAPI} />;
             case 'core-area-2':
-                return <PreviewCoreArea2 status={status ? status : 'pending'} country={country} />;
+                return <PreviewCoreArea2 status={status ? status : 'pending'} country={country} charityId={charityId} fetchFromAPI={shouldFetchFromAPI} />;
             case 'core-area-3':
-                return <PreviewCoreArea3 status={status ? status : 'pending'} country={country} />;
+                return <PreviewCoreArea3 status={status ? status : 'pending'} country={country} charityId={charityId} fetchFromAPI={shouldFetchFromAPI} />;
             case 'core-area-4':
-                return <PreviewCoreArea4 status={status ? status : 'pending'} country={country} />;
+                return <PreviewCoreArea4 status={status ? status : 'pending'} country={country} charityId={charityId} fetchFromAPI={shouldFetchFromAPI} />;
             default:
                 return <div>No preview available for this audit.</div>;
         }

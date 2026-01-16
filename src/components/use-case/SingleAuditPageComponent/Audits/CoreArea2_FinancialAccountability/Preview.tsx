@@ -9,35 +9,53 @@ import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from '../../Audits/CoreArea1_CharityStatus/SubmittedSymbol';
-import { submitAuditAction, completeAuditAction } from '@/app/actions/audits';
+import { submitAuditAction, completeAuditAction, getAuditAction } from '@/app/actions/audits';
 import { toast } from 'sonner';
 
 export type PreviewPageCommonProps = {
     country: CountryCode;
-    status: AuditStatus
+    status: AuditStatus;
+    charityId: string;
+    fetchFromAPI?: boolean;
 }
 
 type IProps = PreviewPageCommonProps;
 
 
-const PreviewCoreArea2: FC<IProps> = ({ country, status }) => {
+const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI = false }) => {
     const [auditVals, setAuditVals] = useState<any>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
-    const charityId = pathname.split('/')[2];
 
     useEffect(() => {
-        const stored = localStorage.getItem(`audit-form-data-${charityId}-core-area-2`);
-        if (stored) {
-            try {
-                setAuditVals(JSON.parse(stored));
-            } catch (e) {
-                console.error("Failed to parse stored audit data", e);
+        const fetchData = async () => {
+            if (fetchFromAPI) {
+                try {
+                    const res = await getAuditAction(charityId, 2);
+                    if (res.ok && res.payload?.data?.data?.answers) {
+                        setAuditVals(res.payload.data.data.answers);
+                    } else {
+                        console.error('Failed to fetch audit data from API');
+                    }
+                } catch (error) {
+                    console.error('Error fetching audit data:', error);
+                }
+            } else {
+                const stored = localStorage.getItem(`audit-form-data-${charityId}-core-area-2`);
+                if (stored) {
+                    try {
+                        setAuditVals(JSON.parse(stored));
+                    } catch (e) {
+                        console.error("Failed to parse stored audit data", e);
+                    }
+                }
             }
-        }
-    }, [charityId]);
+        };
+
+        fetchData();
+    }, [charityId, fetchFromAPI]);
 
     const handleSubmit = async () => {
         if (!auditVals) return;
