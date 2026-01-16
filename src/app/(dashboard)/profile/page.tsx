@@ -32,9 +32,9 @@ const MyProfile = () => {
                         firstName: u.firstName,
                         lastName: u.lastName,
                         email: u.email,
-                        dateOfBirth: u.dob || '',
-                        phoneNumber: u.phone || '',
-                        location: u.city && u.country ? `${u.city}, ${u.country}` : (u.city || u.country || '-'),
+                        dateOfBirth: u.dateOfBirth || u.dob || '',
+                        phoneNumber: u.phoneNumber || u.phone || '',
+                        location: u.city && u.countryName ? `${u.city}, ${u.countryName}` : (u.city || u.countryName || u.country || '-'),
                         postalCode: u.postalCode || '',
                         roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
                         status: (u.isActive ? 'Active' : 'Inactive') as any,
@@ -96,8 +96,8 @@ const MyProfile = () => {
                 open={isAddressModalOpen}
                 onOpenChange={setIsAddressModalOpen}
                 initialData={{
-                    country: profile.location.split(', ')[1] || '',
-                    city: profile.location.split(', ')[0] || '',
+                    country: profile.location.includes(', ') ? profile.location.split(', ')[1] : '',
+                    city: profile.location.includes(', ') ? profile.location.split(', ')[0] : profile.location !== '-' ? profile.location : '',
                     postalCode: profile.postalCode
                 }}
                 onSave={(data) => {

@@ -118,6 +118,13 @@ const SingleCharityPageComponent: FC<IProps> = ({
             return canAssignPM && !verificationSummary?.projectManagerAssigned;
         }
 
+        // Hide eligibility and core area audits if project manager is not assigned
+        if (!verificationSummary?.projectManagerAssigned) {
+            if (taskId === "eligibility" || taskId.startsWith('core-area')) {
+                return false;
+            }
+        }
+
         if (taskId === "eligibility") {
             return canSubmitAudit && verificationSummary?.eligibility.pending;
         }

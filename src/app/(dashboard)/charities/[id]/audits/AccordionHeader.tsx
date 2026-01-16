@@ -7,7 +7,8 @@ import React, { FC } from 'react'
 type IProps = {
     title: string,
     subTitle: string,
-    grade: GradeType,
+    grade?: GradeType,
+    result?: 'pass' | 'fail' | null,
     score: number,
     status: AuditStatus
     isOpen: boolean,
@@ -15,7 +16,7 @@ type IProps = {
     close: () => void;
 }
 
-const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, score, status }) => {
+const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, result, score, status }) => {
     const statusClassName: Record<AuditStatus, string> = {
         'submitted': 'bg-[#5CF269] border-[#57de62]',
         'draft': 'bg-[#F2C94C] border-[#e5c24b]',
@@ -30,8 +31,8 @@ const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, score, status }) 
             <p className="md:min-w-[150px]">
                 {capitalizeWords(subTitle)}
             </p>
-            <p className="md:min-w-[150px]">{grade}</p>
-            <p className="md:min-w-[150px]">{score}</p>
+            <p className="md:min-w-[150px]">{status === 'pending' ? '-' : (result ? capitalizeWords(result) : (grade || '-'))}</p>
+            <p className="md:min-w-[150px]">{status === 'pending' ? '-' : score}</p>
             <div className="md:w-[100px] flex justify-center items-center">
                 <p
                     className={cn(
