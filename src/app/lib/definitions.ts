@@ -75,8 +75,11 @@ export type UserProfile = {
     isActive?: boolean;
     isVerified?: boolean;
     dob?: string;
+    dateOfBirth?: string;
     phone?: string;
+    phoneNumber?: string;
     country?: string;
+    countryName?: string;
     city?: string;
     postalCode?: string;
     roles: string[];
