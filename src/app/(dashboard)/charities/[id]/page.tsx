@@ -23,7 +23,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
     const charity: SingleCharityType = {
         id: c.id,
         charityTitle: c.name,
-        charityOwnerName: c.ownerName || "-",
+        charityOwnerName: c.owner ? `${c.owner.firstName} ${c.owner.lastName}` : "-",
         charityDesc: c.description || "",
         members: (c.assignments || []).map((a: any) => ({
             id: a.user?.id,
