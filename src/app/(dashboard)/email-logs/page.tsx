@@ -56,7 +56,7 @@ const EmailLogsPage: FC = () => {
           const date = new Date(email.createdAt)
           const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
           const dateLabel = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' }).replace(',', ' /')
-          
+
           return {
             id: email.id,
             subject: email.subject || '(No Subject)',
@@ -82,8 +82,8 @@ const EmailLogsPage: FC = () => {
     }
   }
 
-  const filtered = logs.filter(l => 
-    l.subject.toLowerCase().includes(query.toLowerCase()) || 
+  const filtered = logs.filter(l =>
+    l.subject.toLowerCase().includes(query.toLowerCase()) ||
     l.charity.toLowerCase().includes(query.toLowerCase())
   )
 
@@ -159,12 +159,12 @@ const EmailLogsPage: FC = () => {
           {filtered.map(log => (
             <AccordionItem key={log.id} value={log.id}>
               <AccordionTrigger asChild className="w-full">
-                <div className="flex flex-col gap-2 w-full py-3 px-2 hover:bg-slate-50 cursor-pointer sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-sm font-medium sm:min-w-[200px]">Subject: {log.subject}</div>
-                  <div className="text-sm sm:min-w-[200px]">Charity: {log.charity}</div>
-                  <div className="text-sm sm:min-w-[80px] sm:text-center">{log.time}</div>
-                  <div className="text-sm sm:min-w-[180px] sm:text-center">{log.dateLabel}</div>
-                  <div className="sm:min-w-[90px] flex sm:justify-end">
+                <div className="grid grid-cols-[1fr_1fr_80px_140px_90px] gap-4 w-full py-3 px-2 hover:bg-slate-50 cursor-pointer items-center">
+                  <div className="text-sm font-medium truncate" title={log.subject}>Subject: {log.subject}</div>
+                  <div className="text-sm truncate" title={log.charity}>Charity: {log.charity}</div>
+                  <div className="text-sm text-center">{log.time}</div>
+                  <div className="text-sm text-center">{log.dateLabel}</div>
+                  <div className="flex justify-end">
                     <Badge variant={getStatusBadgeVariant(log.status)}>{getStatusLabel(log.status)}</Badge>
                   </div>
                 </div>
@@ -179,9 +179,9 @@ const EmailLogsPage: FC = () => {
                     <Button variant="outline" size="sm" onClick={() => handleReply(log)}>Reply</Button>
                   )}
                   {log.status === 'failed' && (
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       onClick={() => handleRetry(log)}
                       disabled={retryingEmailId === log.id}
                     >

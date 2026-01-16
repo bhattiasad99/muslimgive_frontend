@@ -95,7 +95,7 @@ const AuditHistoryPage = () => {
 
     const getCoreAreaData = (auditKey: AuditIds) => {
         if (!reviews) return null
-        
+
         const coreAreaMap: Record<AuditIds, keyof Pick<CharityReviews, 'core1' | 'core2' | 'core3' | 'core4'>> = {
             'core-area-1': 'core1',
             'core-area-2': 'core2',
@@ -106,9 +106,13 @@ const AuditHistoryPage = () => {
         const coreAreaKey = coreAreaMap[auditKey]
         const coreAreaData = reviews[coreAreaKey]
 
+        const normalizedScore = coreAreaData.totalScore > 0
+            ? Math.round(((coreAreaData.score ?? 0) / coreAreaData.totalScore) * 100)
+            : 0;
+
         return {
             status: mapStatusToAuditStatus(coreAreaData.status),
-            score: coreAreaData.score ?? 0,
+            score: normalizedScore,
             grade: calculateGrade(coreAreaData.score, coreAreaData.totalScore),
             result: coreAreaData.result
         }

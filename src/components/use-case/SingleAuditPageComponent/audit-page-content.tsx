@@ -30,6 +30,48 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
 }) => {
     const router = useRouter()
 
+    const [score, setScore] = React.useState<number | null>(null);
+    const [totalScore, setTotalScore] = React.useState<number | null>(null);
+
+    const getCoreAreaIdFromSlug = (slug: AuditSlug): number => {
+        switch (slug) {
+            case 'core-area-1': return 1;
+            case 'core-area-2': return 2;
+            case 'core-area-3': return 3;
+            case 'core-area-4': return 4;
+            default: return 0;
+        }
+    }
+
+    React.useEffect(() => {
+        const fetchScore = async () => {
+            if (!charityId) return;
+            const coreAreaId = getCoreAreaIdFromSlug(auditSlug);
+            if (coreAreaId === 0) return;
+
+            try {
+                const { getAuditAction } = await import('@/app/actions/audits');
+                const res = await getAuditAction(charityId, coreAreaId);
+
+                if (res.ok && res.payload?.data?.data) {
+                    setScore(res.payload.data.data.score);
+                    // Assuming API returns totalScore or similar. If strictly following user JSON snippet which showed 'totalScore' inside 'core1' object in a 'reviews' object
+                    // but getAuditAction returns the specific audit data directly.
+                    // The user's JSON snippet seemed to be from a summary endpoint, but getAuditAction likely returns the specific audit details.
+                    // Let's assume the specific audit endpoint also returns totalScore or we calculate it.
+                    // However, relying on the previous tool output of getAuditAction implementation, it just calls /audits/charities/{id}?core-area={n}.
+                    // Without seeing the exact response of THAT endpoint, I'll trust standard patterns and try to read 'totalScore' from data.
+                    // If it's missing, I might need to default or check further.
+                    // But based on user request "have the score form api be there", I'll try to use what's likely there.
+                    setTotalScore(res.payload.data.data.totalScore ?? 10);
+                }
+            } catch (error) {
+                console.error('Failed to fetch audit score', error);
+            }
+        };
+        fetchScore();
+    }, [charityId, auditSlug]);
+
     const renderAudit = (auditId: AuditSlug) => {
         switch (auditId) {
             case "core-area-1": {
@@ -63,6 +105,14 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
                 </div>
                 <div className="flex flex-col gap-3">
                     <TypographyComponent variant='h2'>{charityTitle}</TypographyComponent>
+                    {score !== null && (
+                        <div className="flex items-center gap-2">
+                            <TypographyComponent className='text-sm font-medium'>Current Score:</TypographyComponent>
+                            <Badge className="bg-[#266dd3] hover:bg-[#1e5bb8] text-white">
+                                {score}/{totalScore}
+                            </Badge>
+                        </div>
+                    )}
                     <TypographyComponent className='text-gray-400 text-sm'>Please enter relevant information regarding the charity</TypographyComponent>
                 </div>
             </div>

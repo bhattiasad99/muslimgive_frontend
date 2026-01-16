@@ -32,7 +32,7 @@ const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, result, score, st
                 {capitalizeWords(subTitle)}
             </p>
             <p className="md:min-w-[150px]">{status === 'pending' ? '-' : (result ? capitalizeWords(result) : (grade || '-'))}</p>
-            <p className="md:min-w-[150px]">{status === 'pending' ? '-' : score}</p>
+            <p className="md:min-w-[150px]">{status === 'pending' ? '-' : `${score} / 100`}</p>
             <div className="md:w-[100px] flex justify-center items-center">
                 <p
                     className={cn(

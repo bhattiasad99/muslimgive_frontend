@@ -1,5 +1,5 @@
 'use client'
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useMemo } from 'react';
 import { PAGES } from '../sidebar/pages';
 import { TypographyComponent } from '@/components/common/TypographyComponent';
@@ -51,7 +51,13 @@ const getAppbarTitle = (pathname: string) => {
 
 const AppbarComponent = () => {
     const pathname = usePathname();
+    const router = useRouter();
     const pageTitle = useMemo(() => getAppbarTitle(pathname), [pathname]);
+    
+    const handleProfileClick = () => {
+        router.push('/profile');
+    };
+    
     return (
         <div className='border-b border-[rgb(178,178,178)/10] border-opacity-10 px-4 py-[14px] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5'>
             <div className="flex items-center gap-3 w-full">
@@ -63,8 +69,13 @@ const AppbarComponent = () => {
                 </TypographyComponent>
             </div>
             <div className="flex gap-2 items-center">
-                <NotificationNavbar />
-                <div className="rounded-full bg-gray-300 w-[35px] text-xs h-[35px] text-gray-600 flex justify-center items-center">MG</div>
+                {/* <NotificationNavbar /> */}
+                <div 
+                    className="rounded-full bg-gray-300 w-[35px] text-xs h-[35px] text-gray-600 flex justify-center items-center cursor-pointer hover:bg-gray-400 transition-colors"
+                    onClick={handleProfileClick}
+                >
+                    MG
+                </div>
             </div>
         </div>
     )
