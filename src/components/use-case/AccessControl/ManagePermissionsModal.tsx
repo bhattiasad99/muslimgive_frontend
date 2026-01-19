@@ -19,9 +19,10 @@ type IProps = {
   onOpenChange: (open: boolean) => void
   permissions?: Permission[]
   onSave: (permissions: Permission[]) => void
+  isLoading?: boolean
 }
 
-const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = [], onSave }) => {
+const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = [], onSave, isLoading = false }) => {
   const [items, setItems] = useState<Permission[]>([])
   const [permSearch, setPermSearch] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
@@ -32,6 +33,8 @@ const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = 
       const initPerms = permissions.map(p => ({ ...p }))
       setItems(initPerms)
       setInitialPermissions(initPerms)
+    } else {
+      setShowConfirm(false)
     }
   }, [open])
 
@@ -49,7 +52,6 @@ const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = 
 
   const confirmSave = () => {
     onSave(items)
-    onOpenChange(false)
   }
 
   const handleCancel = () => {
@@ -58,10 +60,10 @@ const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = 
 
   return (
     <>
-      <ModelComponentWithExternalControl 
-        open={open} 
-        onOpenChange={onOpenChange} 
-        title="Manage Permissions" 
+      <ModelComponentWithExternalControl
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Manage Permissions"
         description="Enable or disable permissions for this role"
         dialogContentClassName="sm:max-w-[700px]"
       >
@@ -96,6 +98,7 @@ const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = 
         description="Are you sure you want to update the permissions for this role?"
         confirmText="Save Permissions"
         cancelText="Cancel"
+        isLoading={isLoading}
       />
     </>
   )

@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Switch } from '@/components/ui/switch'
 import Fuse from 'fuse.js'
+import { useRouter } from 'next/navigation'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import AddUserModel from './AddUserModel'
@@ -56,6 +57,7 @@ type IProps = {
 }
 
 const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
+    const router = useRouter()
     // pagination
     const [opt, setOpt] = useState<PaginationType>({
         show: 10,
@@ -315,7 +317,13 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
             </div>
             <Can anyOf={[PERMISSIONS.USER_CREATE, PERMISSIONS.USER_MANAGE, PERMISSIONS.CREATE_USER_MG]}>
                 <ModelComponentWithExternalControl dialogContentClassName='md:!w-[50vw] md:!max-w-[50vw] w-[90vw] max-w-[90vw]' open={openNewUserModal} onOpenChange={setOpenNewUserModal} title='Add new MG Member'>
-                    <AddUserModel />
+                    <AddUserModel
+                        onClose={() => setOpenNewUserModal(false)}
+                        onSuccess={() => {
+                            setOpenNewUserModal(false);
+                            router.refresh();
+                        }}
+                    />
                 </ModelComponentWithExternalControl>
             </Can>
         </CardComponent>

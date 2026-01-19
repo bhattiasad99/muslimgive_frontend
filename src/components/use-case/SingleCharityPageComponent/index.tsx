@@ -114,6 +114,14 @@ const SingleCharityPageComponent: FC<IProps> = ({
     })
 
     const visibleTasks = AUDIT_TASKS.filter(({ id: taskId }) => {
+        // For ineligible or pending-eligibility charities, prioritize eligibility test
+        if (status === 'ineligible' || status === 'pending-eligibility') {
+            if (taskId === 'eligibility') {
+                return canSubmitAudit;
+            }
+            return false;
+        }
+
         if (taskId === "assign-project-manager") {
             return canAssignPM && !verificationSummary?.projectManagerAssigned;
         }

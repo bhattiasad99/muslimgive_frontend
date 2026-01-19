@@ -87,7 +87,11 @@ const ManageRoles: FC = () => {
     load()
   }, [])
 
+  const [isAdding, setIsAdding] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+
   const handleAdd = async (data: { name: string; description?: string; permissions?: Permission[] }) => {
+    setIsAdding(true)
     try {
       const body = {
         title: data.name,
@@ -111,39 +115,47 @@ const ManageRoles: FC = () => {
           }))
           setRoles(mapped)
         }
-        setIsAddOpen(false)
         toast.success('Role created')
+        setIsAddOpen(false)
       } else {
         toast.error(res.message || 'Failed to create role')
       }
     } catch (err) {
       console.error(err)
       toast.error('Failed to create role')
+    } finally {
+      setIsAdding(false)
     }
   }
 
   const handleEditSave = async (data: { id: string; name: string; description: string }) => {
+    setIsEditing(true)
     try {
       const body = { title: data.name, description: data.description }
       const res = await _patch(`/roles/${data.id}`, body)
       if (res.ok) {
         setRoles(prev => prev.map(r => r.id === data.id ? { ...r, name: data.name, description: data.description } : r))
-        setIsEditOpen(false)
         toast.success('Role updated')
+        setIsEditOpen(false)
       } else {
         toast.error(res.message || 'Failed to update role')
       }
     } catch (err) {
       console.error(err)
       toast.error('Failed to update role')
+    } finally {
+      setIsEditing(false)
     }
   }
 
   const handleOpenEdit = (role: Role) => { setEditingRole(role); setIsEditOpen(true) }
   const handleOpenManagePerm = (role: Role) => { setEditingRole(role); setIsManagePermOpen(true) }
 
+  const [isSaving, setIsSaving] = useState(false)
+
   const handleSavePermissions = async (items: Permission[]) => {
     if (!editingRole) return
+    setIsSaving(true)
     try {
       const currentIds = editingRole.permissionIds || []
       const newEnabledIds = (items || []).filter(p => p.enabled).map(p => p.id)
@@ -166,14 +178,16 @@ const ManageRoles: FC = () => {
         setRoles(prev => prev.map(r => r.id === editingRole.id ? { ...r, permissionIds: updatedPermissionIds } : r))
         // update editingRole in case modal remains open or reused
         setEditingRole(prev => prev ? { ...prev, permissionIds: updatedPermissionIds } : prev)
-        setIsManagePermOpen(false)
         toast.success('Permissions updated')
+        setIsManagePermOpen(false)
       } else {
         toast.error(res.message || 'Failed to update permissions')
       }
     } catch (err) {
       console.error(err)
       toast.error('Failed to update permissions')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -295,14 +309,15 @@ const ManageRoles: FC = () => {
         </TableBody>
       </Table>
 
-      <AddRoleModal open={isAddOpen} onOpenChange={setIsAddOpen} onSave={handleAdd} permissions={permissionsList} />
-      {editingRole && <EditRoleModal open={isEditOpen} onOpenChange={setIsEditOpen} role={{ ...editingRole, description: editingRole.description || '' }} onSave={handleEditSave} permissions={permissionsList} />}
+      <AddRoleModal open={isAddOpen} onOpenChange={setIsAddOpen} onSave={handleAdd} permissions={permissionsList} isLoading={isAdding} />
+      {editingRole && <EditRoleModal open={isEditOpen} onOpenChange={setIsEditOpen} role={{ ...editingRole, description: editingRole.description || '' }} onSave={handleEditSave} permissions={permissionsList} isLoading={isEditing} />}
       {/* Pass permissions with enabled flags for the selected role so toggles reflect current state */}
       <ManagePermissionsModal
         open={isManagePermOpen}
         onOpenChange={setIsManagePermOpen}
         permissions={editingRole ? permissionsList.map(p => ({ ...p, enabled: !!editingRole.permissionIds?.includes(p.id) })) : permissionsList}
         onSave={handleSavePermissions}
+        isLoading={isSaving}
       />
     </div>
   )

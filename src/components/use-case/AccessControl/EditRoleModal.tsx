@@ -13,9 +13,10 @@ type IProps = {
   role: { id: string; name: string; description: string }
   onSave: (data: { id: string; name: string; description: string }) => void
   permissions?: { id: string; name: string; module?: string; enabled?: boolean }[]
+  isLoading?: boolean
 }
 
-const EditRoleModal: FC<IProps> = ({ open, onOpenChange, role, onSave }) => {
+const EditRoleModal: FC<IProps> = ({ open, onOpenChange, role, onSave, isLoading = false }) => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [error, setError] = useState('')
@@ -27,6 +28,8 @@ const EditRoleModal: FC<IProps> = ({ open, onOpenChange, role, onSave }) => {
       setName(role.name)
       setDescription(role.description)
       setInitialState({ name: role.name, description: role.description })
+    } else {
+      setShowConfirm(false)
     }
   }, [open])
 
@@ -45,7 +48,6 @@ const EditRoleModal: FC<IProps> = ({ open, onOpenChange, role, onSave }) => {
 
   const confirmSave = () => {
     onSave({ id: role.id, name, description })
-    onOpenChange(false)
   }
 
   const handleCancel = () => {
@@ -56,9 +58,9 @@ const EditRoleModal: FC<IProps> = ({ open, onOpenChange, role, onSave }) => {
 
   return (
     <>
-      <ModelComponentWithExternalControl 
-        open={open} 
-        onOpenChange={onOpenChange} 
+      <ModelComponentWithExternalControl
+        open={open}
+        onOpenChange={onOpenChange}
         title="Edit Role"
         description="Update role information"
         dialogContentClassName="sm:max-w-[700px]"
@@ -97,6 +99,7 @@ const EditRoleModal: FC<IProps> = ({ open, onOpenChange, role, onSave }) => {
         description="Are you sure you want to update this role?"
         confirmText="Update Role"
         cancelText="Cancel"
+        isLoading={isLoading}
       />
     </>
   )

@@ -238,8 +238,9 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
                 try {
                     // Group CS09 (Date) and CS11 (Evidence Link) into one card per user request
                     if (fieldCode === 'CS09') {
-                        // Show this card only if Registration Status is 'Registered'
-                        if (formData['CS03'] !== 'Registered') return null;
+                        // Show this card only if Registration Status is 'Registered' or 'Pending Registration'
+                        const shouldShowDateCard = formData['CS03'] === 'Registered' || formData['CS03'] === 'Pending Registration';
+                        if (!shouldShowDateCard) return null;
 
                         const cs11 = currentForm.questions.find(q => q.code === 'CS11');
                         return (

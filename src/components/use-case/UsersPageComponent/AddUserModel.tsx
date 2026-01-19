@@ -13,9 +13,10 @@ import { useRouter } from 'next/navigation'
 
 type IProps = {
     onClose?: () => void
+    onSuccess?: () => void
 }
 
-const AddUserModel: React.FC<IProps> = ({ onClose }) => {
+const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [availableRoles, setAvailableRoles] = useState<{ value: string, label: string }[]>([])
@@ -107,8 +108,9 @@ const AddUserModel: React.FC<IProps> = ({ onClose }) => {
             const res = await createMgMemberAction(payload as any) // Type cast if necessary, or strict type the payload
             if (res.ok) {
                 toast.success("User created successfully")
-                router.refresh()
-                if (onClose) onClose()
+                if (onSuccess) {
+                    onSuccess()
+                }
             } else {
                 toast.error(res.message || "Failed to create user")
             }
