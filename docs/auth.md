@@ -2,7 +2,7 @@
 
 This is a simple, step-by-step guide to build login protection in a Next.js app using cookies and server sessions from an external backend. It is written for beginners.
 
-Goal: users can log in, stay logged in, and only see protected pages if they are signed in.
+Goal: users can log in, stay logged in, and only see protected pages if they are signed in, with a sliding session refresh.
 
 ---
 
@@ -13,8 +13,9 @@ Goal: users can log in, stay logged in, and only see protected pages if they are
 - Next.js forwards that cookie to the browser.
 - The browser sends that cookie on every request.
 - Next.js checks the cookie before showing protected pages.
+- On activity, Next.js refreshes the session to extend expiry.
 
-No access tokens. No refresh tokens. Just one `sid` cookie.
+No access tokens. No refresh tokens. Just one `sid` cookie plus a refresh endpoint that extends the session.
 
 ---
 
@@ -179,7 +180,25 @@ export async function signOut() {
 
 ---
 
-## Step 7: Handling Backend Down
+## Step 7: Refresh the Session Automatically
+
+To keep active users logged in, refresh the session periodically from server-side fetch helpers.
+
+File: `muslimgive_frontend/src/auth/methods.ts`
+
+```ts
+const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER}/auth/refresh`, {
+  method: 'POST',
+  headers: { cookie: `sid=${encodeURIComponent(accessToken)}` },
+  cache: 'no-store',
+})
+```
+
+This should run before authenticated requests and update the `sid` cookie when the backend returns `Set-Cookie`.
+
+---
+
+## Step 8: Handling Backend Down
 
 If the backend is down, fetch will fail.  
 Your app should treat the user as logged out and not crash.
@@ -203,6 +222,7 @@ try {
 - Forgetting to forward `Set-Cookie` in Next.js server action.
 - Still using refresh tokens or access tokens (not needed).
 - Not checking session validity in middleware.
+- Forgetting to refresh the session on active use.
 
 ---
 
@@ -211,6 +231,7 @@ try {
 - `sid` cookie exists in browser
 - Middleware checks `/auth/session`
 - All API calls use cookie, not Authorization header
+- Session refresh runs on active use
 - Logout revokes session and clears cookie
 
 ---

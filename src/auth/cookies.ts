@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from "next/headers"
-import { AUTH_COOKIE_LABEL } from "./constants";
+import { AUTH_COOKIE_LABEL, AUTH_REFRESH_MARKER } from "./constants";
 
 export const setSessionCookie = async (label: string, value: string, opts?: {
     expires?: Date;
@@ -26,6 +26,19 @@ export const setSessionCookie = async (label: string, value: string, opts?: {
             path: opts?.path ?? '/',
             ...(opts?.domain ? { domain: opts.domain } : {}),
         })
+
+        // Track last refresh time (server-only, httpOnly).
+        jar.set({
+            name: AUTH_REFRESH_MARKER,
+            value: Date.now().toString(),
+            secure: opts?.secure ?? process.env.NODE_ENV === 'production',
+            httpOnly: true,
+            expires: opts?.expires,
+            maxAge: opts?.maxAge,
+            sameSite: opts?.sameSite ?? 'lax',
+            path: opts?.path ?? '/',
+            ...(opts?.domain ? { domain: opts.domain } : {}),
+        })
     } catch (err: any) {
         // Swallow error in Server Components
         console.warn("setSessionCookie failed (safely ignored in SC):", err.message);
@@ -35,8 +48,10 @@ export const setSessionCookie = async (label: string, value: string, opts?: {
 export const getCookies = async () => {
     const _cookies = await cookies()
     const accessToken = _cookies.get(AUTH_COOKIE_LABEL)?.value
+    const refreshMarker = _cookies.get(AUTH_REFRESH_MARKER)?.value
     return {
-        accessToken
+        accessToken,
+        refreshMarker,
     }
 }
 
@@ -51,6 +66,7 @@ export const clearAuthCookies = async () => {
             path: '/',
         }
         jar.set({ name: AUTH_COOKIE_LABEL, value: '', ...opts })
+        jar.set({ name: AUTH_REFRESH_MARKER, value: '', ...opts })
     } catch (error: any) {
         // Swallow error in Server Components
         console.warn("clearAuthCookies failed (safely ignored in SC):", error.message);
