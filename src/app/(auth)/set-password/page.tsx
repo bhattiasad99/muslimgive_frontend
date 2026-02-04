@@ -1,4 +1,4 @@
-import { verifyToken } from '@/app/actions/auth'
+import { verifyToken } from '@/auth/actions'
 import SetPasswordComponent from '@/components/use-case/SetPasswordComponent'
 
 type SetPasswordPageProps = {

@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from "next/headers"
-import { AUTH_COOKIE_LABEL } from "./definitions";
+import { AUTH_COOKIE_LABEL } from "./constants";
 
 export const setSessionCookie = async (label: string, value: string, opts?: {
     expires?: Date;

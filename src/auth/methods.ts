@@ -1,5 +1,6 @@
 import { getCookies } from "./cookies";
-import { AUTH_COOKIE_LABEL, ResponseType, serverUrl } from "./definitions";
+import { AUTH_COOKIE_LABEL } from "./constants";
+import { ResponseType, serverUrl } from "@/app/lib/definitions";
 
 export type RawResponse<T = any> = {
     res: Response;

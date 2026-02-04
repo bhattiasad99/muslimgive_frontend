@@ -1,9 +1,11 @@
 'use server'
 import { parse as parseSetCookie } from 'set-cookie-parser'
-import { AUTH_COOKIE_LABEL, LoginFormState, serverUrl, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema, ResponseType } from '../lib/definitions'
-import { clearAuthCookies, getCookies, setSessionCookie } from '../lib/cookies'
+import { AUTH_COOKIE_LABEL } from './constants'
+import { LoginFormState, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema } from './forms'
+import { ResponseType, serverUrl } from '@/app/lib/definitions'
+import { clearAuthCookies, getCookies, setSessionCookie } from './cookies'
 import { redirect } from 'next/navigation'
-import { _patch } from '../lib/methods'
+import { _patch } from './methods'
 import { cookies } from 'next/headers'
 
 const setCookiesFn = async (res: Response) => {

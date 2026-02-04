@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useTransition } from 'react'
 import SignOut from '../../common/IconComponents/pages_icons/SignOut'
-import { signOut } from '@/app/actions/auth'
+import { signOut } from '@/auth/actions'
 import { useRouter } from 'next/navigation'
 
 const SignOutBtnInSidebar = () => {

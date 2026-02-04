@@ -3,7 +3,7 @@ import { Item, SidebarGroupComponent } from "./SidebarGroupComponent";
 import { PAGES, PageType } from "./pages";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar";
-import { getCookies } from "@/app/lib/cookies";
+import { getCookies } from "@/auth/cookies";
 import { redirect } from "next/navigation";
 import { isAllowed, toPermissionSet } from "@/lib/permissions";
 

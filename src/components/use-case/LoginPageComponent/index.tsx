@@ -1,6 +1,6 @@
 'use client'
-import { signIn } from '@/app/actions/auth'
-import { LoginFormState } from '@/app/lib/definitions'
+import { signIn } from '@/auth/actions'
+import { LoginFormState } from '@/auth/forms'
 import LinkComponent from '@/components/common/LinkComponent'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import { Button } from '@/components/ui/button'

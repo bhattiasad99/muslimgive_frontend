@@ -1,22 +1,3 @@
-import { z } from 'zod';
-
-
-export const SignInFormSchema = z.object({
-    email: z.string("Email is required").email({ message: 'Please enter a valid email.' }).trim(),
-    password: z
-        .string("Password is required")
-        .trim(),
-})
-
-export const SetPasswordFormSchema = z.object({
-    password: z
-        .string("Password is required")
-        .trim(),
-    confirmPassword: z
-        .string("Confirm Password is required")
-        .trim(),
-})
-
 export type ResponseType<K = any> = {
     ok: boolean;
     unauthenticated: boolean;
@@ -36,34 +17,8 @@ export type ApiResponse<T> = {
 };
 
 
-export type LoginFormState =
-    | {
-        errors?: {
-            email?: string[]
-            password?: string[]
-        }
-        message?: string
-    }
-    | undefined
-
-export type SetPasswordFormState =
-    | {
-        errors?: {
-            password?: string[]
-            confirmPassword?: string[]
-        }
-        message?: string
-    }
-    | undefined
-
 // Use NEXT_PUBLIC_SERVER for client-side access in Next.js; fall back to SERVER if available.
 export const serverUrl = process.env.NEXT_PUBLIC_SERVER || process.env.SERVER || ''
-
-export const AUTH_COOKIE_LABEL = 'sid';
-export const IS_ADMIN_COOKIE_LABEL = 'IsAdmin'
-
-export const AUTH_ROUTES = ["/charities", "/profile", "/users", "/access-control", "/email-logs", "/create-charity"];
-export const ADMIN_ROUTES = ["/users", "/access-control"];
 
 export type UserProfile = {
     id: string;

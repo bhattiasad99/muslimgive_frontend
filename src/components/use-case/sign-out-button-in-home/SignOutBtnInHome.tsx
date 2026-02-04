@@ -1,5 +1,5 @@
 'use client'
-import { signOut } from '@/app/actions/auth'
+import { signOut } from '@/auth/actions'
 import { Button } from '@/components/ui/button'
 import React, { FC, useTransition } from 'react'
 

@@ -1,8 +1,8 @@
 'use client'
 import React, { FC, useActionState, useEffect, useMemo, useState } from 'react'
 import AuthScreenLayoutComponent from '../AuthScreenLayoutComponent'
-import { SetPasswordFormState } from '@/app/lib/definitions';
-import { setPasswordAction } from '@/app/actions/auth';
+import { SetPasswordFormState } from '@/auth/forms';
+import { setPasswordAction } from '@/auth/actions';
 import { Button } from '@/components/ui/button';
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent';
 import { useRouter } from 'next/navigation';
