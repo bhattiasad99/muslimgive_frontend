@@ -1,6 +1,141 @@
 import { getCookies } from "./cookies";
-import { ResponseType, serverUrl } from "./definitions";
-import { refreshToken } from "../actions/refresh-token";
+import { AUTH_COOKIE_LABEL, ResponseType, serverUrl } from "./definitions";
+
+export type RawResponse<T = any> = {
+    res: Response;
+    data: T | null;
+};
+
+const fetchFailed = (requireAuth: boolean, message = 'Backend unreachable'): ResponseType => {
+    return {
+        ok: false,
+        payload: null,
+        unauthenticated: requireAuth,
+        message,
+    };
+};
+
+export const _getRaw = async (request: string, requireAuth = true): Promise<RawResponse> => {
+    let { accessToken } = await getCookies();
+
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
+
+    const headers: Record<string, string> = { Accept: 'application/json' };
+
+    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+
+    try {
+        const res = await fetch(url, {
+            method: 'GET',
+            headers,
+            cache: 'no-store',
+        })
+
+        let data: any = null;
+        try { data = await res.json(); } catch { /* noop */ }
+
+        return { res, data };
+    } catch {
+        return { res: new Response(null, { status: 503 }), data: null };
+    }
+}
+
+export const _postRaw = async (request: string, body: any, requireAuth = true): Promise<RawResponse> => {
+    let { accessToken } = await getCookies();
+
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
+
+    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
+
+    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers,
+            cache: 'no-store',
+            body: JSON.stringify(body)
+        })
+
+        let data: any = null;
+        try { data = await res.json(); } catch { /* noop */ }
+
+        return { res, data };
+    } catch {
+        return { res: new Response(null, { status: 503 }), data: null };
+    }
+}
+
+export const _patchRaw = async <K = any>(request: string, body: K, requireAuth = true): Promise<RawResponse> => {
+    let { accessToken } = await getCookies();
+
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
+
+    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
+
+    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+
+    try {
+        const res = await fetch(url, {
+            method: 'PATCH',
+            headers,
+            cache: 'no-store',
+            body: JSON.stringify(body)
+        })
+
+        let data: any = null;
+        try { data = await res.json(); } catch { /* noop */ }
+
+        return { res, data };
+    } catch {
+        return { res: new Response(null, { status: 503 }), data: null };
+    }
+}
+
+export const _deleteRaw = async (request: string, requireAuth = true): Promise<RawResponse> => {
+    let { accessToken } = await getCookies();
+
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
+
+    const headers: Record<string, string> = { Accept: 'application/json' };
+
+    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+
+    try {
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers,
+            cache: 'no-store',
+        })
+
+        let data: any = null;
+        try { data = await res.json(); } catch { /* noop */ }
+
+        return { res, data };
+    } catch {
+        return { res: new Response(null, { status: 503 }), data: null };
+    }
+}
 
 export const _get = async (request: string, requireAuth = true): Promise<ResponseType> => {
     let { accessToken } = await getCookies();
@@ -15,45 +150,26 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
 
     const headers: Record<string, string> = { Accept: 'application/json' };
 
-    // Auth logic with "missing token" handling for potential refresh
     if (requireAuth) {
         if (!accessToken) {
-            const refreshRes = await refreshToken();
-            if (refreshRes.ok) {
-                const newCookies = await getCookies(); // Get the new access token
-                accessToken = newCookies.accessToken;
-            } else {
-                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-            }
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
-        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
     }
 
-    let res = await fetch(url, {
-        method: 'GET',
-        headers,
-        cache: 'no-store',
-    })
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            method: 'GET',
+            headers,
+            cache: 'no-store',
+        })
+    } catch {
+        return fetchFailed(requireAuth);
+    }
 
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
-
-    // Interceptor for expired token
-    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
-        const refreshRes = await refreshToken();
-        if (refreshRes.ok) {
-            // Update token and retry
-            const { accessToken: newAccessToken } = await getCookies();
-            headers.Authorization = `Bearer ${newAccessToken}`;
-
-            res = await fetch(url, {
-                method: 'GET',
-                headers,
-                cache: 'no-store',
-            });
-            try { data = await res.json(); } catch { /* noop */ }
-        }
-    }
 
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;
@@ -87,42 +203,25 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
 
     if (requireAuth) {
         if (!accessToken) {
-            const refreshRes = await refreshToken();
-            if (refreshRes.ok) {
-                const newCookies = await getCookies();
-                accessToken = newCookies.accessToken;
-            } else {
-                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-            }
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
-        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
     }
 
-    let res = await fetch(url, {
-        method: 'POST',
-        headers,
-        cache: 'no-store',
-        body: JSON.stringify(body)
-    })
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            method: 'POST',
+            headers,
+            cache: 'no-store',
+            body: JSON.stringify(body)
+        })
+    } catch {
+        return fetchFailed(requireAuth);
+    }
 
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
-
-    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
-        const refreshRes = await refreshToken();
-        if (refreshRes.ok) {
-            const { accessToken: newAccessToken } = await getCookies();
-            headers.Authorization = `Bearer ${newAccessToken}`;
-
-            res = await fetch(url, {
-                method: 'POST',
-                headers,
-                cache: 'no-store',
-                body: JSON.stringify(body)
-            });
-            try { data = await res.json(); } catch { /* noop */ }
-        }
-    }
 
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;
@@ -156,42 +255,25 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
 
     if (requireAuth) {
         if (!accessToken) {
-            const refreshRes = await refreshToken();
-            if (refreshRes.ok) {
-                const newCookies = await getCookies();
-                accessToken = newCookies.accessToken;
-            } else {
-                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-            }
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
-        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
     }
 
-    let res = await fetch(url, {
-        method: 'PATCH',
-        headers,
-        cache: 'no-store',
-        body: JSON.stringify(body)
-    })
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            method: 'PATCH',
+            headers,
+            cache: 'no-store',
+            body: JSON.stringify(body)
+        })
+    } catch {
+        return fetchFailed(requireAuth);
+    }
 
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
-
-    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
-        const refreshRes = await refreshToken();
-        if (refreshRes.ok) {
-            const { accessToken: newAccessToken } = await getCookies();
-            headers.Authorization = `Bearer ${newAccessToken}`;
-
-            res = await fetch(url, {
-                method: 'PATCH',
-                headers,
-                cache: 'no-store',
-                body: JSON.stringify(body)
-            });
-            try { data = await res.json(); } catch { /* noop */ }
-        }
-    }
 
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;
@@ -225,40 +307,24 @@ export const _delete = async (request: string, requireAuth = true): Promise<Resp
 
     if (requireAuth) {
         if (!accessToken) {
-            const refreshRes = await refreshToken();
-            if (refreshRes.ok) {
-                const newCookies = await getCookies();
-                accessToken = newCookies.accessToken;
-            } else {
-                return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-            }
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
-        if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
     }
 
-    let res = await fetch(url, {
-        method: 'DELETE',
-        headers,
-        cache: 'no-store',
-    })
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            method: 'DELETE',
+            headers,
+            cache: 'no-store',
+        })
+    } catch {
+        return fetchFailed(requireAuth);
+    }
 
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
-
-    if (!res.ok && res.status === 401 && (data?.message === 'jwt expired' || data?.error === 'Unauthorized')) {
-        const refreshRes = await refreshToken();
-        if (refreshRes.ok) {
-            const { accessToken: newAccessToken } = await getCookies();
-            headers.Authorization = `Bearer ${newAccessToken}`;
-
-            res = await fetch(url, {
-                method: 'DELETE',
-                headers,
-                cache: 'no-store',
-            });
-            try { data = await res.json(); } catch { /* noop */ }
-        }
-    }
 
     if (!res.ok || data?.error) {
         const unauth = res.status === 401;

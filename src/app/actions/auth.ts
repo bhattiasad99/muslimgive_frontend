@@ -1,18 +1,25 @@
 'use server'
 import { parse as parseSetCookie } from 'set-cookie-parser'
-import { AUTH_COOKIE_LABEL, LoginFormState, IS_ADMIN_COOKIE_LABEL, REFRESH_COOKIE_LABEL, serverUrl, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema, ResponseType } from '../lib/definitions'
-import { clearAuthCookies, getCookies, setJwtCookie } from '../lib/cookies'
+import { AUTH_COOKIE_LABEL, LoginFormState, serverUrl, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema, ResponseType } from '../lib/definitions'
+import { clearAuthCookies, getCookies, setSessionCookie } from '../lib/cookies'
 import { redirect } from 'next/navigation'
-import { _get, _patch } from '../lib/methods'
+import { _patch } from '../lib/methods'
+import { cookies } from 'next/headers'
 
-const setCookiesFn = async (res: Response, data?: any) => {
+const setCookiesFn = async (res: Response) => {
     const setCookies = res.headers.getSetCookie?.()
     const parsed = parseSetCookie(setCookies, { map: true })
-    const access = parsed['Authentication']?.value ?? parsed['accessToken']?.value
-    const refresh = parsed['Refresh']?.value ?? parsed['refreshToken']?.value
-    if (!access || !refresh) return { message: 'Internal Server Error, contact admin' }
-    await setJwtCookie(AUTH_COOKIE_LABEL, access)
-    await setJwtCookie(REFRESH_COOKIE_LABEL, refresh)
+    const sessionCookie = parsed[AUTH_COOKIE_LABEL]
+    if (!sessionCookie?.value) return { message: 'Internal Server Error, contact admin' }
+    await setSessionCookie(AUTH_COOKIE_LABEL, sessionCookie.value, {
+        httpOnly: sessionCookie.httpOnly,
+        secure: sessionCookie.secure,
+        sameSite: sessionCookie.sameSite as 'lax' | 'strict' | 'none' | undefined,
+        path: sessionCookie.path,
+        domain: sessionCookie.domain,
+        expires: sessionCookie.expires ? new Date(sessionCookie.expires) : undefined,
+        maxAge: sessionCookie.maxAge,
+    })
 }
 
 // tiny guard to avoid open redirect
@@ -55,7 +62,7 @@ export async function signIn(
             return { message: msg }
         }
 
-        await setCookiesFn(res, data)
+        await setCookiesFn(res)
     } catch (e) {
         console.error(e)
         return { message: 'Server unreachable. Try again.' }
@@ -66,14 +73,15 @@ export async function signIn(
 }
 
 export async function signOut(): Promise<{ ok: boolean; redirectTo: string }> {
-    const { accessToken } = await getCookies()
+    const jar = await cookies()
+    const sid = jar.get(AUTH_COOKIE_LABEL)?.value
 
     try {
         await fetch(new URL('auth/logout', serverUrl).toString(), {
             method: 'POST',
             headers: {
-                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
                 Accept: 'application/json',
+                ...(sid ? { cookie: `${AUTH_COOKIE_LABEL}=${encodeURIComponent(sid)}` } : {}),
             },
             credentials: 'include',
             cache: 'no-store',

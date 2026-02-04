@@ -4,7 +4,6 @@ import { PAGES, PageType } from "./pages";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar";
 import { getCookies } from "@/app/lib/cookies";
-import { jwtDecode } from "jwt-decode";
 import { redirect } from "next/navigation";
 import { isAllowed, toPermissionSet } from "@/lib/permissions";
 
@@ -19,20 +18,11 @@ type SideBarComponentProps = {
 }
 
 const SideBarComponent = async ({ permissions, isAdmin }: SideBarComponentProps) => {
-    const { accessToken, refreshToken } = await getCookies();
-    // Strict redirect only if BOTH tokens are missing.
-    // Use refresh token as fallback existence check so we don't bail out before the client can refresh.
-    if (!accessToken && !refreshToken) {
+    const { accessToken } = await getCookies();
+    if (!accessToken) {
         redirect('/login')
     }
-    let tokenAdmin = false;
-    if (accessToken) {
-        try {
-            const decoded: any = jwtDecode(accessToken);
-            tokenAdmin = decoded?.isAdmin ?? false;
-        } catch { /* ignore invalid token */ }
-    }
-    const adminBypass = isAdmin || tokenAdmin;
+    const adminBypass = isAdmin;
     const permissionSet = toPermissionSet(permissions);
 
     const buildPages = (name: PageType) => PAGES
