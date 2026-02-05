@@ -33,7 +33,6 @@ const MyProfile = () => {
                         lastName: u.lastName,
                         email: u.email,
                         dateOfBirth: u.dateOfBirth || u.dob || '',
-                        phoneNumber: u.phoneNumber || u.phone || '',
                         location: u.city && u.countryName ? `${u.city}, ${u.countryName}` : (u.city || u.countryName || u.country || '-'),
                         postalCode: u.postalCode || '',
                         roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
@@ -78,16 +77,14 @@ const MyProfile = () => {
                 initialData={{
                     firstName: profile.firstName,
                     lastName: profile.lastName,
-                    dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth) : undefined,
-                    phoneNumber: profile.phoneNumber
+                    dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth) : undefined
                 }}
                 onSave={(data) => {
                     setProfile(prev => prev ? {
                         ...prev,
                         firstName: data.firstName,
                         lastName: data.lastName,
-                        dateOfBirth: data.dateOfBirth ? data.dateOfBirth.toISOString().split('T')[0] : '',
-                        phoneNumber: data.phoneNumber
+                        dateOfBirth: data.dateOfBirth ? data.dateOfBirth.toISOString().split('T')[0] : ''
                     } : null)
                 }}
             />

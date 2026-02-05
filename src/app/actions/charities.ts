@@ -30,7 +30,6 @@ export type CreateCharityPayload = {
     ownerFirstName: string;
     ownerLastName: string;
     ownerEmail: string;
-    ownerPhoneNumber: string;
     isIslamic: boolean;
     doesCharityGiveZakat: boolean;
     description: string;

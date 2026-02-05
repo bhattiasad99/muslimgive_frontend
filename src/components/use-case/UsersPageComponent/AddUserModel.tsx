@@ -20,7 +20,7 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [availableRoles, setAvailableRoles] = useState<{ value: string, label: string }[]>([])
-    // user -> firstName, lastName, email, dob, phone, country, city, postalcode, roles
+    // user -> firstName, lastName, email, dob, country, city, postalcode, roles
     const [user, setUser] = useState<UserForm>({
         firstName: {
             value: '',
@@ -36,10 +36,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
         },
         dob: {
             value: undefined,
-            error: ''
-        },
-        phone: {
-            value: '',
             error: ''
         },
         country: {
@@ -97,7 +93,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
             lastName: user.lastName.value,
             email: user.email.value,
             dateOfBirth: user.dob.value ? new Date(user.dob.value).toISOString().split('T')[0] : undefined, // Format: YYYY-MM-DD
-            phoneNumber: user.phone.value,
             countryName: user.country.value,
             city: user.city.value,
             postalCode: user.postalcode.value,
@@ -157,13 +152,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
                     id="add_user__dob"
                     label="Date of birth"
                 />
-            </div>
-            <div className="flex items-center">
-                <label htmlFor='add_user__phone' className='w-50'>
-                    Phone Number
-                </label>
-                <ControlledTextFieldComponent
-                    value={user.phone.value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormValue('phone', e.target.value)} name="phone" id='add_user__phone' />
             </div>
             <div className="flex items-center">
                 <label htmlFor='add_user__country' className='w-50'>

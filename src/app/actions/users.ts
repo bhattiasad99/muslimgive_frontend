@@ -8,7 +8,6 @@ export type CreateMgMemberPayload = {
     lastName: string;
     email: string;
     dateOfBirth?: string;
-    phoneNumber?: string;
     countryName?: string;
     city?: string;
     postalCode?: string;
@@ -96,7 +95,6 @@ export type UpdateMePayload = {
     firstName?: string;
     lastName?: string;
     dateOfBirth?: string;
-    phoneNumber?: string;
     countryName?: string;
     city?: string;
     postalCode?: string;

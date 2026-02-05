@@ -30,8 +30,6 @@ export type UserProfile = {
     isVerified?: boolean;
     dob?: string;
     dateOfBirth?: string;
-    phone?: string;
-    phoneNumber?: string;
     country?: string;
     countryName?: string;
     city?: string;

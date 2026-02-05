@@ -13,7 +13,6 @@ type PersonalInfo = {
     firstName: string
     lastName: string
     dateOfBirth: Date | undefined
-    phoneNumber: string
 }
 
 type IProps = {
@@ -27,14 +26,12 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
-    const [phoneNumber, setPhoneNumber] = useState('')
     const [showConfirm, setShowConfirm] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
     const [capturedInitial, setCapturedInitial] = useState<PersonalInfo>({
         firstName: '',
         lastName: '',
-        dateOfBirth: undefined,
-        phoneNumber: ''
+        dateOfBirth: undefined
     })
 
     useEffect(() => {
@@ -42,7 +39,6 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
             setFirstName(initialData.firstName)
             setLastName(initialData.lastName)
             setDateOfBirth(initialData.dateOfBirth)
-            setPhoneNumber(initialData.phoneNumber)
             setCapturedInitial({ ...initialData })
         }
     }, [open])
@@ -51,10 +47,9 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
         return (
             firstName !== capturedInitial.firstName ||
             lastName !== capturedInitial.lastName ||
-            dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime() ||
-            phoneNumber !== capturedInitial.phoneNumber
+            dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime()
         )
-    }, [firstName, lastName, dateOfBirth, phoneNumber, capturedInitial])
+    }, [firstName, lastName, dateOfBirth, capturedInitial])
 
     const handleUpdate = () => {
         setShowConfirm(true)
@@ -68,7 +63,6 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
         if (dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime()) {
             changedPayload.dateOfBirth = dateOfBirth?.toISOString().split('T')[0]
         }
-        if (phoneNumber !== capturedInitial.phoneNumber) changedPayload.phoneNumber = phoneNumber
 
         setIsUpdating(true)
         try {
@@ -78,8 +72,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                 onSave({
                     firstName,
                     lastName,
-                    dateOfBirth,
-                    phoneNumber
+                    dateOfBirth
                 })
                 onOpenChange(false)
             } else {
@@ -98,7 +91,6 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
         setFirstName(capturedInitial.firstName)
         setLastName(capturedInitial.lastName)
         setDateOfBirth(capturedInitial.dateOfBirth)
-        setPhoneNumber(capturedInitial.phoneNumber)
         onOpenChange(false)
     }
 
@@ -134,13 +126,6 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                         disabledFutureDates
                     />
                 </div>
-
-                <ControlledTextFieldComponent
-                    label="Phone Number"
-                    placeholder="+1 (123) 456-7890"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                />
 
                 <div className="flex flex-col gap-3 mt-2">
                     <Button

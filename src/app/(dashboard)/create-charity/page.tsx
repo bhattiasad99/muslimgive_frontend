@@ -26,7 +26,6 @@ const CreateCharityStandalonePage = () => {
     const [ownerFirstName, setOwnerFirstName] = useState('')
     const [ownerLastName, setOwnerLastName] = useState('')
     const [ownerEmail, setOwnerEmail] = useState('')
-    const [ownerPhoneNumber, setOwnerPhoneNumber] = useState('')
 
     const [errors, setErrors] = useState<{ [k: string]: string }>({})
 
@@ -51,7 +50,6 @@ const CreateCharityStandalonePage = () => {
                 if (parsed.ownerFirstName) setOwnerFirstName(parsed.ownerFirstName)
                 if (parsed.ownerLastName) setOwnerLastName(parsed.ownerLastName)
                 if (parsed.ownerEmail) setOwnerEmail(parsed.ownerEmail)
-                if (parsed.ownerPhoneNumber) setOwnerPhoneNumber(parsed.ownerPhoneNumber)
             } catch (error) {
                 console.error('Failed to parse data provided', error)
             }
@@ -69,7 +67,6 @@ const CreateCharityStandalonePage = () => {
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
             next.ownerEmail = 'Invalid email address'
         }
-        if (!ownerPhoneNumber.trim()) next.ownerPhoneNumber = 'Owner Phone Number is required'
         if (!website.trim()) next.website = 'Website link is required'
         if (!startDate) next.startDate = 'Start date is required'
         if (!category) next.category = 'Category is required'
@@ -83,7 +80,6 @@ const CreateCharityStandalonePage = () => {
             ownerFirstName,
             ownerLastName,
             ownerEmail,
-            ownerPhoneNumber,
             isIslamic,
             doesCharityGiveZakat: paysZakat,
             description,
@@ -166,17 +162,6 @@ const CreateCharityStandalonePage = () => {
                                 type="email"
                             />
                             {errors.ownerEmail ? <div className="text-xs text-red-500 mt-1">{errors.ownerEmail}</div> : null}
-                        </div>
-                        <div>
-                            <Label htmlFor="owner-phone" className="text-sm">Phone Number</Label>
-                            <ControlledTextFieldComponent
-                                id="owner-phone"
-                                value={ownerPhoneNumber}
-                                onChange={(e) => setOwnerPhoneNumber(e.target.value)}
-                                placeholder="Owner Phone Number"
-                                type="tel"
-                            />
-                            {errors.ownerPhoneNumber ? <div className="text-xs text-red-500 mt-1">{errors.ownerPhoneNumber}</div> : null}
                         </div>
                     </div>
                 </div>

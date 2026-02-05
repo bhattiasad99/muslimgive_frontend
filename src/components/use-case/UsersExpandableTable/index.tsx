@@ -28,7 +28,6 @@ export type Data = {
     lastName: string
     email: string
     dateOfBirth: string
-    phoneNumber: string
     location: string
     postalCode: string
     roles: Role[]
@@ -79,7 +78,6 @@ const UsersExpandableTable: FC<IProps> = ({ rows }) => {
                                     lastName: eachUser.lastName,
                                     email: eachUser.email,
                                     dateOfBirth: eachUser.dateOfBirth,
-                                    phoneNumber: eachUser.phoneNumber,
                                     location: eachUser.location,
                                     postalCode: eachUser.postalCode,
                                     roles: eachUser.roles,

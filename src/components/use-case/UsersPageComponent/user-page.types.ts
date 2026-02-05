@@ -18,7 +18,6 @@ export interface UserForm {
     lastName: FieldState<string>;
     email: FieldState<string>;
     dob: FieldState<Date | undefined>;
-    phone: FieldState<string>;
     country: FieldState<string>;
     city: FieldState<string>;
     postalcode: FieldState<string>;

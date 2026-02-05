@@ -110,7 +110,6 @@ const PreviewCharityPage = () => {
                                 ownerFirstName: parsed.ownerFirstName,
                                 ownerLastName: parsed.ownerLastName,
                                 ownerEmail: parsed.ownerEmail,
-                                ownerPhoneNumber: parsed.ownerPhoneNumber,
                                 isIslamic: Boolean(parsed.isIslamic),
                                 doesCharityGiveZakat: Boolean(parsed.doesCharityGiveZakat),
                                 description: parsed.description || "",
