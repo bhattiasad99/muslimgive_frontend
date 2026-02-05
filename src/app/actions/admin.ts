@@ -1,6 +1,6 @@
 import { Data } from "@/components/use-case/UsersExpandableTable";
 import { ResponseType } from "../lib/definitions";
-import { _get, _post } from "../lib/methods";
+import { _get, _post } from "@/auth";
 
 
 export const getUsers = async (): Promise<ResponseType<Data[]>> => {

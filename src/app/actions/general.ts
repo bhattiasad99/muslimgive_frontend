@@ -1,6 +1,6 @@
 'use server'
 import { ResponseType } from "../lib/definitions";
-import { _get } from "@/auth/methods";
+import { _get } from "@/auth";
 
 export const baseEndPoint = async (): Promise<ResponseType> => {
     const profileRes = await _get('/auth/session');

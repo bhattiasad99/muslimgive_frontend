@@ -1,6 +1,6 @@
 'use server'
 
-import { _get, _patch, _post } from "../lib/methods";
+import { _get, _patch, _post } from "@/auth";
 import { ChangePasswordPayload, ResponseType, UserProfile } from "../lib/definitions";
 
 export type CreateMgMemberPayload = {

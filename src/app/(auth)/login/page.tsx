@@ -12,4 +12,3 @@ export default async function Login({ searchParams }: { searchParams: Search }) 
     const safe = cont.startsWith('/') && !cont.startsWith('//') ? cont : '/';
     return <LoginPageComponent continueTo={safe} />;
 }
-

@@ -1,6 +1,6 @@
 'use server'
 
-import { _post, _patch, _get } from "../lib/methods";
+import { _post, _patch, _get } from "@/auth";
 import { ResponseType } from "../lib/definitions";
 
 export type SubmitAuditPayload = {

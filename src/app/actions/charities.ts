@@ -1,6 +1,6 @@
 'use server'
 
-import { _delete, _get, _patch, _post } from "../lib/methods";
+import { _delete, _get, _patch, _post } from "@/auth";
 import { ResponseType } from "../lib/definitions";
 
 /**
