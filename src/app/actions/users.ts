@@ -122,3 +122,37 @@ export type UpdateMePayload = {
 export const updateMeAction = async (payload: UpdateMePayload): Promise<ResponseType> => {
     return await _patch('/users/me', payload);
 }
+
+export type RequestEmailChangePayload = {
+    newEmail: string;
+    currentPassword: string;
+}
+
+export type VerifyEmailChangePayload = {
+    newEmail: string;
+    otp: string;
+}
+
+/**
+ * POST /users/email-change/request
+ * Sends a verification code to the new email
+ */
+export const requestEmailChangeAction = async (payload: RequestEmailChangePayload): Promise<ResponseType> => {
+    return await _post('/users/email-change/request', payload);
+}
+
+/**
+ * POST /users/email-change/resend
+ * Resends the verification code to the new email
+ */
+export const resendEmailChangeAction = async (payload: RequestEmailChangePayload): Promise<ResponseType> => {
+    return await _post('/users/email-change/resend', payload);
+}
+
+/**
+ * POST /users/email-change/verify
+ * Verifies the code and updates the email
+ */
+export const verifyEmailChangeAction = async (payload: VerifyEmailChangePayload): Promise<ResponseType> => {
+    return await _post('/users/email-change/verify', payload);
+}

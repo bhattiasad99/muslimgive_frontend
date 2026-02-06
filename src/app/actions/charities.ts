@@ -138,6 +138,30 @@ export const assignRolesToCharityAction = async (charityId: string, payload: Ass
 }
 
 /**
+ * PATCH /charities/{charityId}/assign
+ * Reassigns a single role to a specific user (optionally removing from others)
+ */
+export type ReassignRolePayload = {
+    userId: string;
+    role: 'project-manager' | 'finance-auditor' | 'zakat-auditor';
+    removeUserIds?: string[];
+}
+
+export const reassignRoleToCharityAction = async (charityId: string, payload: ReassignRolePayload): Promise<ResponseType> => {
+    const assignments = [
+        ...(payload.removeUserIds ?? []).map(userId => ({
+            userId,
+            remove: [payload.role],
+        })),
+        {
+            userId: payload.userId,
+            add: [payload.role],
+        },
+    ];
+    return await _patch(`/charities/${charityId}/assign`, { assignments });
+}
+
+/**
  * PATCH /charities/{id}/eligibility
  * Manually update eligibility for a charity
  */

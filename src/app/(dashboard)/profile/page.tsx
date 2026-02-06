@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import UserData from '@/components/use-case/UsersExpandableTable/UserData'
 import UpdatePasswordModal from '@/components/use-case/ProfilePageComponent/UpdatePasswordModal'
+import UpdateEmailModal from '@/components/use-case/ProfilePageComponent/UpdateEmailModal'
 import EditPersonalInfoModal from '@/components/use-case/ProfilePageComponent/EditPersonalInfoModal'
 import EditAddressModal from '@/components/use-case/ProfilePageComponent/EditAddressModal'
 import type { Data, Role } from '@/components/use-case/UsersExpandableTable'
@@ -13,6 +14,7 @@ import { kebabToTitle } from '@/lib/helpers'
 const MyProfile = () => {
     // State for modals
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
     const [isPersonalInfoModalOpen, setIsPersonalInfoModalOpen] = useState(false)
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false)
 
@@ -62,6 +64,7 @@ const MyProfile = () => {
                 onEditPersonalInfo={() => setIsPersonalInfoModalOpen(true)}
                 onEditAddress={() => setIsAddressModalOpen(true)}
                 onChangePassword={() => setIsPasswordModalOpen(true)}
+                onChangeEmail={() => setIsEmailModalOpen(true)}
                 showEditButtons={true}
             />
 
@@ -69,6 +72,11 @@ const MyProfile = () => {
             <UpdatePasswordModal
                 open={isPasswordModalOpen}
                 onOpenChange={setIsPasswordModalOpen}
+            />
+
+            <UpdateEmailModal
+                open={isEmailModalOpen}
+                onOpenChange={setIsEmailModalOpen}
             />
 
             <EditPersonalInfoModal

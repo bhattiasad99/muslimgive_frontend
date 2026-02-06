@@ -13,6 +13,7 @@ type IProps = Data & {
     onEditPersonalInfo?: () => void;
     onEditAddress?: () => void;
     onChangePassword?: () => void;
+    onChangeEmail?: () => void;
     showEditButtons?: boolean;
 };
 
@@ -30,6 +31,7 @@ const UserData: FC<IProps> = ({
     onEditPersonalInfo,
     onEditAddress,
     onChangePassword,
+    onChangeEmail,
     showEditButtons = false
 }) => {
     const country = location || '-'
@@ -63,6 +65,15 @@ const UserData: FC<IProps> = ({
                         onClick={onChangePassword}
                     >
                         Change Password
+                    </Button>
+                ) : null}
+                {onChangeEmail && showEditButtons ? (
+                    <Button
+                        variant="outline"
+                        className='w-full border-primary text-primary bg-white hover:bg-blue-50'
+                        onClick={onChangeEmail}
+                    >
+                        Update Email
                     </Button>
                 ) : null}
             </div>

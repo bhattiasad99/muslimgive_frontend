@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import { capitalizeWords, kebabToTitle } from '@/lib/helpers'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
 import LinkComponent from '@/components/common/LinkComponent'
-import { assignRolesToCharityAction, deleteCharityAction } from '@/app/actions/charities'
+import { assignRolesToCharityAction, deleteCharityAction, reassignRoleToCharityAction } from '@/app/actions/charities'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { Trash2 } from 'lucide-react'
 import ManageTeamModal from './models/ManageTeamModal'
@@ -35,7 +35,7 @@ import EligibilityTest from './models/EligibilityTest'
 import TabsComponent from '@/components/common/TabsComponent'
 import { Progress } from '@/components/ui/progress'
 import { AUDIT_DEFINITIONS } from '../SingleAuditPageComponent/AUDIT_DEFINITIONS'
-import { BadgeCheck, CalendarDays, CheckCircle2, CircleDashed, Globe, Mail, MapPin, UserCircle2, UserCheck, XCircle } from 'lucide-react'
+import { BadgeCheck, CalendarDays, CheckCircle2, CircleDashed, Globe, Mail, MapPin, Pencil, UserCircle2, UserCheck, XCircle } from 'lucide-react'
 
 type Member = SingleCharityType['members'][0]
 type IProps = SingleCharityType & {
@@ -45,6 +45,7 @@ type IProps = SingleCharityType & {
 type ModelControl = {
     nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-auditor' | 'assign-zakat-auditor';
 }
+type AssignmentMode = 'assign' | 'reassign'
 
 const InfoRow: FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => {
     return (
@@ -138,6 +139,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [selectedMemberForRoleEdit, setSelectedMemberForRoleEdit] = useState<Member | null>(null)
     const [auditTab, setAuditTab] = useState<'completed' | 'pending'>('pending')
+    const [assignmentMode, setAssignmentMode] = useState<AssignmentMode>('assign')
     const { isAllowed } = usePermissions()
     const projectManagerCandidates = assignmentCandidatesByRole?.projectManager ?? []
     const financeAuditorCandidates = assignmentCandidatesByRole?.financeAuditor ?? []
@@ -166,6 +168,20 @@ const SingleCharityPageComponent: FC<IProps> = ({
 
     const handleCloseModel = () => {
         setModelState({ nameOfModel: null });
+        setAssignmentMode('assign')
+    }
+
+    const openAssignmentModal = (role: 'project-manager' | 'finance-auditor' | 'zakat-auditor', mode: AssignmentMode = 'assign') => {
+        setAssignmentMode(mode)
+        if (role === 'project-manager') {
+            handleOpenModel('assign-project-manager')
+            return
+        }
+        if (role === 'finance-auditor') {
+            handleOpenModel('assign-finance-auditor')
+            return
+        }
+        handleOpenModel('assign-zakat-auditor')
     }
 
     useEffect(() => {
@@ -324,6 +340,45 @@ const SingleCharityPageComponent: FC<IProps> = ({
             console.error(error)
             toast.error("An unexpected error occurred")
         }
+    }
+
+    const reassignSingleRole = async (userId: string, roleSlug: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
+        try {
+            const existingRoleMembers = members.filter(member => member.role === roleSlug)
+            const removeUserIds = existingRoleMembers
+                .map(member => member.id)
+                .filter(existingId => existingId !== userId)
+
+            const res = await reassignRoleToCharityAction(charityId, {
+                userId,
+                role: roleSlug,
+                removeUserIds,
+            })
+
+            if (res.ok) {
+                const labels = {
+                    'project-manager': 'Project manager',
+                    'finance-auditor': 'Financial auditor',
+                    'zakat-auditor': 'Zakat auditor',
+                } as const
+                toast.success(`${labels[roleSlug]} reassigned successfully`)
+                handleCloseModel()
+                router.refresh()
+            } else {
+                toast.error(res.message || `Failed to reassign ${roleSlug}`)
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error("An unexpected error occurred")
+        }
+    }
+
+    const handleRoleSelection = async (userId: string, roleSlug: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
+        if (assignmentMode === 'reassign') {
+            await reassignSingleRole(userId, roleSlug)
+            return
+        }
+        await assignSingleRole(userId, roleSlug)
     }
 
     const dropdownOptions = [
@@ -606,14 +661,27 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                     const percent = typeof score === 'number' && typeof total === 'number' && total > 0
                                                         ? Math.round((score / total) * 100)
                                                         : null
+                                                    const assignedNames = getAssignedNamesForAudit(item.id)
+                                                    const isAssigned = assignedNames !== 'Unassigned'
                                                     return (
                                                         <div key={item.id} className="flex flex-col gap-2 rounded-md border border-[#EFF2F6] p-3 sm:flex-row sm:items-center sm:justify-between">
                                                             <div className="flex flex-col gap-1">
                                                                 <TypographyComponent variant="body2" className="font-medium text-[#101928]">
                                                                     {AUDIT_DEFINITIONS[item.id].title}
                                                                 </TypographyComponent>
-                                                                <TypographyComponent variant="caption" className="text-[#666E76]">
-                                                                    Assigned to: {getAssignedNamesForAudit(item.id)}
+                                                                <TypographyComponent variant="caption" className="flex items-center gap-1 text-[#666E76]">
+                                                                    <span>Assigned to: {assignedNames}</span>
+                                                                    {isAssigned && canAssignPM ? (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-6 w-6"
+                                                                            aria-label={`Reassign ${AUDIT_DEFINITIONS[item.id].title}`}
+                                                                            onClick={() => openAssignmentModal(roleByAudit[item.id], 'reassign')}
+                                                                        >
+                                                                            <Pencil className="h-3.5 w-3.5" />
+                                                                        </Button>
+                                                                    ) : null}
                                                                 </TypographyComponent>
                                                                 <TypographyComponent variant="caption" className="text-[#666E76]">
                                                                     Status: {auditStatusLabel(status)}
@@ -653,23 +721,25 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                     const needsFinanceAuditor = item.id === 'core-area-2' && !financeAuditorAssigned
                                                     const needsZakatAuditor = item.id === 'core-area-3' && !zakatAuditorAssigned
                                                     const requiredRole = roleByAudit[item.id]
+                                                    const assignedNames = getAssignedNamesForAudit(item.id)
+                                                    const isAssigned = assignedNames !== 'Unassigned'
                                                     const canStartAudit = canSubmitAudit && isCurrentUserAssignedToRole(requiredRole)
                                                     const assignmentAction = needsProjectManager
                                                         ? {
                                                             label: 'Assign Project Manager',
-                                                            onClick: () => handleOpenModel('assign-project-manager'),
+                                                            onClick: () => openAssignmentModal('project-manager', 'assign'),
                                                             disabled: !canAssignPM
                                                         }
                                                         : needsFinanceAuditor
                                                             ? {
                                                                 label: 'Assign Financial Auditor',
-                                                                onClick: () => handleOpenModel('assign-finance-auditor'),
+                                                                onClick: () => openAssignmentModal('finance-auditor', 'assign'),
                                                                 disabled: !canAssignPM
                                                             }
                                                             : needsZakatAuditor
                                                                 ? {
                                                                     label: 'Add Zakat Auditor',
-                                                                    onClick: () => handleOpenModel('assign-zakat-auditor'),
+                                                                    onClick: () => openAssignmentModal('zakat-auditor', 'assign'),
                                                                     disabled: !canAssignPM
                                                                 }
                                                                 : null
@@ -679,8 +749,19 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 <TypographyComponent variant="body2" className="font-medium text-[#101928]">
                                                                     {AUDIT_DEFINITIONS[item.id].title}
                                                                 </TypographyComponent>
-                                                                <TypographyComponent variant="caption" className="text-[#666E76]">
-                                                                    Assigned to: {getAssignedNamesForAudit(item.id)}
+                                                                <TypographyComponent variant="caption" className="flex items-center gap-1 text-[#666E76]">
+                                                                    <span>Assigned to: {assignedNames}</span>
+                                                                    {isAssigned && canAssignPM ? (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-6 w-6"
+                                                                            aria-label={`Reassign ${AUDIT_DEFINITIONS[item.id].title}`}
+                                                                            onClick={() => openAssignmentModal(roleByAudit[item.id], 'reassign')}
+                                                                        >
+                                                                            <Pencil className="h-3.5 w-3.5" />
+                                                                        </Button>
+                                                                    ) : null}
                                                                 </TypographyComponent>
                                                                 <TypographyComponent variant="caption" className="text-[#666E76]">
                                                                     Status: {auditStatusLabel(status)}
@@ -723,7 +804,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
             >
                 {canAssignPM ? (
                     <AssignProjectManager onSelection={async (userId) => {
-                        await assignSingleRole(userId, 'project-manager')
+                        await handleRoleSelection(userId, 'project-manager')
                     }} users={projectManagerCandidates} onCancel={() => {
                         handleCloseModel()
                     }} />
@@ -741,7 +822,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                         actionLabel="Assign Financial Auditor"
                         users={financeAuditorCandidates}
                         onSelection={async (userId) => {
-                            await assignSingleRole(userId, 'finance-auditor')
+                            await handleRoleSelection(userId, 'finance-auditor')
                         }}
                         onCancel={handleCloseModel}
                     />
@@ -759,7 +840,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                         actionLabel="Add Zakat Auditor"
                         users={zakatAuditorCandidates}
                         onSelection={async (userId) => {
-                            await assignSingleRole(userId, 'zakat-auditor')
+                            await handleRoleSelection(userId, 'zakat-auditor')
                         }}
                         onCancel={handleCloseModel}
                     />
