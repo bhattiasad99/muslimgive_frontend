@@ -52,9 +52,9 @@ export const PAGES: Page[] = [
         permissions: { anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
     },
     {
-        name: 'access-control',
-        path: "/access-control",
-        heading: 'Access Control',
+        name: 'config',
+        path: "/config",
+        heading: 'Config',
         icon: <AccessControl />,
         type: 'admin',
         show: true,

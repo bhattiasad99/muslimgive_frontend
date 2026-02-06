@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { UserForm } from './user-page.types'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import ControlledDatePickerComponent from '@/components/common/ControlledDatePickerComponent'
-import SelectComponent from '@/components/common/SelectComponent'
+import CountrySelectComponent from '@/components/common/CountrySelectComponent'
 import MultiSelectComboboxComponent from '@/components/common/MultiSelectComboboxComponent'
 
 import { createMgMemberAction } from '@/app/actions/users'
@@ -20,7 +20,7 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [availableRoles, setAvailableRoles] = useState<{ value: string, label: string }[]>([])
-    // user -> firstName, lastName, email, dob, country, city, postalcode, roles
+    // user -> firstName, lastName, email, dob, country, postalcode, roles
     const [user, setUser] = useState<UserForm>({
         firstName: {
             value: '',
@@ -39,10 +39,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
             error: ''
         },
         country: {
-            value: '',
-            error: ''
-        },
-        city: {
             value: '',
             error: ''
         },
@@ -94,7 +90,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
             email: user.email.value,
             dateOfBirth: user.dob.value ? new Date(user.dob.value).toISOString().split('T')[0] : undefined, // Format: YYYY-MM-DD
             countryName: user.country.value,
-            city: user.city.value,
             postalCode: user.postalcode.value,
             roles: user.roles.value,
         }
@@ -157,15 +152,10 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
                 <label htmlFor='add_user__country' className='w-50'>
                     Country
                 </label>
-                <SelectComponent
-                    id="add_user__country"
-                    value={user.country.value}
-                    onChange={(e) => updateFormValue('country', e)}
-                    options={[
-                        { value: "canada", label: "Canada" },
-                        { value: "uk", label: "United Kingdom" },
-                        { value: "usa", label: "United States of America" },
-                    ]}
+                <CountrySelectComponent
+                    value={user.country.value || undefined}
+                    onChange={(value) => updateFormValue('country', value)}
+                    placeholder="Select Country"
                 />
             </div>
             <div className="flex items-center">

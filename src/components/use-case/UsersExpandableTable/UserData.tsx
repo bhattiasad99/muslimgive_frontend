@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
 import { Data } from './'
 import AvatarComponent from '@/components/common/AvatarComponent';
-import { capitalizeWords } from '@/lib/helpers'
+import { capitalizeWords, kebabToTitle } from '@/lib/helpers'
 import { cn } from '@/lib/utils';
 import { kanit } from '@/app/fonts';
 import UserCardLayout from './UserCardLayout';
@@ -32,7 +32,7 @@ const UserData: FC<IProps> = ({
     onChangePassword,
     showEditButtons = false
 }) => {
-    const [city, country] = location.split(',').map(el => el.trim())
+    const country = location || '-'
     return (
         <div className='p-4 flex flex-col gap-6 lg:flex-row'>
             <div className="w-full lg:min-w-[342px] flex flex-col gap-4">
@@ -107,10 +107,7 @@ const UserData: FC<IProps> = ({
                 >
                     <SimpleCardDataFormat items={[
                         {
-                            city: capitalizeWords(city)
-                        },
-                        {
-                            country: capitalizeWords(country)
+                            country: country === '-' ? '-' : kebabToTitle(country)
                         },
                         {
                             postalCode
@@ -119,17 +116,6 @@ const UserData: FC<IProps> = ({
                 </UserCardLayout>
                 <UserCardLayout
                     headingText='Professional Information'
-                    action={!showEditButtons ? (
-                        <Button
-                            className='rounded-lg'
-                            variant={"primary"}
-                            size={"sm"}>
-                            <span>
-                                <EditIcon />
-                            </span>
-                            {" "}Edit
-                        </Button>
-                    ) : undefined}
                 >
                     <div className="flex flex-col gap-2">
                         <div className="flex flex-col gap-2">
@@ -137,7 +123,7 @@ const UserData: FC<IProps> = ({
                             <div className="flex flex-wrap gap-2">
                                 {roles.length === 0 ? <>No Role Assigned</> : <>
                                     {roles.map(eachRole => <p key={eachRole} className={cn("min-w-[50px] text-gray-600 bg-gray-100 border border-gray-300 text-xs p-0.5 rounded-lg flex justify-center font-normal px-2", kanit.className)}>
-                                        {capitalizeWords(eachRole)}
+                                        {kebabToTitle(eachRole)}
                                     </p>)}
                                 </>}
                             </div>

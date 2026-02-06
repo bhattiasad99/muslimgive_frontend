@@ -25,7 +25,26 @@ type Member = {
     role: BaseRoles
 }
 
+type AssignmentCandidate = {
+    id: string
+    name: string
+    email?: string | null
+}
+
+type AssignmentCandidatesByRole = {
+    projectManager: AssignmentCandidate[]
+    financeAuditor: AssignmentCandidate[]
+    zakatAuditor: AssignmentCandidate[]
+}
+
 export type StatusType = 'pending-eligibility' | 'unassigned' | 'open-to-review' | 'pending-admin-review' | 'approved' | 'ineligible'
+
+type CoreAreaReview = {
+    status: string
+    score: number | null
+    totalScore: number
+    result: 'pass' | 'fail' | null
+}
 
 /**
  * categories:
@@ -61,12 +80,13 @@ export enum CategoryEnum {
     'health-medical-aid' = 'Health & Medical Aid',
     'environment-sustainability' = 'Environment & Sustainability',
     'advocacy-human-rights' = 'Advocacy & Human Rights',
+    'other' = 'Other',
 }
 
 export enum CountryEnum {
-    'usa' = 'United States',
-    'uk' = 'United Kingdom',
-    'ca' = "Canada",
+    'united-states' = 'United States',
+    'united-kingdom' = 'United Kingdom',
+    'canada' = "Canada",
 }
 
 export type SingleCharityType = {
@@ -78,12 +98,38 @@ export type SingleCharityType = {
     comments: number
     auditsCompleted: 0 | 1 | 2 | 3 | 4
     status: StatusType,
-    category: keyof typeof CategoryEnum,
+    category: string,
     country?: keyof typeof CountryEnum,
     totalDuration?: string,
     website?: string,
     isThisMuslimCharity?: boolean,
     doTheyPayZakat?: boolean,
+    assessmentRequested?: boolean,
+    annualRevenue?: number | null,
+    startDate?: string | null,
+    startYear?: number | null,
+    isEligible?: boolean | null,
+    ukCharityNumber?: string | null,
+    ukCharityCommissionUrl?: string | null,
+    caRegistrationNumber?: string | null,
+    caCraUrl?: string | null,
+    usEin?: string | null,
+    usIrsUrl?: string | null,
+    ceoName?: string | null,
+    submittedByEmail?: string | null,
+    assignmentCandidates?: AssignmentCandidate[],
+    assignmentCandidatesByRole?: AssignmentCandidatesByRole,
+    pendingEligibilitySource?: string | null,
+    pendingEligibilityReason?: string | null,
+    pendingEligibilityDetectedAt?: string | null,
+    reviews?: {
+        eligibility: string
+        core1: CoreAreaReview
+        core2: CoreAreaReview
+        core3: CoreAreaReview
+        core4: CoreAreaReview
+        summary: { completed: number; total: number }
+    },
     verificationSummary?: {
         eligibility: {
             pending: boolean

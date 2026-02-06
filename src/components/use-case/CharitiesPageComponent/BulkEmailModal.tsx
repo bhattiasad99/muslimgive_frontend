@@ -119,7 +119,7 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
         {
             accessorKey: 'charityOwnerName',
             header: () => {
-                return <div className="text-center">Owner&apos;s Name</div>
+                return <div className="text-center">Submitted By</div>
             },
             cell: ({ row }) => <div className="text-center">{row.original.charityOwnerName}</div>,
         },
@@ -177,7 +177,7 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
                     setQueryInput(query)
                 }}
                     query={queryInput}
-                    placeholder="Search Charities by Title or Charity Owner's Name"
+                    placeholder="Search Charities by Title or Submitted By"
                 />
             </div>
 

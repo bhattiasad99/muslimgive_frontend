@@ -11,11 +11,6 @@ export const AUDIT_TASKS: TaskType[] = [
         icon: <AssignIcon />
     },
     {
-        id: 'eligibility',
-        title: "Perform Eligibility Test",
-        icon: <TestIcon />
-    },
-    {
         id: 'core-area-1',
         title: 'Perform Charity Status (Core Area 1) audit',
         icon: <TestIcon />

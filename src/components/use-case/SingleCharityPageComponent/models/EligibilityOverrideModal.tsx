@@ -6,38 +6,32 @@ import EligibilitySuggestionCard, { buildEligibilitySuggestion, type Eligibility
 import { updateCharityEligibilityAction } from '@/app/actions/charities'
 import { toast } from 'sonner'
 
-type IProps = {
-    charityTitle: string
+type Props = {
     charityId: string
+    charityTitle: string
     suggestionInput: EligibilitySuggestionInput
-    onUpdated: () => void
     onCancel: () => void
+    onUpdated: () => void
 }
 
-const EligibilityTest: React.FC<IProps> = ({
-    charityTitle,
-    charityId,
-    suggestionInput,
-    onUpdated,
-    onCancel,
-}) => {
+const EligibilityOverrideModal: React.FC<Props> = ({ charityId, charityTitle, suggestionInput, onCancel, onUpdated }) => {
     const suggestion = useMemo(() => buildEligibilitySuggestion(suggestionInput), [suggestionInput])
     const [decision, setDecision] = useState<'yes' | 'no' | ''>('')
     const [isSaving, setIsSaving] = useState(false)
 
-    const handleSave = async () => {
-        if (!decision) {
-            toast.error('Select Yes or No to complete the eligibility test.')
+    const handleOverride = async () => {
+        if (decision !== 'yes') {
+            toast.error('Select "Yes" to override eligibility.')
             return
         }
         setIsSaving(true)
         try {
-            const res = await updateCharityEligibilityAction(charityId, { isEligible: decision === 'yes' })
+            const res = await updateCharityEligibilityAction(charityId, { isEligible: true })
             if (res.ok) {
-                toast.success('Eligibility test completed.')
+                toast.success('Eligibility overridden. Charity is now unassigned.')
                 onUpdated()
             } else {
-                toast.error(res.message || 'Failed to update eligibility.')
+                toast.error(res.message || 'Failed to override eligibility.')
             }
         } catch (error) {
             console.error(error)
@@ -50,30 +44,30 @@ const EligibilityTest: React.FC<IProps> = ({
     return (
         <div className="flex flex-col gap-4">
             <div className="text-sm text-muted-foreground">
-                Perform eligibility test for <span className="font-medium text-foreground">{charityTitle}</span>.
+                You are overriding eligibility for <span className="font-medium text-foreground">{charityTitle}</span>.
             </div>
             <EligibilitySuggestionCard suggestion={suggestion} />
             <div className="flex flex-col gap-2">
-                <Label className="text-sm">Is this charity eligible?</Label>
+                <Label className="text-sm">Mark this charity as eligible?</Label>
                 <RadioGroup value={decision} onValueChange={(val) => setDecision(val as 'yes' | 'no')}>
                     <div className="flex items-center gap-2">
-                        <RadioGroupItem value="yes" id="eligibility-yes" />
-                        <Label htmlFor="eligibility-yes">Yes (Mark eligible)</Label>
+                        <RadioGroupItem value="yes" id="override-yes" />
+                        <Label htmlFor="override-yes">Yes (Override to eligible)</Label>
                     </div>
                     <div className="flex items-center gap-2">
-                        <RadioGroupItem value="no" id="eligibility-no" />
-                        <Label htmlFor="eligibility-no">No (Mark ineligible)</Label>
+                        <RadioGroupItem value="no" id="override-no" />
+                        <Label htmlFor="override-no">No (Keep ineligible)</Label>
                     </div>
                 </RadioGroup>
             </div>
             <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" type="button" onClick={onCancel}>Cancel</Button>
-                <Button variant="primary" type="button" onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? 'Saving...' : 'Save Eligibility'}
+                <Button variant="primary" type="button" onClick={handleOverride} disabled={isSaving}>
+                    {isSaving ? 'Overriding...' : 'Override Eligibility'}
                 </Button>
             </div>
         </div>
     )
 }
 
-export default EligibilityTest
+export default EligibilityOverrideModal

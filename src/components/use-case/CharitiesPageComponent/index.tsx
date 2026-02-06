@@ -42,6 +42,7 @@ const CATEGORY_KEYS = [
     { id: 'health-medical-aid', label: 'Health & Medical Aid' },
     { id: 'environment-sustainability', label: 'Environment & Sustainability' },
     { id: 'advocacy-human-rights', label: 'Advocacy & Human Rights' },
+    { id: 'other', label: 'Other' },
 ]
 
 const CharitiesPageComponent = () => {
@@ -83,7 +84,7 @@ const CharitiesPageComponent = () => {
                 const mapped: SingleCharityType[] = Array.isArray(rawCharities) ? rawCharities.map((c: any) => ({
                     id: c.id,
                     charityTitle: c.name,
-                    charityOwnerName: c.ownerName || "-",
+                    charityOwnerName: c.submittedByName || [c.owner?.firstName, c.owner?.lastName].filter(Boolean).join(' ') || "-",
                     charityDesc: c.description || "",
                     members: (c.assignments || []).map((a: any) => ({
                         id: a.user?.id,
@@ -94,12 +95,37 @@ const CharitiesPageComponent = () => {
                     comments: c.commentsCount || 0,
                     auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
                     status: c.status || 'unassigned',
-                    category: c.category || 'education',
-                    country: c.country,
-                    website: c.charityCommissionWebsiteUrl,
+                    category: c.category ?? null,
+                    country: c.countryCode || c.country,
+                    website: c.countryCode === 'united-kingdom'
+                        ? (c.ukCharityCommissionUrl || c.charityCommissionWebsiteUrl)
+                        : c.countryCode === 'canada'
+                            ? (c.caCraUrl || c.charityCommissionWebsiteUrl)
+                            : (c.usIrsUrl || c.charityCommissionWebsiteUrl),
                     isThisMuslimCharity: c.isIslamic,
                     doTheyPayZakat: c.doesCharityGiveZakat,
-                    totalDuration: c.startDate ? `${Math.max(1, Math.floor((Date.now() - new Date(c.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365)))} years` : undefined
+                    pendingEligibilitySource:
+                        c.pendingEligibilitySource ||
+                        c.pendingEligibility?.source ||
+                        c.eligibilityPendingSource ||
+                        c.eligibility?.pendingSource ||
+                        null,
+                    pendingEligibilityReason:
+                        c.pendingEligibilityReason ||
+                        c.pendingEligibility?.reason ||
+                        c.eligibilityPendingReason ||
+                        c.eligibility?.pendingReason ||
+                        null,
+                    pendingEligibilityDetectedAt:
+                        c.pendingEligibilityDetectedAt ||
+                        c.pendingEligibility?.detectedAt ||
+                        c.pendingEligibility?.createdAt ||
+                        null,
+                    totalDuration: c.startDate
+                        ? `${Math.max(1, Math.floor((Date.now() - new Date(c.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365)))} years`
+                        : c.startYear
+                            ? `${Math.max(1, new Date().getFullYear() - Number(c.startYear))} years`
+                            : undefined
                 })) : [];
                 setCharities(mapped)
             } else {
@@ -214,7 +240,7 @@ const CharitiesPageComponent = () => {
                         setQueryInput(query)
                     }}
                         query={queryInput}
-                        placeholder="Search Charities by Title or Charity Owner's Name"
+                        placeholder="Search Charities by Title or Submitted By"
                     />
                     <div className="flex  gap-2 items-center md:ml-auto">
                         <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>

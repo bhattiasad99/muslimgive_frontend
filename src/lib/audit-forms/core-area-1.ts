@@ -6,7 +6,7 @@ export const CORE_AREA_1_FORMS: FormDefinition[] = [
         "id": "b4c603b6-12ce-4dc1-8415-447de2829a1e",
         "title": "Charity Status (UK)",
         "version": 1,
-        "countryCode": "uk",
+        "countryCode": "united-kingdom",
         "scoreLogic": "if answers['CS03'] == 'Registered' or (answers['CS03'] == 'Pending Registration' and answers['CS06'] == 'Yes') then 10 else 0",
         "rubric": {
             "id": "e7b4479a-2986-450e-a588-a89521502aa2",
@@ -356,7 +356,7 @@ export const CORE_AREA_1_FORMS: FormDefinition[] = [
         "id": "1fc7bc66-8c19-4a8f-9422-adeeee5db7ba",
         "title": "Charity Status (US)",
         "version": 1,
-        "countryCode": "usa",
+        "countryCode": "united-states",
         "scoreLogic": "if answers['CS03'] == 'Registered' or (answers['CS03'] == 'Pending Registration' and answers['CS05'] == 'Yes') then 10 else 0",
         "rubric": {
             "id": "f6de6c80-80e4-488c-b75a-50cb8fdab279",

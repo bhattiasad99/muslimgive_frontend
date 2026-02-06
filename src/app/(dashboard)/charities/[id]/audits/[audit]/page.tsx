@@ -24,7 +24,7 @@ const CharityAuditPage = async ({ params, searchParams }: {
     const previewMode = previewModeParam === 'true';
     const countryParam = resolvedSearchParams?.country;
 
-    const validCountries: CountryCode[] = ['usa', 'uk', 'ca']
+    const validCountries: CountryCode[] = ['united-states', 'united-kingdom', 'canada']
     const countryFromQuery = validCountries.find((countryCode) => countryCode === countryParam)
     // if preview-mode is not present, it should lead to the normal audit page
     // if preview-mode is true, it should lead to the preview audit page
@@ -54,18 +54,21 @@ const CharityAuditPage = async ({ params, searchParams }: {
         return notFound()
     }
 
-    // Map backend country codes (e.g., 'uk', 'usa') to frontend CountryCode keys if needed
-    // Assuming backend returns 'uk', 'usa', 'canada' or similar which need to be mapped to 'uk', 'usa', 'ca'
-    let fetchedCountryCode: CountryCode = 'usa';
+    // Map backend or legacy country values to kebab-case CountryCode keys
+    let fetchedCountryCode: CountryCode = 'united-states';
     if (charity.country) {
         const lowerCountry = charity.country.toLowerCase();
-        if (lowerCountry === 'uk' || lowerCountry === 'united kingdom') fetchedCountryCode = 'uk';
-        else if (lowerCountry === 'usa' || lowerCountry === 'united states' || lowerCountry === 'us') fetchedCountryCode = 'usa';
-        else if (lowerCountry === 'ca' || lowerCountry === 'canada') fetchedCountryCode = 'ca';
+        if (lowerCountry === 'uk' || lowerCountry === 'united kingdom' || lowerCountry === 'united-kingdom') {
+            fetchedCountryCode = 'united-kingdom';
+        } else if (lowerCountry === 'usa' || lowerCountry === 'united states' || lowerCountry === 'us' || lowerCountry === 'united-states') {
+            fetchedCountryCode = 'united-states';
+        } else if (lowerCountry === 'ca' || lowerCountry === 'canada') {
+            fetchedCountryCode = 'canada';
+        }
     }
 
     const resolvedCountry: CountryCode = countryFromQuery || fetchedCountryCode;
-    const resolvedCountryName = CountryEnum[resolvedCountry] || CountryEnum.usa
+    const resolvedCountryName = CountryEnum[resolvedCountry] || CountryEnum['united-states']
 
     const charityTitle = `${charity.charityTitle} (${resolvedCountryName} Version)`
 

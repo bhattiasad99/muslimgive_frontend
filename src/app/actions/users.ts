@@ -2,14 +2,14 @@
 
 import { _get, _patch, _post } from "@/auth";
 import { ChangePasswordPayload, ResponseType, UserProfile } from "../lib/definitions";
+import type { CountriesInKebab } from "@/components/common/CountrySelectComponent/countries.types";
 
 export type CreateMgMemberPayload = {
     firstName: string;
     lastName: string;
     email: string;
     dateOfBirth?: string;
-    countryName?: string;
-    city?: string;
+    countryName?: CountriesInKebab;
     postalCode?: string;
     roles: string[];
 }
@@ -95,8 +95,7 @@ export type UpdateMePayload = {
     firstName?: string;
     lastName?: string;
     dateOfBirth?: string;
-    countryName?: string;
-    city?: string;
+    countryName?: CountriesInKebab | null;
     postalCode?: string;
 }
 

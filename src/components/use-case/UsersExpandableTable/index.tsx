@@ -35,9 +35,12 @@ export type Data = {
     requestingPasswordReset: boolean
 }
 
-type IProps = { rows: Data[] }
+type IProps = {
+    rows: Data[];
+    onToggleStatus?: (userId: string, status: Data["status"]) => Promise<void> | void;
+}
 
-const UsersExpandableTable: FC<IProps> = ({ rows }) => {
+const UsersExpandableTable: FC<IProps> = ({ rows, onToggleStatus }) => {
     const [openId, setOpenId] = useState<string | null>(null)
     const [editingUser, setEditingUser] = useState<{ id: string, name: string } | null>(null)
 
@@ -58,7 +61,8 @@ const UsersExpandableTable: FC<IProps> = ({ rows }) => {
                                 status: eachUser.status,
                                 location: eachUser.location,
                                 isOpen: isOpen,
-                                setOpenId: setOpenId
+                                setOpenId: setOpenId,
+                                onToggleStatus: onToggleStatus
                             }}
                             />
                         </AccordionTrigger>

@@ -8,15 +8,14 @@ import AddRoleModal from './AddRoleModal'
 import EditRoleModal from './EditRoleModal'
 import ManagePermissionsModal from './ManagePermissionsModal'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { _get, _post, _patch } from '@/auth/methods'
-import { deleteRoleAction } from '@/app/actions/roles'
+import { createRoleAction, deleteRoleAction, listPermissionsAction, listRolesAction, updateRoleAction, updateRolePermissionsAction } from '@/app/actions/roles'
 import { toast } from 'sonner'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
 import { capitalizeWords } from '@/lib/helpers'
 import { cn } from '@/lib/utils'
 
-type Role = {
+export type Role = {
   id: string
   name: string
   description?: string
@@ -26,7 +25,7 @@ type Role = {
   canUpdatePermissions?: boolean
 }
 
-type Permission = {
+export type Permission = {
   id: string
   name: string
   module?: string
@@ -38,9 +37,17 @@ const sampleRoles: Role[] = []
 // will be populated from GET /roles/permissions
 const defaultPermissions: Permission[] = []
 
-const ManageRoles: FC = () => {
-  const [roles, setRoles] = useState<Role[]>(sampleRoles)
-  const [permissionsList, setPermissionsList] = useState<Permission[]>(defaultPermissions)
+type ManageRolesProps = {
+  initialRoles?: Role[]
+  initialPermissions?: Permission[]
+  skipInitialFetch?: boolean
+}
+
+const ManageRoles: FC<ManageRolesProps> = ({ initialRoles = [], initialPermissions = [], skipInitialFetch = true }) => {
+  const [roles, setRoles] = useState<Role[]>(initialRoles.length ? initialRoles : sampleRoles)
+  const [permissionsList, setPermissionsList] = useState<Permission[]>(
+    initialPermissions.length ? initialPermissions : defaultPermissions
+  )
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isManagePermOpen, setIsManagePermOpen] = useState(false)
@@ -48,10 +55,13 @@ const ManageRoles: FC = () => {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    if (initialRoles.length || initialPermissions.length) return
+    if (skipInitialFetch) return
+
     const load = async () => {
       setLoading(true)
       try {
-        const r = await _get('/roles')
+        const r = await listRolesAction()
         if (r.ok && r.payload?.data) {
           // API shape: payload.data.data -> array
           const apiRoles: any[] = Array.isArray(r.payload.data) ? r.payload.data : (Array.isArray(r.payload.data?.data) ? r.payload.data.data : [])
@@ -69,7 +79,7 @@ const ManageRoles: FC = () => {
           toast.error(r.message || 'Failed to load roles')
         }
 
-        const p = await _get('/roles/permissions')
+        const p = await listPermissionsAction()
         if (p.ok && p.payload?.data) {
           const permsArr: any[] = Array.isArray(p.payload.data) ? p.payload.data : (Array.isArray(p.payload.data?.data) ? p.payload.data.data : [])
           // normalize permissions into {id, name, module, enabled}
@@ -85,7 +95,7 @@ const ManageRoles: FC = () => {
     }
 
     load()
-  }, [])
+  }, [initialRoles.length, initialPermissions.length, skipInitialFetch])
 
   const [isAdding, setIsAdding] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -98,10 +108,10 @@ const ManageRoles: FC = () => {
         description: data.description,
         permissions: (data.permissions || []).filter(p => p.enabled).map(p => p.id)
       }
-      const res = await _post('/roles', body)
+      const res = await createRoleAction(body)
       if (res.ok) {
         // refresh roles from server to ensure consistent shape
-        const listRes = await _get('/roles')
+        const listRes = await listRolesAction()
         if (listRes.ok && listRes.payload?.data) {
           const apiRoles: any[] = Array.isArray(listRes.payload.data) ? listRes.payload.data : (Array.isArray(listRes.payload.data?.data) ? listRes.payload.data.data : [])
           const mapped = apiRoles.map((ar: any) => ({
@@ -132,7 +142,7 @@ const ManageRoles: FC = () => {
     setIsEditing(true)
     try {
       const body = { title: data.name, description: data.description }
-      const res = await _patch(`/roles/${data.id}`, body)
+      const res = await updateRoleAction(data.id, body)
       if (res.ok) {
         setRoles(prev => prev.map(r => r.id === data.id ? { ...r, name: data.name, description: data.description } : r))
         toast.success('Role updated')
@@ -169,7 +179,7 @@ const ManageRoles: FC = () => {
       }
 
       const body = { add: toAdd, remove: toRemove }
-      const res = await _patch(`/roles/${editingRole.id}/permissions`, body)
+      const res = await updateRolePermissionsAction(editingRole.id, body)
       if (res.ok && res.payload?.data) {
         // backend returns updated role in payload.data.role (or similar); try to read it
         const returnedRole = res.payload.data?.role || null

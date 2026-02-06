@@ -125,9 +125,11 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
     // Note: The codes might vary by country but let's assume standard for now or check.
 
     const getValue = (code: string) => auditVals[code];
+    const isUk = country === 'united-kingdom' || country === 'uk';
+    const isUs = country === 'united-states' || country === 'usa' || country === 'us';
 
     const getFieldCode = (field: 'giftAid' | 'link' | 'notes') => {
-        if (country === 'uk') {
+        if (isUk) {
             return {
                 giftAid: 'CS04',
                 link: 'CS05',
@@ -144,7 +146,7 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
     };
 
     const getLabel = (field: 'giftAid' | 'link' | 'notes') => {
-        if (country === 'uk') {
+        if (isUk) {
             return {
                 giftAid: 'Gift Aid Eligibility',
                 link: 'Link to Gift Aid Status',
@@ -162,9 +164,9 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
     return (
         <div className='flex flex-col gap-4'>
 
-            <PreviewValueLayout label={country === 'uk' ? 'Charity Number' : country === 'usa' ? 'EIN' : 'Charity Registration Number'} result={`${getValue('CS01') || '-'}`} />
+            <PreviewValueLayout label={isUk ? 'Charity Number' : isUs ? 'EIN' : 'Charity Registration Number'} result={`${getValue('CS01') || '-'}`} />
 
-            <PreviewValueLayout label={country === 'uk' ? 'Charity Commission Profile URL' : country === 'usa' ? 'IRS Profile Link' : 'CRA Profile Link'} result={
+            <PreviewValueLayout label={isUk ? 'Charity Commission Profile URL' : isUs ? 'IRS Profile Link' : 'CRA Profile Link'} result={
                 getValue('CS02') ? <LinkComponent openInNewTab className='hover:underline text-primary' to={getValue('CS02')}>{getValue('CS02')}</LinkComponent> : '-'
             } />
 

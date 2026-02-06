@@ -19,7 +19,7 @@ type AuditPageContentProps = {
     auditSlug: AuditSlug;
     auditTitle: string;
     auditDescription: string;
-    location: 'ca' | 'uk' | 'usa'
+    location: 'united-kingdom' | 'united-states' | 'canada'
 }
 
 const AuditPageContent: React.FC<AuditPageContentProps> = ({
@@ -85,7 +85,7 @@ const AuditPageContent: React.FC<AuditPageContentProps> = ({
             }
             case 'core-area-4': {
 
-                return <CoreArea4 charityId={charityId} />
+                return <CoreArea4 charityId={charityId} country={location} />
             }
         }
     }

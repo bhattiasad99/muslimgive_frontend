@@ -22,7 +22,7 @@ export type FormDefinition = {
     id: string;
     title: string;
     version: number;
-    countryCode: 'uk' | 'canada' | 'usa';
+    countryCode: 'united-kingdom' | 'canada' | 'united-states';
     scoreLogic: string | null;
     rubric: any;
     questions: Question[];

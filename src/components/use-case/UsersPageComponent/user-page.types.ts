@@ -1,4 +1,5 @@
 import { IProps } from "@/components/common/TextFieldComponent";
+import type { CountriesInKebab } from "@/components/common/CountrySelectComponent/countries.types";
 
 export type SingleTextFieldRowPropTypes = {
     id: string,
@@ -18,8 +19,7 @@ export interface UserForm {
     lastName: FieldState<string>;
     email: FieldState<string>;
     dob: FieldState<Date | undefined>;
-    country: FieldState<string>;
-    city: FieldState<string>;
+    country: FieldState<CountriesInKebab | ''>;
     postalcode: FieldState<string>;
     roles: FieldState<string[]>;
 }

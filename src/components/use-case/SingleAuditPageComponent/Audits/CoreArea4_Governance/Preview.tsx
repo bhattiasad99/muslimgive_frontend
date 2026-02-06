@@ -28,13 +28,17 @@ const PreviewCoreArea4: FC<IProps> = ({ country, charityId, fetchFromAPI = false
     const pathname = usePathname();
 
     const currentForm = useMemo(() => {
-        const countryMap: Record<string, 'uk' | 'usa' | 'canada'> = {
-            'uk': 'uk',
-            'usa': 'usa',
+        const countryMap: Record<string, 'united-kingdom' | 'united-states' | 'canada'> = {
+            'united-kingdom': 'united-kingdom',
+            'united-states': 'united-states',
+            'canada': 'canada',
+            'uk': 'united-kingdom',
+            'usa': 'united-states',
+            'us': 'united-states',
             'ca': 'canada'
         };
         // Safely handle if country is undefined or not in map, default to uk
-        const mappedCountry = (country && countryMap[country]) ? countryMap[country] : 'uk';
+        const mappedCountry = (country && countryMap[country]) ? countryMap[country] : 'united-kingdom';
         return CORE_AREA_4_FORMS.find(f => f.countryCode === mappedCountry) || CORE_AREA_4_FORMS[0];
     }, [country]);
 

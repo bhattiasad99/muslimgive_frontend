@@ -1,6 +1,7 @@
+'use server'
 import { Data } from "@/components/use-case/UsersExpandableTable";
 import { ResponseType } from "../lib/definitions";
-import { _get, _post } from "@/auth";
+import { _get, _patch, _post } from "@/auth";
 
 
 export const getUsers = async (): Promise<ResponseType<Data[]>> => {
@@ -14,4 +15,12 @@ export const getUsers = async (): Promise<ResponseType<Data[]>> => {
  */
 export const resendInviteAction = async (email: string): Promise<ResponseType> => {
     return await _post('/admin/mg-member/resend-invite', { email });
+}
+
+/**
+ * PATCH /admin/users/{id}/status
+ * Activate or deactivate a user
+ */
+export const updateUserStatusAction = async (userId: string, isActive: boolean): Promise<ResponseType> => {
+    return await _patch(`/admin/users/${userId}/status`, { isActive });
 }

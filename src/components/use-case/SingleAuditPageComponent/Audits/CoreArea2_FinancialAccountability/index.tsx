@@ -9,19 +9,22 @@ import { CORE_AREA_2_FORMS } from '@/lib/audit-forms/core-area-2'
 import { Question } from '@/lib/audit-forms/types'
 
 type IProps = {
-    location: 'ca' | 'uk' | 'usa';
+    location: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
     charityId: string;
 }
 
-const CoreArea2: FC<IProps> = ({ location = 'usa', charityId }) => {
+const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
     const router = useRouter();
     const [formData, setFormData] = useState<Record<string, any>>({});
 
     const formDefinition = useMemo(() => {
-        let countryCode = location
-        if (location === 'ca') countryCode = 'canada' as any
+        const normalized = location === 'uk' ? 'united-kingdom'
+            : location === 'usa' || location === 'us' ? 'united-states'
+                : location === 'ca' ? 'canada'
+                    : location;
 
-        return CORE_AREA_2_FORMS.find(f => f.countryCode === countryCode) || CORE_AREA_2_FORMS.find(f => f.countryCode === 'usa')
+        return CORE_AREA_2_FORMS.find(f => f.countryCode === normalized)
+            || CORE_AREA_2_FORMS.find(f => f.countryCode === 'united-states')
     }, [location])
 
 

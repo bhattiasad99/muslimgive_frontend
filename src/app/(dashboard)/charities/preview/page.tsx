@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import React, { useMemo, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -11,7 +11,7 @@ import { createCharityAction } from '@/app/actions/charities'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
 
-import { CategoryEnum, SingleCharityType } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
+import { SingleCharityType } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
 
 const PreviewCharityPage = () => {
     const searchParams = useSearchParams()
@@ -32,24 +32,39 @@ const PreviewCharityPage = () => {
     const charity = useMemo((): SingleCharityType | null => {
         if (!parsed) return null
         const start = parsed.startDate ? new Date(parsed.startDate) : null
+        const startYear = parsed.startYear ? Number(parsed.startYear) : null
         let totalDuration: string | undefined = undefined
-        if (start) {
+        if (start && !Number.isNaN(start.getTime())) {
             const years = Math.max(1, Math.floor((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24 * 365)))
             totalDuration = `${years} ${years > 1 ? 'years' : 'year'}`
+        } else if (startYear) {
+            const years = Math.max(1, new Date().getFullYear() - startYear)
+            totalDuration = `${years} ${years > 1 ? 'years' : 'year'}`
         }
+
+        const website = parsed.countryCode === 'united-kingdom'
+            ? parsed.ukCharityCommissionUrl
+            : parsed.countryCode === 'canada'
+                ? parsed.caCraUrl
+                : parsed.usIrsUrl
+
+        const resolvedCategory = parsed.category === 'other'
+            ? (parsed.otherCategory || 'other')
+            : (parsed.category || 'education')
+
         return {
             id: 'preview',
             charityTitle: parsed.name || 'Untitled Charity',
-            charityOwnerName: parsed.ownerFirstName + ' ' + parsed.ownerLastName || '-',
-            charityDesc: parsed.description || '',
+            charityOwnerName: parsed.submittedByName || '-',
+            charityDesc: '',
             members: [],
             comments: 0,
             auditsCompleted: 0 as const,
-            status: 'unassigned',
-            category: (parsed.category || 'education') as keyof typeof CategoryEnum,
-            country: undefined,
+            status: parsed.isEligible ? 'unassigned' : 'ineligible',
+            category: resolvedCategory,
+            country: parsed.countryCode,
             totalDuration,
-            website: parsed.website || undefined,
+            website: website || undefined,
             isThisMuslimCharity: Boolean(parsed.isIslamic),
             doTheyPayZakat: Boolean(parsed.doesCharityGiveZakat),
         }
@@ -85,11 +100,10 @@ const PreviewCharityPage = () => {
                     <TypographyComponent variant="h1">{charity.charityTitle}</TypographyComponent>
                     <div className="flex flex-col gap-2">
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
-                            <TypographyComponent variant='caption' className="w-32 sm:w-[178px] text-[#666E76]">Owner&apos;s Name:</TypographyComponent>
+                            <TypographyComponent variant='caption' className="w-32 sm:w-[178px] text-[#666E76]">Submitted By:</TypographyComponent>
                             <TypographyComponent variant='caption'>{charity.charityOwnerName}</TypographyComponent>
                         </div>
                     </div>
-                    <TypographyComponent>{charity.charityDesc}</TypographyComponent>
                 </div>
 
                 <div className="flex flex-col gap-4 grow">
@@ -105,18 +119,29 @@ const PreviewCharityPage = () => {
                     <Button variant="primary" loading={isPublishing} onClick={async () => {
                         setIsPublishing(true)
                         try {
+                            const resolvedCategory = parsed.category === 'other'
+                                ? (parsed.otherCategory || 'other')
+                                : parsed.category
                             const payload = {
                                 name: parsed.name,
-                                ownerFirstName: parsed.ownerFirstName,
-                                ownerLastName: parsed.ownerLastName,
-                                ownerEmail: parsed.ownerEmail,
+                                assessmentRequested: Boolean(parsed.assessmentRequested),
+                                countryCode: parsed.countryCode,
+                                category: resolvedCategory,
+                                startDate: parsed.startDate ? new Date(parsed.startDate).toISOString().split('T')[0] : null,
+                                startYear: parsed.startYear ? Number(parsed.startYear) : null,
+                                ukCharityNumber: parsed.ukCharityNumber ?? null,
+                                ukCharityCommissionUrl: parsed.ukCharityCommissionUrl ?? null,
+                                caRegistrationNumber: parsed.caRegistrationNumber ?? null,
+                                caCraUrl: parsed.caCraUrl ?? null,
+                                usEin: parsed.usEin ?? null,
+                                usIrsUrl: parsed.usIrsUrl ?? null,
+                                ceoName: parsed.ceoName,
+                                submittedByName: parsed.submittedByName,
+                                submittedByEmail: parsed.submittedByEmail,
                                 isIslamic: Boolean(parsed.isIslamic),
                                 doesCharityGiveZakat: Boolean(parsed.doesCharityGiveZakat),
-                                description: parsed.description || "",
-                                charityCommissionWebsiteUrl: parsed.charityCommissionWebsiteUrl,
-                                startDate: parsed.startDate ? new Date(parsed.startDate).toISOString().split('T')[0] : "",
-                                category: parsed.category,
-                                countryCode: parsed.countryCode,
+                                annualRevenue: Number(parsed.annualRevenue ?? 0),
+                                isEligible: Boolean(parsed.isEligible),
                             }
 
                             const res = await createCharityAction(payload)

@@ -1,11 +1,14 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PAGES } from '../sidebar/pages';
 import { TypographyComponent } from '@/components/common/TypographyComponent';
-import NotificationNavbar from '@/components/common/IconComponents/NotificationNavbar';
 import { AUDIT_DEFINITIONS, isAuditSlug } from '@/components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { AlertCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { io, Socket } from 'socket.io-client';
+import { serverUrl } from '@/app/lib/definitions';
 
 type TitleResolver = {
     match: (segments: string[]) => boolean;
@@ -49,14 +52,35 @@ const getAppbarTitle = (pathname: string) => {
     return '';
 };
 
-const AppbarComponent = () => {
+type AppbarProps = {
+    initialDeepScanCount?: number;
+}
+
+const AppbarComponent = ({ initialDeepScanCount = 0 }: AppbarProps) => {
     const pathname = usePathname();
     const router = useRouter();
     const pageTitle = useMemo(() => getAppbarTitle(pathname), [pathname]);
+    const [hasDeepScanAlert, setHasDeepScanAlert] = useState(initialDeepScanCount > 0)
     
     const handleProfileClick = () => {
         router.push('/profile');
     };
+
+    useEffect(() => {
+        if (!serverUrl) return
+        let socket: Socket | null = null
+        try {
+            socket = io(serverUrl, { transports: ['websocket'] })
+            socket.on('deep-scan-eligible', () => {
+                setHasDeepScanAlert(true)
+            })
+        } catch (error) {
+            console.error(error)
+        }
+        return () => {
+            socket?.disconnect()
+        }
+    }, [])
     
     return (
         <div className='border-b border-[rgb(178,178,178)/10] border-opacity-10 px-4 py-[14px] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5'>
@@ -69,7 +93,26 @@ const AppbarComponent = () => {
                 </TypographyComponent>
             </div>
             <div className="flex gap-2 items-center">
-                {/* <NotificationNavbar /> */}
+                {hasDeepScanAlert ? (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setHasDeepScanAlert(false)
+                                    router.push('/charities')
+                                }}
+                                className="flex items-center justify-center rounded-full border border-red-200 bg-red-50 p-2 text-red-600 hover:bg-red-100"
+                                aria-label="Deep scan alert"
+                            >
+                                <AlertCircle className="h-5 w-5" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            New Charities in Pending Eligibility due to Deep Scan
+                        </TooltipContent>
+                    </Tooltip>
+                ) : null}
                 <div 
                     className="rounded-full bg-gray-300 w-[35px] text-xs h-[35px] text-gray-600 flex justify-center items-center cursor-pointer hover:bg-gray-400 transition-colors"
                     onClick={handleProfileClick}

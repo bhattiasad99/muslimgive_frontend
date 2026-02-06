@@ -8,19 +8,23 @@ import { TypographyComponent } from '@/components/common/TypographyComponent';
 
 type CoreArea4Props = {
     charityId: string;
-    country?: 'uk' | 'usa' | 'ca';
+    country?: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
 }
 
-const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'uk' }) => {
+const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }) => {
     const router = useRouter();
 
     const currentForm = React.useMemo(() => {
-        const countryMap: Record<string, 'uk' | 'usa' | 'canada'> = {
-            'uk': 'uk',
-            'usa': 'usa',
+        const countryMap: Record<string, 'united-kingdom' | 'united-states' | 'canada'> = {
+            'united-kingdom': 'united-kingdom',
+            'united-states': 'united-states',
+            'canada': 'canada',
+            'uk': 'united-kingdom',
+            'usa': 'united-states',
+            'us': 'united-states',
             'ca': 'canada'
         };
-        const mappedCountry = countryMap[country] || 'uk';
+        const mappedCountry = countryMap[country] || 'united-kingdom';
         return CORE_AREA_4_FORMS.find(f => f.countryCode === mappedCountry) || CORE_AREA_4_FORMS[0];
     }, [country]);
 

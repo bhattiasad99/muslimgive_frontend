@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { PopoverTrigger } from '@radix-ui/react-popover';
-import React, { FC } from 'react'
+import React, { FC, useState } from 'react'
+import Can from '@/components/common/Can'
+import { PERMISSIONS } from '@/lib/permissions-config'
 
 type IProps = {
     id: string,
@@ -15,9 +17,12 @@ type IProps = {
     isOpen: boolean,
     setOpenId: (val: string | null) => void;
     close: () => void;
+    onToggleStatus?: (userId: string, status: "Active" | "Inactive") => Promise<void> | void;
 }
 
-const AccordionHeader: FC<IProps> = ({ id, firstName, lastName, status, location, isOpen, setOpenId }) => {
+const AccordionHeader: FC<IProps> = ({ id, firstName, lastName, status, location, isOpen, setOpenId, close, onToggleStatus }) => {
+    const [isUpdating, setIsUpdating] = useState(false)
+
     return (
         <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <p className="md:min-w-[150px]">
@@ -59,22 +64,31 @@ const AccordionHeader: FC<IProps> = ({ id, firstName, lastName, status, location
                     onOpenAutoFocus={(e) => e.preventDefault()}
                     onPointerDown={(e) => e.stopPropagation()}
                 >
-                    <Button
-                        variant="outline"
-                        // variant={
-                        //     status === 'Active' ? 'destructive' : 'primary'
-                        // }
-                        className={cn(status === "Active" ? 'text-red-400' : 'text-primary')}
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            // TODO: call activate/deactivate here
-                            close()
-                        }}
-                    >
-                        {status === 'Active'
-                            ? 'Deactivate User'
-                            : 'Activate User'}
-                    </Button>
+                    <Can anyOf={[PERMISSIONS.USER_MANAGE, PERMISSIONS.USER_UPDATE]}>
+                        <Button
+                            variant="outline"
+                            className={cn(status === "Active" ? 'text-red-400' : 'text-primary')}
+                            disabled={isUpdating}
+                            onClick={async (e) => {
+                                e.stopPropagation()
+                                if (!onToggleStatus) {
+                                    close()
+                                    return
+                                }
+                                try {
+                                    setIsUpdating(true)
+                                    await onToggleStatus(id, status)
+                                } finally {
+                                    setIsUpdating(false)
+                                    close()
+                                }
+                            }}
+                        >
+                            {status === 'Active'
+                                ? 'Deactivate User'
+                                : 'Activate User'}
+                        </Button>
+                    </Can>
                 </PopoverContent>
             </Popover>
         </div>

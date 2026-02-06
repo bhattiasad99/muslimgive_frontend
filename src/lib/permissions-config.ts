@@ -67,7 +67,7 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
         requirement: { anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
     },
     {
-        pattern: /^\/access-control$/,
+        pattern: /^\/config$/,
         requirement: {
             anyOf: [
                 PERMISSIONS.ROLE_LIST,

@@ -31,7 +31,12 @@ const EditUserRolesModal: FC<IProps> = ({ userId, userName, open, onOpenChange }
             const res = await listRolesAction()
             if (res.ok && res.payload?.data?.data) {
                 const rolesData: any[] = Array.isArray(res.payload.data.data) ? res.payload.data.data : []
-                setAvailableRoles(rolesData.map((r: any) => ({ value: r.id, label: r.title })))
+                setAvailableRoles(
+                    rolesData.map((r: any) => ({
+                        value: r.slug ?? r.id,
+                        label: r.title,
+                    }))
+                )
             }
         }
         fetchAllRoles()
@@ -48,9 +53,9 @@ const EditUserRolesModal: FC<IProps> = ({ userId, userName, open, onOpenChange }
                         // Correctly handle the response format: { data: { roles: [...] } }
                         const userRoles = Array.isArray(data.roles) ? data.roles : []
 
-                        // If userRoles contains objects, map to ID. If strings, use as is.
+                        // If userRoles contains objects, map to slug. If strings, use as is.
                         const normalized = userRoles.map((r: any) =>
-                            (typeof r === 'string' ? r : (r.id || r.roleId || r.name))
+                            (typeof r === 'string' ? r : (r.slug || r.name || r.id || r.roleId))
                         )
 
                         setInitialRoles(normalized)

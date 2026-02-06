@@ -34,22 +34,26 @@ const INITIAL_FORM_DATA: FormDataType = {}
 
 type CoreArea1Props = {
     charityId: string;
-    country?: 'uk' | 'usa' | 'ca';
+    country?: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
 }
 
-const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'uk' }) => {
+const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }) => {
     const router = useRouter()
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
     const [linkBlurred, setLinkBlurred] = useState<Record<string, boolean>>({})
 
     const currentForm = useMemo(() => {
         // Map app country codes to form definition country codes
-        const countryMap: Record<string, 'uk' | 'usa' | 'canada'> = {
-            'uk': 'uk',
-            'usa': 'usa',
+        const countryMap: Record<string, 'united-kingdom' | 'united-states' | 'canada'> = {
+            'united-kingdom': 'united-kingdom',
+            'united-states': 'united-states',
+            'canada': 'canada',
+            'uk': 'united-kingdom',
+            'usa': 'united-states',
+            'us': 'united-states',
             'ca': 'canada'
         };
-        const mappedCountry = countryMap[country] || 'uk';
+        const mappedCountry = countryMap[country] || 'united-kingdom';
         return CORE_AREA_1_FORMS.find(f => f.countryCode === mappedCountry) || CORE_AREA_1_FORMS[0];
     }, [country]);
 

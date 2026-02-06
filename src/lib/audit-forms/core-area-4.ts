@@ -187,7 +187,7 @@ export const CORE_AREA_4_FORMS: FormDefinition[] = [
         "id": "92355b25-3c8d-4445-8af9-c67b4f6ef2a5",
         "title": "Governance & Leadership Assessment (US)",
         "version": 1,
-        "countryCode": "usa",
+        "countryCode": "united-states",
         "scoreLogic": null,
         "rubric": {
             "id": "40e3812e-a7d6-47af-8268-dab6bcee1ddd",
@@ -369,7 +369,7 @@ export const CORE_AREA_4_FORMS: FormDefinition[] = [
         "id": "575e9a8a-fa08-4a00-b5f3-61b0e06351eb",
         "title": "Governance & Leadership Assessment (UK)",
         "version": 1,
-        "countryCode": "uk",
+        "countryCode": "united-kingdom",
         "scoreLogic": null,
         "rubric": {
             "id": "d99acd28-6d88-4d4d-a813-cfc2d3ba9820",

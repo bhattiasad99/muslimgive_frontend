@@ -5,7 +5,7 @@ export const CORE_AREA_2_FORMS: FormDefinition[] = [
         "id": "353cb6ae-503e-4fca-b5d3-8bf34288dd87",
         "title": "Financial Assessment (UK)",
         "version": 1,
-        "countryCode": "uk",
+        "countryCode": "united-kingdom",
         "scoreLogic": null,
         "rubric": {
             "id": "26efbc71-0d5a-4594-864e-7a0b4f43d947",
@@ -215,7 +215,7 @@ export const CORE_AREA_2_FORMS: FormDefinition[] = [
         "id": "5289d778-2e2a-42be-8e96-2492b7085e8a",
         "title": "Financial Assessment (US)",
         "version": 1,
-        "countryCode": "usa",
+        "countryCode": "united-states",
         "scoreLogic": null,
         "rubric": {
             "id": "060db26c-bf8d-47f9-99aa-b80e64ba5f63",

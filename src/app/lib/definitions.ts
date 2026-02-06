@@ -32,7 +32,6 @@ export type UserProfile = {
     dateOfBirth?: string;
     country?: string;
     countryName?: string;
-    city?: string;
     postalCode?: string;
     roles: string[];
     permissions?: string[];

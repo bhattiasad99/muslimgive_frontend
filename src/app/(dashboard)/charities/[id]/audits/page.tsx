@@ -37,7 +37,7 @@ const AuditHistoryPage = () => {
     const [openId, setOpenId] = useState<string | null>(null)
     const [reviews, setReviews] = useState<CharityReviews | null>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [country, setCountry] = useState<'uk' | 'usa' | 'ca'>('usa')
+    const [country, setCountry] = useState<'united-kingdom' | 'united-states' | 'canada'>('united-states')
 
     const auditKeys: AuditIds[] = ['core-area-1', 'core-area-2', 'core-area-3', 'core-area-4'];
 
@@ -52,8 +52,15 @@ const AuditHistoryPage = () => {
                 if (response.ok && response.payload?.data?.data) {
                     const charityData = response.payload.data.data
                     setReviews(charityData.reviews)
-                    const countryCode = charityData.countryCode || 'usa'
-                    setCountry(countryCode as 'uk' | 'usa' | 'ca')
+                    const raw = String(charityData.countryCode || 'united-states').toLowerCase()
+                    const normalized = raw === 'uk' || raw === 'united kingdom' || raw === 'united-kingdom'
+                        ? 'united-kingdom'
+                        : raw === 'usa' || raw === 'us' || raw === 'united states' || raw === 'united-states'
+                            ? 'united-states'
+                            : raw === 'ca' || raw === 'canada'
+                                ? 'canada'
+                                : 'united-states'
+                    setCountry(normalized)
                 }
             } catch (error) {
                 console.error('Error fetching charity data:', error)

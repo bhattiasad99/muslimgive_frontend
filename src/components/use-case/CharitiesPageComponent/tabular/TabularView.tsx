@@ -64,11 +64,12 @@ const TabularView: FC<Props> = ({ charities }) => {
                     <TableRow>
                         <TableHead>Charity Name</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Owner&apos;s Name</TableHead>
+                        <TableHead>Submitted By</TableHead>
                         <TableHead className="w-[180px]">Team</TableHead>
                         <TableHead className="text-center">Audits Completed</TableHead>
                         <TableHead>Progress</TableHead>
                         <TableHead className="text-center">Within 2 years</TableHead>
+                        <TableHead>Pending Reason</TableHead>
                         <TableHead className="w-[140px] text-center">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -79,6 +80,8 @@ const TabularView: FC<Props> = ({ charities }) => {
                         const percent = Math.round((Number(c.auditsCompleted || 0) / 4) * 100)
                         const months = parseMonths(c.totalDuration)
                         const withinTwoYears = typeof months === 'number' ? months <= 24 : undefined
+                        const pendingSource = (c.pendingEligibilitySource || '').toLowerCase().replace(/_/g, '-')
+                        const isDeepScan = c.status === 'pending-eligibility' && pendingSource.includes('deep')
 
                         return (
                             <TableRow key={`${c.id}-${globalIdx}`}>
@@ -129,6 +132,21 @@ const TabularView: FC<Props> = ({ charities }) => {
                                         <span className="text-green-500">✓</span>
                                     ) : (
                                         <span className="text-red-500">✕</span>
+                                    )}
+                                </TableCell>
+
+                                <TableCell className="py-4">
+                                    {c.status === 'pending-eligibility' ? (
+                                        <div className="flex flex-col gap-1">
+                                            {isDeepScan ? (
+                                                <Badge variant="secondary" className="w-fit bg-amber-100 text-amber-900">Deep scan</Badge>
+                                            ) : null}
+                                            <span className="text-xs text-muted-foreground">
+                                                {c.pendingEligibilityReason || (isDeepScan ? 'Eligibility rules updated.' : '-')}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-muted-foreground">-</span>
                                     )}
                                 </TableCell>
 

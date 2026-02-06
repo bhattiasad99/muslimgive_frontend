@@ -17,6 +17,9 @@ import ModelComponentWithExternalControl from '@/components/common/ModelComponen
 import AddUserModel from './AddUserModel'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
+import { updateUserStatusAction } from '@/app/actions/admin'
+import { toast } from 'sonner'
+import { kebabToTitle } from '@/lib/helpers'
 
 type PaginationType = {
     show: 10 | 20 | 30
@@ -118,7 +121,8 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
         const allStatusesOn = activeStatusFilters.length === STATUS_KEYS.length
 
         const resetOn = filterOpts[RESET_KEY]
-
+        console.log({searchedRows})
+        
         return searchedRows.filter((u) => {
             const rolesOk = allRolesOn
                 ? true
@@ -127,9 +131,9 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
             const statusOk = allStatusesOn ? true : activeStatusFilters.includes(u.status as (typeof STATUS_KEYS)[number])
 
             const resetOk = resetOn ? u.requestingPasswordReset === true : true
-
+            
             return rolesOk && statusOk && resetOk
-        })
+        }).map(eachRow => ({...eachRow, location: kebabToTitle(eachRow.location || '')}));
     }, [searchedRows, filterOpts])
 
     // keep totalEntries + page clamp in sync with results
@@ -174,6 +178,22 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
         `filter_switch__${label.toLowerCase().replace(/\s+/g, '_')}`
 
     const [openNewUserModal, setOpenNewUserModal] = useState(false);
+
+    const handleToggleUserStatus = async (userId: string, status: Data["status"]) => {
+        const isActive = status !== 'Active';
+        const actionLabel = isActive ? 'activate' : 'deactivate';
+        try {
+            const res = await updateUserStatusAction(userId, isActive);
+            if (res.ok) {
+                toast.success(`User ${actionLabel}d successfully`);
+                router.refresh();
+                return;
+            }
+            toast.error(res.message || `Failed to ${actionLabel} user`);
+        } catch {
+            toast.error('An unexpected error occurred');
+        }
+    }
 
     return (
         <CardComponent>
@@ -271,7 +291,10 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
             </div>
 
             <div className="flex flex-col gap-2">
-                <UsersExpandableTable rows={pageRows.filter(eachRow => eachRow.firstName !== "")} />
+                <UsersExpandableTable
+                    rows={pageRows.filter(eachRow => eachRow.firstName !== "")}
+                    onToggleStatus={handleToggleUserStatus}
+                />
                 <div className="w-full flex flex-wrap justify-end items-center text-xs gap-2">
                     <span>Rows per page:</span>
                     <select

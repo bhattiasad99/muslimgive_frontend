@@ -2,6 +2,7 @@
 
 import { _delete, _get, _patch, _post } from "@/auth";
 import { ResponseType } from "../lib/definitions";
+import type { CountriesInKebab } from "@/components/common/CountrySelectComponent/countries.types";
 
 /**
  * Filter and Pagination Params for List Charities
@@ -20,6 +21,7 @@ export type ListCharitiesParams = {
     doesCharityGiveZakat?: boolean;
     isIslamic?: boolean;
     categories?: string[];
+    pendingEligibilitySource?: string;
 }
 
 /**
@@ -27,26 +29,24 @@ export type ListCharitiesParams = {
  */
 export type CreateCharityPayload = {
     name: string;
-    ownerFirstName: string;
-    ownerLastName: string;
-    ownerEmail: string;
+    assessmentRequested: boolean;
     isIslamic: boolean;
     doesCharityGiveZakat: boolean;
-    description: string;
-    charityCommissionWebsiteUrl: string;
-    startDate: string;
+    startDate?: string | null;
+    startYear?: number | null;
     category: string;
-    countryCode: string;
-}
-
-/**
- * Payload for Eligibility Test
- */
-export type EligibilityTestPayload = {
-    startDate: string;
-    doesCharityGiveZakat: boolean;
-    isIslamic: boolean;
-    category: string;
+    countryCode: CountriesInKebab;
+    ukCharityNumber?: string | null;
+    ukCharityCommissionUrl?: string | null;
+    caRegistrationNumber?: string | null;
+    caCraUrl?: string | null;
+    usEin?: string | null;
+    usIrsUrl?: string | null;
+    ceoName: string;
+    submittedByName: string;
+    submittedByEmail: string;
+    annualRevenue: number;
+    isEligible: boolean;
 }
 
 /**
@@ -75,6 +75,9 @@ export const listCharitiesAction = async (params: ListCharitiesParams): Promise<
     if (params.categories && params.categories.length > 0) {
         query.append('categories', params.categories.join(','));
     }
+    if (params.pendingEligibilitySource) {
+        query.append('pendingEligibilitySource', params.pendingEligibilitySource);
+    }
 
     const endpoint = `/charities?${query.toString()}`;
     return await _get(endpoint);
@@ -97,14 +100,6 @@ export const createCharityAction = async (payload: CreateCharityPayload): Promis
 }
 
 /**
- * PATCH /charities/{charity_id}/eligibility
- * Performs an eligibility test for a charity
- */
-export const performEligibilityTestAction = async (charityId: string, payload: EligibilityTestPayload): Promise<ResponseType> => {
-    return await _patch(`/charities/${charityId}/eligibility`, payload);
-}
-
-/**
  * DELETE /charities/{id}
  * Deletes a charity
  */
@@ -124,6 +119,18 @@ export type AssignRolePayload = {
 
 export const assignRolesToCharityAction = async (charityId: string, payload: AssignRolePayload): Promise<ResponseType> => {
     return await _patch(`/charities/${charityId}/assign`, { assignments: payload });
+}
+
+/**
+ * PATCH /charities/{id}/eligibility
+ * Manually update eligibility for a charity
+ */
+export type UpdateEligibilityPayload = {
+    isEligible: boolean;
+}
+
+export const updateCharityEligibilityAction = async (charityId: string, payload: UpdateEligibilityPayload): Promise<ResponseType> => {
+    return await _patch(`/charities/${charityId}/eligibility`, payload);
 }
 
 /**
