@@ -5,6 +5,7 @@ import UpdatePasswordModal from '@/components/use-case/ProfilePageComponent/Upda
 import UpdateEmailModal from '@/components/use-case/ProfilePageComponent/UpdateEmailModal'
 import EditPersonalInfoModal from '@/components/use-case/ProfilePageComponent/EditPersonalInfoModal'
 import EditAddressModal from '@/components/use-case/ProfilePageComponent/EditAddressModal'
+import type { CountriesInKebab } from '@/components/common/CountrySelectComponent/countries.types'
 import type { Data, Role } from '@/components/use-case/UsersExpandableTable'
 import { getMeAction } from '@/app/actions/users'
 import { toast } from 'sonner'
@@ -101,7 +102,7 @@ const MyProfile = () => {
                 open={isAddressModalOpen}
                 onOpenChange={setIsAddressModalOpen}
                 initialData={{
-                    country: profile.location !== '-' ? profile.location : '',
+                    country: profile.location !== '-' ? (profile.location.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") as CountriesInKebab) : '',
                     postalCode: profile.postalCode
                 }}
                 onSave={(data) => {

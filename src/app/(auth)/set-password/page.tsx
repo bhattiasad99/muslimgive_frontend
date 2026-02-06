@@ -2,11 +2,12 @@ import { verifyToken } from '@/auth/actions'
 import SetPasswordComponent from '@/components/use-case/SetPasswordComponent'
 
 type SetPasswordPageProps = {
-    searchParams: { [key: string]: string | string[] | undefined }
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 const SetPassword = async ({ searchParams }: SetPasswordPageProps) => {
-    const rawToken = searchParams.token
+    const resolvedSearchParams = await searchParams
+    const rawToken = resolvedSearchParams.token
 
     if (typeof rawToken !== "string") {
         return <div>Invalid token</div>
