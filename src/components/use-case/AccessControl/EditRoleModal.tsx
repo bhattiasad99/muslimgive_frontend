@@ -31,7 +31,7 @@ const EditRoleModal: FC<IProps> = ({ open, onOpenChange, role, onSave, isLoading
     } else {
       setShowConfirm(false)
     }
-  }, [open])
+  }, [open, role.description, role.name])
 
   const hasChanges = useMemo(() => {
     return name !== initialState.name || description !== initialState.description

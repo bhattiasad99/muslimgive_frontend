@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import { capitalizeWords, kebabToTitle } from '@/lib/helpers'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
 import LinkComponent from '@/components/common/LinkComponent'
-import { assignRolesToCharityAction, deleteCharityAction, reassignRoleToCharityAction } from '@/app/actions/charities'
+import { addCharityCommentAction, assignRolesToCharityAction, deleteCharityAction, listCharityCommentsAction, reassignRoleToCharityAction, startCharityReassessmentAction } from '@/app/actions/charities'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { Trash2 } from 'lucide-react'
 import ManageTeamModal from './models/ManageTeamModal'
@@ -128,6 +128,9 @@ const SingleCharityPageComponent: FC<IProps> = ({
     submittedByEmail,
     assignmentCandidatesByRole,
     currentUserId,
+    reassessmentCycle,
+    overallScorePercent,
+    overallScoreResult,
 }) => {
     const router = useRouter();
     const [modelState, setModelState] = useState<ModelControl>({ nameOfModel: null });
@@ -140,6 +143,12 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [selectedMemberForRoleEdit, setSelectedMemberForRoleEdit] = useState<Member | null>(null)
     const [auditTab, setAuditTab] = useState<'completed' | 'pending'>('pending')
     const [assignmentMode, setAssignmentMode] = useState<AssignmentMode>('assign')
+    const [comments, setComments] = useState<Array<{ id: string; message: string; createdAt: string; user?: { firstName?: string | null; lastName?: string | null; email?: string | null } }>>([])
+    const [isCommentsLoading, setIsCommentsLoading] = useState(false)
+    const [commentInput, setCommentInput] = useState('')
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+    const [showReassessModal, setShowReassessModal] = useState(false)
+    const [isReassessing, setIsReassessing] = useState(false)
     const { isAllowed } = usePermissions()
     const projectManagerCandidates = assignmentCandidatesByRole?.projectManager ?? []
     const financeAuditorCandidates = assignmentCandidatesByRole?.financeAuditor ?? []
@@ -246,11 +255,13 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const isEligibilityDone = !verificationSummary?.eligibility?.pending
     const shouldHideAuditAndProgress = status === 'ineligible' || verificationSummary?.eligibility?.pending
     const isAdminReviewed = status === 'pending-admin-review' || status === 'approved'
-    const passFailValue = status === 'approved'
-        ? 'Pass'
-        : status === 'ineligible'
-            ? 'Fail'
-            : 'Pending'
+    const passFailValue = overallScoreResult
+        ? (overallScoreResult === 'pass' ? 'Pass' : 'Fail')
+        : status === 'approved'
+            ? 'Pass'
+            : status === 'ineligible'
+                ? 'Fail'
+                : 'Pending'
     const isPassFailDone = passFailValue !== 'Pending'
     const projectManagerName = members.find(m => m.role === 'project-manager')?.name || 'Unassigned'
 
@@ -260,6 +271,12 @@ const SingleCharityPageComponent: FC<IProps> = ({
         const [yyyy, mm, dd] = isoPart.split('-')
         if (!yyyy || !mm || !dd) return value
         return `${dd}/${mm}/${yyyy}`
+    }
+
+    const formatCommentAuthor = (comment: { user?: { firstName?: string | null; lastName?: string | null; email?: string | null } }) => {
+        const name = [comment.user?.firstName, comment.user?.lastName].filter(Boolean).join(' ').trim()
+        if (name) return name
+        return comment.user?.email || 'Unknown user'
     }
 
     const auditStatusLabel = (status?: string) => {
@@ -315,6 +332,31 @@ const SingleCharityPageComponent: FC<IProps> = ({
         if (!currentUserId) return false
         return members.some(member => member.role === role && member.id === currentUserId)
     }
+    const isCurrentUserAssigned = currentUserId ? members.some(member => member.id === currentUserId) : false
+    const auditActionLabel = reassessmentCycle && reassessmentCycle > 0 ? 'Re-Assess' : 'Start'
+    const overallScoreLabel = typeof overallScorePercent === 'number' ? `${overallScorePercent}%` : null
+
+    useEffect(() => {
+        const fetchComments = async () => {
+            setIsCommentsLoading(true)
+            try {
+                const res = await listCharityCommentsAction(charityId)
+                if (res.ok && res.payload?.data?.data) {
+                    setComments(res.payload.data.data)
+                } else {
+                    setComments([])
+                }
+            } catch (error) {
+                console.error(error)
+                setComments([])
+            } finally {
+                setIsCommentsLoading(false)
+            }
+        }
+        if (charityId) {
+            fetchComments()
+        }
+    }, [charityId])
 
     const assignSingleRole = async (userId: string, roleSlug: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
         try {
@@ -379,6 +421,51 @@ const SingleCharityPageComponent: FC<IProps> = ({
             return
         }
         await assignSingleRole(userId, roleSlug)
+    }
+
+    const handleSubmitComment = async () => {
+        if (!commentInput.trim()) {
+            toast.error('Comment cannot be empty.')
+            return
+        }
+        setIsSubmittingComment(true)
+        try {
+            const res = await addCharityCommentAction(charityId, { message: commentInput.trim() })
+            if (res.ok) {
+                setCommentInput('')
+                const refreshed = await listCharityCommentsAction(charityId)
+                if (refreshed.ok && refreshed.payload?.data?.data) {
+                    setComments(refreshed.payload.data.data)
+                }
+                toast.success('Comment added.')
+            } else {
+                toast.error(res.message || 'Failed to add comment.')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An unexpected error occurred.')
+        } finally {
+            setIsSubmittingComment(false)
+        }
+    }
+
+    const handleReassess = async () => {
+        setIsReassessing(true)
+        try {
+            const res = await startCharityReassessmentAction(charityId)
+            if (res.ok) {
+                toast.success('Re-assessment started.')
+                setShowReassessModal(false)
+                router.refresh()
+            } else {
+                toast.error(res.message || 'Failed to start re-assessment.')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An unexpected error occurred.')
+        } finally {
+            setIsReassessing(false)
+        }
     }
 
     const dropdownOptions = [
@@ -528,6 +615,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                         done={isAdminReviewed}
                                         successText="Reviewed"
                                         pendingText="Pending"
+                                        meta={overallScoreLabel ? `Grade: ${overallScoreLabel}` : undefined}
                                     />
                                     <div className="flex items-center justify-between rounded-lg border border-[#EEF2F6] bg-white p-3">
                                         <div className="flex items-center gap-2">
@@ -552,6 +640,24 @@ const SingleCharityPageComponent: FC<IProps> = ({
                     ) : null}
                 </div>
                 <div className="grid gap-6 xl:grid-cols-2">
+                    {status === 'pending-admin-review' ? (
+                        <CardComponent heading="Admin Review">
+                            <div className="flex flex-col gap-3">
+                                <InfoRow label="Overall Score:" value={overallScoreLabel ?? '-'} />
+                                <InfoRow label="Pass / Fail:" value={passFailValue} />
+                                <div className="flex flex-col gap-2">
+                                    <LinkComponent to={`/reports/${charityId}`}>
+                                        <Button variant="outline" className="w-full">View Report</Button>
+                                    </LinkComponent>
+                                    {canManageCharity ? (
+                                        <Button variant="outline" className="w-full" onClick={() => setShowReassessModal(true)}>
+                                            Re-Assess
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            </div>
+                        </CardComponent>
+                    ) : null}
                     <CardComponent heading="Eligibility Details">
                         <div className="flex flex-col gap-3">
                             {status === 'pending-eligibility' && canManageCharity ? (
@@ -782,7 +888,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                         onClick={() => handleTask(item.id as TaskIds)}
                                                                         disabled={pendingTaskId === item.id && isTaskPending}
                                                                     >
-                                                                        Start
+                                                                        {auditActionLabel}
                                                                     </Button>
                                                                 ) : null}
                                                             </div>
@@ -798,6 +904,50 @@ const SingleCharityPageComponent: FC<IProps> = ({
                     </CardComponent>
                 ) : null}
             </div>
+            <CardComponent heading="Comments">
+                <div className="flex flex-col gap-3">
+                    {isCommentsLoading ? (
+                        <TypographyComponent variant="body2" className="text-[#667085]">Loading comments...</TypographyComponent>
+                    ) : comments.length === 0 ? (
+                        <TypographyComponent variant="body2" className="text-[#667085]">No comments yet.</TypographyComponent>
+                    ) : (
+                        comments.map((comment) => (
+                            <div key={comment.id} className="rounded-md border border-[#EEF2F6] bg-white p-3">
+                                <div className="flex items-center justify-between">
+                                    <TypographyComponent variant="body2" className="font-medium text-[#101928]">
+                                        {formatCommentAuthor(comment)}
+                                    </TypographyComponent>
+                                    <TypographyComponent variant="caption" className="text-[#667085]">
+                                        {formatStableDate(comment.createdAt)}
+                                    </TypographyComponent>
+                                </div>
+                                <TypographyComponent variant="body2" className="mt-2 text-[#344054]">
+                                    {comment.message}
+                                </TypographyComponent>
+                            </div>
+                        ))
+                    )}
+                    {isCurrentUserAssigned ? (
+                        <div className="flex flex-col gap-2">
+                            <textarea
+                                className="min-h-[90px] w-full rounded-md border border-[#E4E7EC] px-3 py-2 text-sm outline-none focus:border-[#84ADFF]"
+                                placeholder="Add a comment..."
+                                value={commentInput}
+                                onChange={(event) => setCommentInput(event.target.value)}
+                            />
+                            <div className="flex justify-end">
+                                <Button variant="primary" onClick={handleSubmitComment} disabled={isSubmittingComment}>
+                                    {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <TypographyComponent variant="caption" className="text-[#667085]">
+                            Only assigned team members can add comments.
+                        </TypographyComponent>
+                    )}
+                </div>
+            </CardComponent>
             <ModelComponentWithExternalControl title="Assign Project Manager"
                 onOpenChange={handleCloseModel}
                 open={modelState.nameOfModel === 'assign-project-manager'}
@@ -946,6 +1096,18 @@ const SingleCharityPageComponent: FC<IProps> = ({
                     />
                 )}
             </ModelComponentWithExternalControl>
+
+            <ConfirmActionModal
+                open={showReassessModal}
+                onOpenChange={setShowReassessModal}
+                title="Re-Assess Charity"
+                description={`This will move ${capitalizeWords(charityTitle)} back to Open to Review and start a new audit cycle. Continue?`}
+                confirmText={isReassessing ? "Re-Assessing..." : "Start Re-Assessment"}
+                onConfirm={async () => {
+                    if (!canManageCharity) return;
+                    await handleReassess()
+                }}
+            />
 
             <ConfirmActionModal
                 open={showDeleteModal}

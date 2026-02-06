@@ -39,7 +39,7 @@ const SetPasswordComponent: FC<IProps> = ({ token }) => {
             const t = setTimeout(() => router.replace('/login'), 1200)
             return () => clearTimeout(t)
         }
-    }, [noErrors, state?.message]);
+    }, [noErrors, state?.message, router]);
 
     return (
         <AuthScreenLayoutComponent

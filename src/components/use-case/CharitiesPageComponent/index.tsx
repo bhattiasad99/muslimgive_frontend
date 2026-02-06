@@ -2,7 +2,7 @@
 import AddIcon from '@/components/common/IconComponents/AddIcon'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 import { Button } from '@/components/ui/button'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import LinkComponent from '@/components/common/LinkComponent'
 import KanbanTabularToggle, { ViewsType } from '../KanbanTabularToggle'
 import EmailIcon from '@/components/common/IconComponents/EmailIcon'
@@ -48,7 +48,6 @@ const CATEGORY_KEYS = [
 
 const CharitiesPageComponent = () => {
     const [queryInput, setQueryInput] = useState('')
-    const [searchQuery, setSearchQuery] = useState('');
     const [view, setView] = useState<ViewsType>('kanban');
     const [openBulkEmailModal, setOpenBulkEmailModal] = useState(false)
     const [charities, setCharities] = useState<SingleCharityType[]>([])
@@ -98,6 +97,9 @@ const CharitiesPageComponent = () => {
                     auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
                     status: c.status || 'unassigned',
                     category: c.category ?? null,
+                    reassessmentCycle: c.reassessmentCycle ?? 0,
+                    overallScorePercent: c.overallScorePercent ?? null,
+                    overallScoreResult: c.overallScoreResult ?? null,
                     country: c.countryCode || c.country,
                     website: c.countryCode === 'united-kingdom'
                         ? (c.ukCharityCommissionUrl || c.charityCommissionWebsiteUrl)
@@ -145,7 +147,6 @@ const CharitiesPageComponent = () => {
 
     useEffect(() => {
         const handler = setTimeout(() => {
-            setSearchQuery(queryInput)
             fetchCharities(queryInput, {
                 status: statusFilters,
                 categories: categoryFilters,
@@ -312,7 +313,12 @@ const CharitiesPageComponent = () => {
                     description='Email will be sent to the charities visible in your current view.'
                 >
                     <BulkEmailModal
-                        charities={charities.map(({ members, charityDesc, ...rest }) => rest)}
+                        charities={charities.map((charity) => {
+                            const { members, charityDesc, ...rest } = charity;
+                            void members;
+                            void charityDesc;
+                            return rest;
+                        })}
                         onClose={() => setOpenBulkEmailModal(false)}
                     />
                 </ModelComponentWithExternalControl>

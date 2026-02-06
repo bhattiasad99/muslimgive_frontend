@@ -38,7 +38,7 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
             setPostalCode(initialData.postalCode)
             setCapturedInitial({ ...initialData })
         }
-    }, [open])
+    }, [open, initialData])
 
     const hasChanges = useMemo(() => {
         return (

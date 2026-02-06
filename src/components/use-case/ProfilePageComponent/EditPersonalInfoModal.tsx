@@ -41,7 +41,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
             setDateOfBirth(initialData.dateOfBirth)
             setCapturedInitial({ ...initialData })
         }
-    }, [open])
+    }, [open, initialData])
 
     const hasChanges = useMemo(() => {
         return (

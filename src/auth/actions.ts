@@ -3,7 +3,7 @@ import { parse as parseSetCookie } from 'set-cookie-parser'
 import { AUTH_COOKIE_LABEL } from './constants'
 import { LoginFormState, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema } from './forms'
 import { ResponseType, serverUrl } from '@/app/lib/definitions'
-import { clearAuthCookies, getCookies, setSessionCookie } from './cookies'
+import { clearAuthCookies, setSessionCookie } from './cookies'
 import { redirect } from 'next/navigation'
 import { _patch } from './methods'
 import { cookies } from 'next/headers'
@@ -139,7 +139,7 @@ export async function setPasswordAction(
             message: 'Password set successfully. Redirecting to login...',
         };
 
-    } catch (err) {
+    } catch {
         return { errors: {}, message: "Network or server error while setting password" };
     }
 }
@@ -150,6 +150,7 @@ export const verifyToken = async (token: string): Promise<ResponseType> => {
 }
 
 export const redeemToken = async (token: string, password: string): Promise<ResponseType> => {
+    void password;
     const profileRes = await _patch<null>(`password-token/redeem/${token}`, null, false);
     return profileRes;
 }

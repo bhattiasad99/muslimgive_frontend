@@ -9,7 +9,6 @@ import MultiSelectComboboxComponent from '@/components/common/MultiSelectCombobo
 import { createMgMemberAction } from '@/app/actions/users'
 import { listRolesAction } from '@/app/actions/roles'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 
 type IProps = {
     onClose?: () => void
@@ -17,7 +16,6 @@ type IProps = {
 }
 
 const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
-    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [availableRoles, setAvailableRoles] = useState<{ value: string, label: string }[]>([])
     // user -> firstName, lastName, email, dob, country, postalcode, roles

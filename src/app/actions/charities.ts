@@ -174,6 +174,42 @@ export const updateCharityEligibilityAction = async (charityId: string, payload:
 }
 
 /**
+ * GET /charities/{id}/report
+ * Returns report data for a charity
+ */
+export const getCharityReportAction = async (charityId: string): Promise<ResponseType> => {
+    return await _get(`/charities/${charityId}/report`);
+}
+
+/**
+ * GET /charities/{id}/comments
+ * Returns comments for a charity
+ */
+export const listCharityCommentsAction = async (charityId: string): Promise<ResponseType> => {
+    return await _get(`/charities/${charityId}/comments`);
+}
+
+/**
+ * POST /charities/{id}/comments
+ * Adds a comment to a charity
+ */
+export type CreateCharityCommentPayload = {
+    message: string;
+}
+
+export const addCharityCommentAction = async (charityId: string, payload: CreateCharityCommentPayload): Promise<ResponseType> => {
+    return await _post(`/charities/${charityId}/comments`, payload);
+}
+
+/**
+ * POST /charities/{id}/reassess
+ * Starts a reassessment cycle
+ */
+export const startCharityReassessmentAction = async (charityId: string): Promise<ResponseType> => {
+    return await _post(`/charities/${charityId}/reassess`, {});
+}
+
+/**
  * POST /report
  * Sends bulk email to selected charities
  */

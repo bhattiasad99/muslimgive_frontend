@@ -5,7 +5,7 @@ import SignOutBtnInHome from "@/components/use-case/sign-out-button-in-home/Sign
 import { baseEndPoint } from "./actions/general";
 
 export default async function Home() {
-  const { ok, unauthenticated } = await baseEndPoint();
+  const { unauthenticated } = await baseEndPoint();
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       Welcome to MuslimGive!

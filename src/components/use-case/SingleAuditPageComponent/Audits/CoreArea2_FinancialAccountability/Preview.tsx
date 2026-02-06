@@ -4,9 +4,8 @@ import { AuditStatus } from '@/DUMMY_AUDIT_VALS';
 import React, { FC, useEffect, useState } from 'react'
 import PreviewValueLayout from '../../UI/PreviewValueLayout';
 import LinkComponent from '@/components/common/LinkComponent';
-import { capitalizeWords } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from '../../Audits/CoreArea1_CharityStatus/SubmittedSymbol';
 import { submitAuditAction, completeAuditAction, getAuditAction } from '@/app/actions/audits';
@@ -23,11 +22,11 @@ type IProps = PreviewPageCommonProps;
 
 
 const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI = false }) => {
+    void status;
     const [auditVals, setAuditVals] = useState<any>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
-    const pathname = usePathname();
 
     useEffect(() => {
         const fetchData = async () => {

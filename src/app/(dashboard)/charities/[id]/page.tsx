@@ -63,6 +63,9 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
         auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
         status: c.status || 'unassigned',
         category: c.category ?? null,
+        reassessmentCycle: c.reassessmentCycle ?? 0,
+        overallScorePercent: c.overallScorePercent ?? null,
+        overallScoreResult: c.overallScoreResult ?? null,
         country: c.countryCode || c.country,
         website: c.countryCode === 'united-kingdom'
             ? (c.ukCharityCommissionUrl || c.charityCommissionWebsiteUrl)

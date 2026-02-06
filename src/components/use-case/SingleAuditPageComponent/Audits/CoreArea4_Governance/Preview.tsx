@@ -4,7 +4,7 @@ import { AuditStatus } from '@/DUMMY_AUDIT_VALS';
 import React, { FC, useEffect, useState, useMemo } from 'react'
 import PreviewValueLayout from '../../UI/PreviewValueLayout';
 import { Button } from '@/components/ui/button';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from '../../Audits/CoreArea1_CharityStatus/SubmittedSymbol';
 import { submitAuditAction, completeAuditAction, getAuditAction } from '@/app/actions/audits';
@@ -25,7 +25,6 @@ const PreviewCoreArea4: FC<IProps> = ({ country, charityId, fetchFromAPI = false
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
-    const pathname = usePathname();
 
     const currentForm = useMemo(() => {
         const countryMap: Record<string, 'united-kingdom' | 'united-states' | 'canada'> = {

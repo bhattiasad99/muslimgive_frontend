@@ -46,9 +46,3 @@ export const middlewareFn = async (req: NextRequest) => {
 
 }
 
-export const configObj = (paths: string[]) => {
-    return {
-        matcher: paths.map((p) => `${p}/:path*`),
-    }
-}
-

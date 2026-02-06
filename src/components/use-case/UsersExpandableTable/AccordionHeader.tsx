@@ -1,4 +1,3 @@
-import { kanit } from '@/app/fonts';
 import ThreeDotIcon from '@/components/common/IconComponents/ThreeDotIcon';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent } from '@/components/ui/popover'

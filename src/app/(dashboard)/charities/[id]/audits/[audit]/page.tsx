@@ -5,11 +5,6 @@ import { notFound } from 'next/navigation'
 import { CountryEnum } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
 import Preview from '@/components/use-case/SingleAuditPageComponent/Audits/Preview'
 
-type CharityAuditPageProps = {
-    params: { id: string; audit: string };
-    searchParams?: { [key: string]: string | string[] | undefined };
-};
-
 export type CountryCode = keyof typeof CountryEnum
 
 const CharityAuditPage = async ({ params, searchParams }: {
@@ -40,7 +35,6 @@ const CharityAuditPage = async ({ params, searchParams }: {
         return notFound()
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = res.payload.data.data;
     const charity = {
         id: c.id,

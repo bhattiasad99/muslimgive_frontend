@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon, ChevronsUpDownIcon, CrossIcon, XIcon } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Command,
@@ -48,11 +48,6 @@ export default function MultiSelectComboboxComponent({
         e.stopPropagation()
         onChange([])
     }
-
-    const selectedLabels = React.useMemo(() => {
-        const map = new Map(options.map(o => [o.value, o.label]))
-        return value.map(v => map.get(v) ?? v)
-    }, [value, options])
 
     return (
         <div className={cn("w-full", className)}>

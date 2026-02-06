@@ -54,7 +54,6 @@ const formatStatus = (status: StatusType) => {
 
 const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) => {
     const [queryInput, setQueryInput] = useState('')
-    const [searchQuery, setSearchQuery] = useState('');
     const [selectedCharities, setSelectedCharities] = useState<string[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
 

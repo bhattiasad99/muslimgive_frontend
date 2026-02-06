@@ -5,12 +5,12 @@ import React, { FC, useEffect, useState } from 'react'
 import PreviewValueLayout from '../../UI/PreviewValueLayout';
 import LinkComponent from '@/components/common/LinkComponent';
 import { Button } from '@/components/ui/button';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from '../../Audits/CoreArea1_CharityStatus/SubmittedSymbol';
 import { submitAuditAction, completeAuditAction, getAuditAction } from '@/app/actions/audits';
 import { toast } from 'sonner';
-import { MULTI_STEP_DEFS, QuestionDef } from './MULTI_STEP_DEFS';
+import { MULTI_STEP_DEFS } from './MULTI_STEP_DEFS';
 
 export type PreviewPageCommonProps = {
     country: CountryCode;
@@ -29,15 +29,6 @@ type LinkAttached = {
     url: string;
 }
 
-type FormEntry = {
-    id: string;
-    selections: string[];
-    links: LinkAttached[];
-    note: string; // The saved key from ComplexCheckboxGroup is commentsAdded, mapped to note in logic? No, check index.tsx.
-    // Index.tsx saves ComplexCheckboxGroupStatus & { id: string }
-    // ComplexCheckboxGroupStatus has: selectedOptions, linksAdded, commentsAdded
-}
-
 // Actual shape saved in localStorage is:
 type StoredFormEntry = {
     id: string;
@@ -47,11 +38,11 @@ type StoredFormEntry = {
 }
 
 const PreviewCoreArea3: FC<IProps> = ({ country, charityId, fetchFromAPI = false }) => {
+    void country;
     const [auditVals, setAuditVals] = useState<StoredFormEntry[] | null>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
-    const pathname = usePathname();
 
     useEffect(() => {
         const fetchData = async () => {

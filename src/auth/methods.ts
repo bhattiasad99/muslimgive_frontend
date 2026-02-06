@@ -63,7 +63,7 @@ const maybeRefreshSession = async () => {
 
 export const _getRaw = async (request: string, requireAuth = true): Promise<RawResponse> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     let url: string
     try {
@@ -94,7 +94,7 @@ export const _getRaw = async (request: string, requireAuth = true): Promise<RawR
 
 export const _postRaw = async (request: string, body: any, requireAuth = true): Promise<RawResponse> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     let url: string
     try {
@@ -126,7 +126,7 @@ export const _postRaw = async (request: string, body: any, requireAuth = true): 
 
 export const _patchRaw = async <K = any>(request: string, body: K, requireAuth = true): Promise<RawResponse> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     let url: string
     try {
@@ -158,7 +158,7 @@ export const _patchRaw = async <K = any>(request: string, body: K, requireAuth =
 
 export const _deleteRaw = async (request: string, requireAuth = true): Promise<RawResponse> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     let url: string
     try {
@@ -189,7 +189,7 @@ export const _deleteRaw = async (request: string, requireAuth = true): Promise<R
 
 export const _get = async (request: string, requireAuth = true): Promise<ResponseType> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     // Build URL safely
     let url: string
@@ -292,7 +292,7 @@ export const _getWithAccessToken = async (request: string, accessToken?: string 
 
 export const _post = async (request: string, body: any, requireAuth = true): Promise<ResponseType> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     let url: string
     try {
@@ -345,7 +345,7 @@ export const _post = async (request: string, body: any, requireAuth = true): Pro
 
 export const _patch = async <K = any>(request: string, body: K, requireAuth = true): Promise<ResponseType> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     let url: string
     try {
@@ -398,7 +398,7 @@ export const _patch = async <K = any>(request: string, body: K, requireAuth = tr
 
 export const _delete = async (request: string, requireAuth = true): Promise<ResponseType> => {
     if (requireAuth) await maybeRefreshSession();
-    let { accessToken } = await getCookies();
+    const { accessToken } = await getCookies();
 
     let url: string
     try {

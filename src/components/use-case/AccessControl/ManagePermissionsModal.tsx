@@ -4,7 +4,6 @@ import ModelComponentWithExternalControl from '@/components/common/ModelComponen
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 
 type Permission = {
@@ -36,7 +35,7 @@ const ManagePermissionsModal: FC<IProps> = ({ open, onOpenChange, permissions = 
     } else {
       setShowConfirm(false)
     }
-  }, [open])
+  }, [open, permissions])
 
   const hasChanges = useMemo(() => {
     return JSON.stringify(items) !== JSON.stringify(initialPermissions)

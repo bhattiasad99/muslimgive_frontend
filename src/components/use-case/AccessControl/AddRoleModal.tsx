@@ -46,7 +46,7 @@ const AddRoleModal: FC<IProps> = ({ open, onOpenChange, onSave, initial = {}, pe
     } else {
       setShowConfirm(false)
     }
-  }, [open])
+  }, [open, initial?.description, initial?.name, permissions])
 
   const hasChanges = useMemo(() => {
     const nameChanged = name !== initialState.name

@@ -79,7 +79,7 @@ const ComplexCheckboxGroup: FC<IProps> = ({
             linksAdded: linksAdded.map(url => ({ label: 'Link', url })),
             commentsAdded: commentAdded
         })
-    }, [selection, linksAdded, commentAdded]);
+    }, [selection, linksAdded, commentAdded, onUpdate]);
 
     const handleAddLink = () => {
         if (newLink.trim()) {
@@ -90,7 +90,7 @@ const ComplexCheckboxGroup: FC<IProps> = ({
     }
 
     return (
-        <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-4' id={id}>
             <Label><TypographyComponent className='font-semibold text-sm'>{label}{required && <span className="text-red-400">*</span>}</TypographyComponent></Label>
             <div className="flex flex-col gap-2">
                 {options.map(eachOption => <CheckboxComponent className='cursor-pointer' descriptionClassName='cursor-pointer' label={eachOption.label}

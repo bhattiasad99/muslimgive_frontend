@@ -3,7 +3,6 @@ import * as React from "react";
 import { useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { TypographyComponent } from "../TypographyComponent";
 import { X, FileText, Upload } from "lucide-react";
 
@@ -87,7 +86,7 @@ export const ControlledFileUploadComponent: React.FC<FileUploadProps> = ({
     );
 
     const validateLimit = React.useCallback(
-        (_file: File) => {
+        () => {
             if (isAtLimit) {
                 return { code: "file-limit-reached", message: "File limit reached. Remove a file to add another." };
             }

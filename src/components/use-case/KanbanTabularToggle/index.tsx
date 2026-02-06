@@ -1,5 +1,5 @@
 'use client'
-import { FC, useState } from 'react'
+import { FC } from 'react'
 import { Button } from '@/components/ui/button'
 import KanbanViewIcon from '@/components/common/IconComponents/KanbanViewIcon'
 import TabularViewIcon from '@/components/common/IconComponents/TabularViewIcon'

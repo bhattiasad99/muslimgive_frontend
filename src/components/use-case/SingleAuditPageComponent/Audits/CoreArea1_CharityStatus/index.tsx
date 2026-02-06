@@ -7,11 +7,9 @@ import RadioGroupComponent from '@/components/common/RadioGroupComponent'
 import { TypographyComponent } from '@/components/common/TypographyComponent'
 import DatePicker from '@/components/common/ControlledDatePickerComponent'
 import { Label } from '@/components/ui/label'
-import SelectComponent from '@/components/common/SelectComponent'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import ControlledFileUploadComponent, { UploadedItem } from '@/components/common/FileUploadComponent/ControlledFileUploadComponent'
 import { Button } from '@/components/ui/button'
-import { isValidUrl } from '@/lib/helpers'
 import { useRouter } from 'next/navigation'
 import { CORE_AREA_1_FORMS } from '@/lib/audit-forms/core-area-1'
 import { Question } from '@/lib/audit-forms/types'
@@ -40,7 +38,6 @@ type CoreArea1Props = {
 const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }) => {
     const router = useRouter()
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
-    const [linkBlurred, setLinkBlurred] = useState<Record<string, boolean>>({})
 
     const currentForm = useMemo(() => {
         // Map app country codes to form definition country codes
@@ -219,7 +216,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                             }}
                         />
                     )
-                } catch (e) { return null }
+                } catch { return null }
 
             case 'radio':
                 try {
@@ -236,7 +233,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                             />
                         </AuditSectionCard>
                     )
-                } catch (e) { return null }
+                } catch { return null }
 
             case 'date':
                 try {
@@ -298,7 +295,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                             />
                         </div>
                     )
-                } catch (e) { return null }
+                } catch { return null }
 
             case 'file':
                 try {
@@ -318,7 +315,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                             />
                         </div>
                     )
-                } catch (e) { return null }
+                } catch { return null }
 
             case 'paragraph':
                 try {
@@ -334,7 +331,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                             onInputChange={(_name, value) => updateFormData(fieldCode, value)}
                         />
                     )
-                } catch (e) { return null }
+                } catch { return null }
 
             default:
                 return null;

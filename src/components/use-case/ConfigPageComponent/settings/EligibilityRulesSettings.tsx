@@ -42,7 +42,7 @@ const EligibilityRulesSettings = ({ initialRules = null }: EligibilityRulesSetti
     const [minRevenue, setMinRevenue] = useState<number>(baseline.minRevenue)
     const [allowNonIslamic, setAllowNonIslamic] = useState<boolean>(baseline.allowNonIslamic)
     const [allowedCategories, setAllowedCategories] = useState<string[]>(baseline.allowedCategories)
-    const [isLoading, setIsLoading] = useState(false)
+    const [isLoading] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [confirmOpen, setConfirmOpen] = useState(false)
 

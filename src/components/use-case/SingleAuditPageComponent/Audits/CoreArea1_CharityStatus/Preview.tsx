@@ -6,7 +6,7 @@ import PreviewValueLayout from '../../UI/PreviewValueLayout';
 import LinkComponent from '@/components/common/LinkComponent';
 import { capitalizeWords } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from './SubmittedSymbol';
 import { submitAuditAction, completeAuditAction, getAuditAction } from '@/app/actions/audits';
@@ -22,12 +22,12 @@ export type PreviewPageCommonProps = {
 type IProps = PreviewPageCommonProps;
 
 const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI = false }) => {
+    void status;
     // We will load these from localStorage or API
     const [auditVals, setAuditVals] = useState<any>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
-    const pathname = usePathname();
 
     useEffect(() => {
         const fetchData = async () => {

@@ -52,7 +52,7 @@ const ManageRoles: FC<ManageRolesProps> = ({ initialRoles = [], initialPermissio
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isManagePermOpen, setIsManagePermOpen] = useState(false)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [, setLoading] = useState(false)
 
   useEffect(() => {
     if (initialRoles.length || initialPermissions.length) return

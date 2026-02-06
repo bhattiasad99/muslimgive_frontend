@@ -122,6 +122,9 @@ export type SingleCharityType = {
     pendingEligibilitySource?: string | null,
     pendingEligibilityReason?: string | null,
     pendingEligibilityDetectedAt?: string | null,
+    reassessmentCycle?: number,
+    overallScorePercent?: number | null,
+    overallScoreResult?: 'pass' | 'fail' | null,
     reviews?: {
         eligibility: string
         core1: CoreAreaReview
