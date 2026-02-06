@@ -7,9 +7,10 @@ import SingleCharityCard from './SingleCharityCard'
 
 type IProps = Omit<KanbanColType, 'id'> & {
     cards: SingleCharityType[]
+    onCardNavigate?: () => void
 }
 
-const KanbanColumn: FC<IProps> = ({ color, title, cards }) => {
+const KanbanColumn: FC<IProps> = ({ color, title, cards, onCardNavigate }) => {
     return (
         <Card className='min-w-[250px] sm:min-w-[300px] border border-[rgba(0,0,0,0.1)] bg-accent p-4 rounded-2xl flex flex-col gap-4 h-135'>
             <div className="flex gap-2 items-center">
@@ -30,6 +31,7 @@ const KanbanColumn: FC<IProps> = ({ color, title, cards }) => {
                         pendingEligibilitySource={eachCard.pendingEligibilitySource}
                         pendingEligibilityReason={eachCard.pendingEligibilityReason}
                         status={eachCard.status}
+                        onNavigate={onCardNavigate}
                     />)}
                 </div>
             </div>

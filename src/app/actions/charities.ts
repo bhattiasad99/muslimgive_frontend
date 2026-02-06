@@ -1,8 +1,9 @@
 'use server'
 
-import { _delete, _get, _patch, _post } from "@/auth";
+import { _delete, _get, _getWithAccessToken, _patch, _post, getCookies } from "@/auth";
 import { ResponseType } from "../lib/definitions";
 import type { CountriesInKebab } from "@/components/common/CountrySelectComponent/countries.types";
+import { unstable_cache } from 'next/cache';
 
 /**
  * Filter and Pagination Params for List Charities
@@ -53,7 +54,7 @@ export type CreateCharityPayload = {
  * GET /charities
  * Lists all charities with pagination and filters
  */
-export const listCharitiesAction = async (params: ListCharitiesParams): Promise<ResponseType> => {
+export const listCharitiesAction = async (params: ListCharitiesParams, useCache = false): Promise<ResponseType> => {
     const query = new URLSearchParams();
 
     if (params.page) query.append('page', params.page.toString());
@@ -80,6 +81,21 @@ export const listCharitiesAction = async (params: ListCharitiesParams): Promise<
     }
 
     const endpoint = `/charities?${query.toString()}`;
+
+    // Cache pending eligibility count for dashboard (30 second cache)
+    if (useCache && params.status?.includes('pending-eligibility') && params.limit === 1) {
+        const { accessToken } = await getCookies();
+        if (!accessToken) {
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+        }
+        const getCachedPendingCount = unstable_cache(
+            async (token: string) => _getWithAccessToken(endpoint, token),
+            ['pending-eligibility-count'],
+            { revalidate: 30, tags: ['charities-pending'] }
+        );
+        return await getCachedPendingCount(accessToken);
+    }
+
     return await _get(endpoint);
 }
 

@@ -1,8 +1,9 @@
 'use server'
 
-import { _get, _patch, _post } from "@/auth";
+import { _get, _getWithAccessToken, _patch, _post, getCookies } from "@/auth";
 import { ChangePasswordPayload, ResponseType, UserProfile } from "../lib/definitions";
 import type { CountriesInKebab } from "@/components/common/CountrySelectComponent/countries.types";
+import { unstable_cache } from 'next/cache';
 
 export type CreateMgMemberPayload = {
     firstName: string;
@@ -48,11 +49,26 @@ export const listUsersAction = async (params?: ListUsersParams): Promise<Respons
     return await _get(endpoint);
 }
 
+// Cached version of getMeAction for layout - revalidates every 60 seconds
+const getCachedMe = unstable_cache(
+    async (token: string) => _getWithAccessToken('/users/me', token),
+    ['user-me'],
+    { revalidate: 60, tags: ['user-me'] }
+);
+
 /**
  * GET /users/me
  * Fetches the currently logged-in user's profile
+ * Uses caching for layout performance - revalidates every 60 seconds
  */
-export const getMeAction = async (): Promise<ResponseType<UserProfile>> => {
+export const getMeAction = async (useCache = false): Promise<ResponseType<UserProfile>> => {
+    if (useCache) {
+        const { accessToken } = await getCookies();
+        if (!accessToken) {
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+        }
+        return await getCachedMe(accessToken);
+    }
     return await _get('/users/me');
 }
 

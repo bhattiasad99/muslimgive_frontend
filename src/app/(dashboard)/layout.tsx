@@ -11,6 +11,7 @@ export default async function DashboardScreensLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    // Avoid cached variants here to prevent cookies usage inside cache scope
     const meRes = await getMeAction();
     const permsRes = await listPermissionsAction();
 

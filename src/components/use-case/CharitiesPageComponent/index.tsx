@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import FilterIcon from '@/components/common/IconComponents/FilterIcon'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { LoaderCircle } from 'lucide-react'
 
 const STATUS_KEYS = [
     { id: 'unassigned', label: 'Unassigned' },
@@ -52,6 +53,7 @@ const CharitiesPageComponent = () => {
     const [openBulkEmailModal, setOpenBulkEmailModal] = useState(false)
     const [charities, setCharities] = useState<SingleCharityType[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isNavigating, setIsNavigating] = useState(false)
 
     // Filter states
     const [statusFilters, setStatusFilters] = useState<string[]>([])
@@ -162,6 +164,14 @@ const CharitiesPageComponent = () => {
 
     return (
         <div className='flex flex-col gap-5'>
+            {isNavigating ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/75 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 text-sm text-[#666E76]">
+                        <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+                        <span>Loading charity...</span>
+                    </div>
+                </div>
+            ) : null}
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="w-full flex flex-col gap-4 md:flex-row">
                     <Popover open={openFilterPopover} onOpenChange={setOpenFilterPopover}>
@@ -286,7 +296,9 @@ const CharitiesPageComponent = () => {
                     <DashboardSkeleton />
                 ) : (
                     <>
-                        {view === "kanban" ? <KanbanView charities={searchedRows} /> : null}
+                        {view === "kanban" ? (
+                            <KanbanView charities={searchedRows} onCardNavigate={() => setIsNavigating(true)} />
+                        ) : null}
                         {view === "tabular" ? <TabularView charities={searchedRows} /> : null}
                     </>
                 )}

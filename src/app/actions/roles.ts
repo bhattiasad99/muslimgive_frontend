@@ -1,7 +1,15 @@
 'use server'
 
-import { _get, _delete, _post, _patch } from "@/auth";
+import { _get, _delete, _post, _patch, _getWithAccessToken, getCookies } from "@/auth";
 import { ResponseType } from "../lib/definitions";
+import { unstable_cache } from 'next/cache';
+
+// Cached permissions - revalidate every 5 minutes since they rarely change
+const getCachedPermissions = unstable_cache(
+    async (token: string) => _getWithAccessToken('/roles/permissions', token),
+    ['permissions-list'],
+    { revalidate: 300, tags: ['permissions'] }
+);
 
 /**
  * GET /roles
@@ -14,8 +22,16 @@ export const listRolesAction = async (): Promise<ResponseType> => {
 /**
  * GET /roles/permissions
  * Lists all available permissions (with implied permissions)
+ * Uses caching for layout performance - revalidates every 5 minutes
  */
-export const listPermissionsAction = async (): Promise<ResponseType> => {
+export const listPermissionsAction = async (useCache = false): Promise<ResponseType> => {
+    if (useCache) {
+        const { accessToken } = await getCookies();
+        if (!accessToken) {
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+        }
+        return await getCachedPermissions(accessToken);
+    }
     return await _get('/roles/permissions');
 }
 

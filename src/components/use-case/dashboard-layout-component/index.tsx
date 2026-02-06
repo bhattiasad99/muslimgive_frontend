@@ -18,12 +18,13 @@ const unwrap = <K,>(res: { ok: boolean; payload?: { data?: K | { data?: K } } | 
 }
 
 const DashboardLayoutComponent = async ({ children, permissions, isAdmin }: IProps) => {
+    // Use cached version for pending count - revalidates every 30 seconds
     const pendingRes = await listCharitiesAction({
         status: ['pending-eligibility'],
         pendingEligibilitySource: 'deep-scan',
         page: 1,
         limit: 1,
-    })
+    }, true)
     const pendingPayload = unwrap<{ meta?: { total?: number } }>(pendingRes)
     const pendingCount = pendingPayload?.meta?.total ?? 0
 

@@ -240,6 +240,56 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
     };
 }
 
+export const _getWithAccessToken = async (request: string, accessToken?: string | null, requireAuth = true): Promise<ResponseType> => {
+    // Build URL safely
+    let url: string
+    try {
+        url = serverUrl ? new URL(request, serverUrl).toString() : request
+    } catch {
+        url = request
+    }
+
+    const headers: Record<string, string> = { Accept: 'application/json' };
+
+    if (requireAuth) {
+        if (!accessToken) {
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+        }
+        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+    }
+
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            method: 'GET',
+            headers,
+            cache: 'no-store',
+        })
+    } catch {
+        return fetchFailed(requireAuth);
+    }
+
+    let data: any = null;
+    try { data = await res.json(); } catch { /* noop */ }
+
+    if (!res.ok || data?.error) {
+        const unauth = res.status === 401;
+        return {
+            ok: false,
+            payload: null,
+            unauthenticated: unauth,
+            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
+        };
+    }
+
+    return {
+        ok: true,
+        payload: data,
+        unauthenticated: false,
+        message: data?.message || 'Success!'
+    };
+}
+
 export const _post = async (request: string, body: any, requireAuth = true): Promise<ResponseType> => {
     if (requireAuth) await maybeRefreshSession();
     let { accessToken } = await getCookies();

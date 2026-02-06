@@ -38,7 +38,9 @@ import { AUDIT_DEFINITIONS } from '../SingleAuditPageComponent/AUDIT_DEFINITIONS
 import { BadgeCheck, CalendarDays, CheckCircle2, CircleDashed, Globe, Mail, MapPin, UserCircle2, UserCheck, XCircle } from 'lucide-react'
 
 type Member = SingleCharityType['members'][0]
-type IProps = SingleCharityType;
+type IProps = SingleCharityType & {
+    currentUserId?: string | null
+};
 
 type ModelControl = {
     nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-auditor' | 'assign-zakat-auditor';
@@ -124,6 +126,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     reviews,
     submittedByEmail,
     assignmentCandidatesByRole,
+    currentUserId,
 }) => {
     const router = useRouter();
     const [modelState, setModelState] = useState<ModelControl>({ nameOfModel: null });
@@ -264,6 +267,13 @@ const SingleCharityPageComponent: FC<IProps> = ({
         { id: 'core-area-4', statusKey: 'coreArea4', reviewKey: 'core4' },
     ] as const
 
+    const roleByAudit: Record<typeof auditMeta[number]['id'], 'project-manager' | 'finance-auditor' | 'zakat-auditor'> = {
+        'core-area-1': 'project-manager',
+        'core-area-2': 'finance-auditor',
+        'core-area-3': 'zakat-auditor',
+        'core-area-4': 'project-manager',
+    }
+
     const getReview = (key: typeof auditMeta[number]['reviewKey']) => {
         return reviews ? (reviews as any)[key] : undefined
     }
@@ -280,15 +290,14 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const pendingAudits = auditMeta.filter(item => !isAuditComplete(getAuditStatus(item.statusKey, item.reviewKey)))
 
     const getAssignedNamesForAudit = (auditId: typeof auditMeta[number]['id']) => {
-        const roleByAudit: Record<typeof auditMeta[number]['id'], 'project-manager' | 'finance-auditor' | 'zakat-auditor'> = {
-            'core-area-1': 'project-manager',
-            'core-area-2': 'finance-auditor',
-            'core-area-3': 'zakat-auditor',
-            'core-area-4': 'project-manager',
-        }
         const role = roleByAudit[auditId]
         const names = membersByRole.find(m => m.slug === role)?.names ?? []
         return names.length ? names.join(', ') : 'Unassigned'
+    }
+
+    const isCurrentUserAssignedToRole = (role: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
+        if (!currentUserId) return false
+        return members.some(member => member.role === role && member.id === currentUserId)
     }
 
     const assignSingleRole = async (userId: string, roleSlug: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
@@ -643,6 +652,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                     const needsProjectManager = isCore1Or4 && !projectManagerAssigned
                                                     const needsFinanceAuditor = item.id === 'core-area-2' && !financeAuditorAssigned
                                                     const needsZakatAuditor = item.id === 'core-area-3' && !zakatAuditorAssigned
+                                                    const requiredRole = roleByAudit[item.id]
+                                                    const canStartAudit = canSubmitAudit && isCurrentUserAssignedToRole(requiredRole)
                                                     const assignmentAction = needsProjectManager
                                                         ? {
                                                             label: 'Assign Project Manager',
@@ -684,15 +695,15 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                     >
                                                                         {assignmentAction.label}
                                                                     </Button>
-                                                                ) : (
+                                                                ) : canStartAudit ? (
                                                                     <Button
                                                                         variant="outline"
                                                                         onClick={() => handleTask(item.id as TaskIds)}
-                                                                        disabled={!canSubmitAudit || (pendingTaskId === item.id && isTaskPending)}
+                                                                        disabled={pendingTaskId === item.id && isTaskPending}
                                                                     >
                                                                         Start
                                                                     </Button>
-                                                                )}
+                                                                ) : null}
                                                             </div>
                                                         </div>
                                                     )

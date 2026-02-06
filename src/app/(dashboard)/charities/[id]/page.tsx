@@ -1,6 +1,6 @@
 import SingleCharityPageComponent from '@/components/use-case/SingleCharityPageComponent'
 import { getCharityAction } from '@/app/actions/charities'
-import { listUsersAction } from '@/app/actions/users'
+import { getMeAction, listUsersAction } from '@/app/actions/users'
 import React from 'react'
 import { SingleCharityType } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
 
@@ -9,11 +9,12 @@ import { SingleCharityType } from '@/components/use-case/CharitiesPageComponent/
 const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params
 
-    const [res, pmUsersRes, financeUsersRes, zakatUsersRes] = await Promise.all([
+    const [res, pmUsersRes, financeUsersRes, zakatUsersRes, meRes] = await Promise.all([
         getCharityAction(id),
         listUsersAction({ limit: 200, role: 'project-manager' }),
         listUsersAction({ limit: 200, role: 'finance-auditor' }),
         listUsersAction({ limit: 200, role: 'zakat-auditor' }),
+        getMeAction(),
     ])
 
     if (!res.ok || !res.payload?.data?.data) {
@@ -45,6 +46,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
         financeAuditor: financeUsersRes.ok ? mapCandidates(financeUsersRes, 'finance-auditor') : [],
         zakatAuditor: zakatUsersRes.ok ? mapCandidates(zakatUsersRes, 'zakat-auditor') : [],
     };
+    const currentUserId = meRes.ok ? meRes.payload?.data?.id ?? null : null
     
     const charity: SingleCharityType = {
         id: c.id,
@@ -94,7 +96,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
 
 
     return (
-        <SingleCharityPageComponent {...charity} />
+        <SingleCharityPageComponent {...charity} currentUserId={currentUserId} />
     )
 }
 

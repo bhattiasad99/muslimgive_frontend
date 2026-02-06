@@ -1,5 +1,4 @@
 import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { LoaderCircle } from "lucide-react"
 
@@ -39,7 +38,6 @@ const buttonVariants = cva(
 
 type ButtonProps = React.ComponentProps<"button"> &
     VariantProps<typeof buttonVariants> & {
-        asChild?: boolean
         loading?: boolean
     }
 
@@ -49,14 +47,11 @@ function Button({
     size,
     loading,
     disabled: disabledProps,
-    asChild = false,
     ...props
 }: ButtonProps) {
-    const Comp = asChild ? Slot : "button"
-
     const isDisabled = Boolean(loading || disabledProps)
 
-    // Prevent clicks when loading even if rendered asChild
+    // Prevent clicks when loading
     const onClick =
         isDisabled
             ? (e: React.MouseEvent) => {
@@ -66,12 +61,11 @@ function Button({
             : props.onClick
 
     return (
-        <Comp
+        <button
             data-slot="button"
             className={cn(buttonVariants({ variant, size, className }))}
             aria-disabled={isDisabled || undefined}
-            // Only set the native disabled attribute when it's an actual <button>
-            {...(!asChild ? { disabled: isDisabled } : {})}
+            disabled={isDisabled}
             {...props}
             onClick={onClick}
         >
@@ -86,7 +80,7 @@ function Button({
                 />
             )}
             {props.children}
-        </Comp>
+        </button>
     )
 }
 

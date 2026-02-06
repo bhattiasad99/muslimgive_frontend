@@ -6,14 +6,23 @@ type IProps = {
     children: React.ReactNode,
     icon?: React.ReactNode,
     className?: string,
-    onClick?: () => void,
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void,
+    loading?: boolean,
 }
 
-const LightButtonComponent: FC<IProps> = ({ children, icon, className, onClick }) => {
+const LightButtonComponent: FC<IProps> = ({ children, icon, className, onClick, loading }) => {
     return (
-        <Button onClick={() => {
-            if (onClick) onClick()
-        }} variant="outline" className={cn('bg-[#F7F7F7] border border-[#E6E6E6] text-primary', className)}>{icon ? <span>{icon}</span> : null} {children}</Button>
+        <Button
+            onClick={(event) => {
+                if (onClick) onClick(event)
+            }}
+            loading={loading}
+            variant="outline"
+            className={cn('bg-[#F7F7F7] border border-[#E6E6E6] text-primary', className)}
+        >
+            {icon ? <span className="inline-flex items-center">{icon}</span> : null}
+            {children}
+        </Button>
     )
 }
 
