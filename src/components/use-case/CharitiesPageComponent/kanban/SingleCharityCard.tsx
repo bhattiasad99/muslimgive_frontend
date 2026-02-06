@@ -120,7 +120,13 @@ const SingleCharityCard: FC<IProps> = ({
                 }}
                 open={!!assignPMModelOpen}
             >
-                <AssignProjectManager onSelection={async (userId) => {
+                <AssignProjectManager
+                    users={members.map((member) => ({
+                        id: member.id,
+                        name: member.name,
+                        email: null,
+                    }))}
+                    onSelection={async (userId) => {
                     try {
                         const payload = [{
                             userId: userId,
@@ -142,9 +148,11 @@ const SingleCharityCard: FC<IProps> = ({
                         toast.error("An unexpected error occurred");
                     }
 
-                }} onCancel={() => {
+                    }}
+                    onCancel={() => {
                     handleCloseModel()
-                }} />
+                    }}
+                />
             </ModelComponentWithExternalControl>
         </>
     )

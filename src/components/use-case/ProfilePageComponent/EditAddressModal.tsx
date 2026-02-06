@@ -23,7 +23,7 @@ type IProps = {
 }
 
 const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave }) => {
-    const [country, setCountry] = useState('')
+    const [country, setCountry] = useState<AddressInfo['country']>('')
     const [postalCode, setPostalCode] = useState('')
     const [showConfirm, setShowConfirm] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
@@ -55,7 +55,7 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
         // Build payload with only changed fields (map country -> countryName for API)
         const changedPayload: UpdateMePayload = {}
         if (country !== capturedInitial.country) {
-            changedPayload.countryName = country ? country : null
+            changedPayload.countryName = country ? (country as CountriesInKebab) : null
         }
         if (postalCode !== capturedInitial.postalCode) changedPayload.postalCode = postalCode
 

@@ -125,8 +125,8 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
     // Note: The codes might vary by country but let's assume standard for now or check.
 
     const getValue = (code: string) => auditVals[code];
-    const isUk = country === 'united-kingdom' || country === 'uk';
-    const isUs = country === 'united-states' || country === 'usa' || country === 'us';
+    const isUk = country === 'united-kingdom';
+    const isUs = country === 'united-states';
 
     const getFieldCode = (field: 'giftAid' | 'link' | 'notes') => {
         if (isUk) {
