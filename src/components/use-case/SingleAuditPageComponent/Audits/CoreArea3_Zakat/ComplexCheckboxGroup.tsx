@@ -64,6 +64,11 @@ const ComplexCheckboxGroup: FC<IProps> = ({
         }
     }, [defaultStatus]);
 
+    const onUpdateRef = React.useRef(onUpdate);
+    useEffect(() => {
+        onUpdateRef.current = onUpdate;
+    }, [onUpdate]);
+
     // Sync to parent whenever local state changes
     useEffect(() => {
         if (isSyncingFromProps.current) {
@@ -71,7 +76,7 @@ const ComplexCheckboxGroup: FC<IProps> = ({
             return;
         }
 
-        onUpdate({
+        onUpdateRef.current({
             selectedOptions: selection,
             // Parent expects LinkAttached[] but our Preview expects string[]? 
             // The type definition says LinkAttached[] in this file, but index.tsx usage might need checking.
@@ -79,7 +84,7 @@ const ComplexCheckboxGroup: FC<IProps> = ({
             linksAdded: linksAdded.map(url => ({ label: 'Link', url })),
             commentsAdded: commentAdded
         })
-    }, [selection, linksAdded, commentAdded, onUpdate]);
+    }, [selection, linksAdded, commentAdded]);
 
     const handleAddLink = () => {
         if (newLink.trim()) {

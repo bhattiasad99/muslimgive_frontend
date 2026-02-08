@@ -48,17 +48,27 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
     };
     const currentUserId = meRes.ok ? meRes.payload?.data?.id ?? null : null
     
+    const members = (c.assignments || []).flatMap((a: any) => {
+        const userId = a.user?.id
+        const name = `${a.user?.firstName} ${a.user?.lastName}`.trim()
+        const roles = Array.isArray(a.roles) ? a.roles : []
+        if (!userId || roles.length === 0) {
+            return []
+        }
+        return roles.map((role: any) => ({
+            id: userId,
+            name,
+            profilePicture: null,
+            role: role?.slug || 'project-manager',
+        }))
+    })
+
     const charity: SingleCharityType = {
         id: c.id,
         charityTitle: c.name,
         charityOwnerName: c.submittedByName || (c.owner ? `${c.owner.firstName} ${c.owner.lastName}` : "-"),
         charityDesc: c.description || "",
-        members: (c.assignments || []).map((a: any) => ({
-            id: a.user?.id,
-            name: `${a.user?.firstName} ${a.user?.lastName}`,
-            profilePicture: null,
-            role: a.roles?.[0]?.slug || 'project-manager'
-        })),
+        members,
         comments: c.commentsCount || 0,
         auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
         status: c.status || 'unassigned',

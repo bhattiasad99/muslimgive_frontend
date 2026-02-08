@@ -646,7 +646,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                 <InfoRow label="Overall Score:" value={overallScoreLabel ?? '-'} />
                                 <InfoRow label="Pass / Fail:" value={passFailValue} />
                                 <div className="flex flex-col gap-2">
-                                    <LinkComponent to={`/reports/${charityId}`}>
+                                    <LinkComponent to={`/reports/${charityId}`} openInNewTab>
                                         <Button variant="outline" className="w-full">View Report</Button>
                                     </LinkComponent>
                                     {canManageCharity ? (
@@ -927,25 +927,19 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             </div>
                         ))
                     )}
-                    {isCurrentUserAssigned ? (
-                        <div className="flex flex-col gap-2">
-                            <textarea
-                                className="min-h-[90px] w-full rounded-md border border-[#E4E7EC] px-3 py-2 text-sm outline-none focus:border-[#84ADFF]"
-                                placeholder="Add a comment..."
-                                value={commentInput}
-                                onChange={(event) => setCommentInput(event.target.value)}
-                            />
-                            <div className="flex justify-end">
-                                <Button variant="primary" onClick={handleSubmitComment} disabled={isSubmittingComment}>
-                                    {isSubmittingComment ? 'Posting...' : 'Post Comment'}
-                                </Button>
-                            </div>
+                    <div className="flex flex-col gap-2">
+                        <textarea
+                            className="min-h-[90px] w-full rounded-md border border-[#E4E7EC] px-3 py-2 text-sm outline-none focus:border-[#84ADFF]"
+                            placeholder="Add a comment..."
+                            value={commentInput}
+                            onChange={(event) => setCommentInput(event.target.value)}
+                        />
+                        <div className="flex justify-end">
+                            <Button variant="primary" onClick={handleSubmitComment} disabled={isSubmittingComment}>
+                                {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+                            </Button>
                         </div>
-                    ) : (
-                        <TypographyComponent variant="caption" className="text-[#667085]">
-                            Only assigned team members can add comments.
-                        </TypographyComponent>
-                    )}
+                    </div>
                 </div>
             </CardComponent>
             <ModelComponentWithExternalControl title="Assign Project Manager"
