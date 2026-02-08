@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import { capitalizeWords, kebabToTitle } from '@/lib/helpers'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
 import LinkComponent from '@/components/common/LinkComponent'
-import { addCharityCommentAction, assignRolesToCharityAction, deleteCharityAction, listCharityCommentsAction, reassignRoleToCharityAction, startCharityReassessmentAction } from '@/app/actions/charities'
+import { addCharityCommentAction, assignRolesToCharityAction, deleteCharityAction, listCharityCommentsAction, reassignRoleToCharityAction, sendBulkEmailReportAction, startCharityReassessmentAction } from '@/app/actions/charities'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { Trash2 } from 'lucide-react'
 import ManageTeamModal from './models/ManageTeamModal'
@@ -149,6 +149,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
     const [showReassessModal, setShowReassessModal] = useState(false)
     const [isReassessing, setIsReassessing] = useState(false)
+    const [isSendingReportEmail, setIsSendingReportEmail] = useState(false)
     const { isAllowed } = usePermissions()
     const projectManagerCandidates = assignmentCandidatesByRole?.projectManager ?? []
     const financeAuditorCandidates = assignmentCandidatesByRole?.financeAuditor ?? []
@@ -468,6 +469,24 @@ const SingleCharityPageComponent: FC<IProps> = ({
         }
     }
 
+    const handleSendReportEmail = async () => {
+        if (!canManageCharity) return
+        setIsSendingReportEmail(true)
+        try {
+            const res = await sendBulkEmailReportAction({ charities: [charityId] })
+            if (res.ok) {
+                toast.success('Report email sent. Sequence started.')
+            } else {
+                toast.error(res.message || 'Failed to send report email.')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An unexpected error occurred.')
+        } finally {
+            setIsSendingReportEmail(false)
+        }
+    }
+
     const dropdownOptions = [
         canViewEmailLogs
             ? {
@@ -649,6 +668,16 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                     <LinkComponent to={`/reports/${charityId}`} openInNewTab>
                                         <Button variant="outline" className="w-full">View Report</Button>
                                     </LinkComponent>
+                                    {canManageCharity ? (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                            onClick={handleSendReportEmail}
+                                            disabled={isSendingReportEmail}
+                                        >
+                                            {isSendingReportEmail ? 'Sending...' : 'Send Report Email'}
+                                        </Button>
+                                    ) : null}
                                     {canManageCharity ? (
                                         <Button variant="outline" className="w-full" onClick={() => setShowReassessModal(true)}>
                                             Re-Assess
