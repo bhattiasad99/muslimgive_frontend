@@ -1,6 +1,6 @@
 'use server'
 
-import { _delete, _get, _getWithAccessToken, _patch, _post, getCookies } from "@/auth";
+import { _delete, _get, _getWithAccessToken, _patch, _post, authAdapter } from "@/auth";
 import { ResponseType } from "../lib/definitions";
 import type { CountriesInKebab } from "@/components/common/CountrySelectComponent/countries.types";
 import { unstable_cache } from 'next/cache';
@@ -84,7 +84,7 @@ export const listCharitiesAction = async (params: ListCharitiesParams, useCache 
 
     // Cache pending eligibility count for dashboard (30 second cache)
     if (useCache && params.status?.includes('pending-eligibility') && params.limit === 1) {
-        const { accessToken } = await getCookies();
+        const accessToken = await authAdapter.getToken();
         if (!accessToken) {
             return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }

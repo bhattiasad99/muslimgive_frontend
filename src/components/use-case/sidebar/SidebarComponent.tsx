@@ -3,7 +3,7 @@ import { Item, SidebarGroupComponent } from "./SidebarGroupComponent";
 import { PAGES, PageType } from "./pages";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import SignOutBtnInSidebar from "../sign-out-button-sidebar/SignOutBtnInSidebar";
-import { getCookies } from "@/auth/cookies";
+import { authAdapter } from "@/auth/adapters";
 import { redirect } from "next/navigation";
 import { isAllowed, toPermissionSet } from "@/lib/permissions";
 
@@ -18,8 +18,8 @@ type SideBarComponentProps = {
 }
 
 const SideBarComponent = async ({ permissions, isAdmin }: SideBarComponentProps) => {
-    const { accessToken } = await getCookies();
-    if (!accessToken) {
+    const token = await authAdapter.getToken();
+    if (!token) {
         redirect('/login')
     }
     const adminBypass = isAdmin;

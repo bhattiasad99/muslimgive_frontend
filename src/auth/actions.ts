@@ -1,11 +1,9 @@
 'use server'
-import { AUTH_COOKIE_LABEL } from './constants'
 import { LoginFormState, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema } from './forms'
 import { ResponseType, serverUrl } from '@/app/lib/definitions'
 import { clearAuthCookies } from './cookies'
 import { redirect } from 'next/navigation'
 import { _patch } from './methods'
-import { cookies } from 'next/headers'
 import { authAdapter } from './adapters'
 
 // tiny guard to avoid open redirect
@@ -59,15 +57,13 @@ export async function signIn(
 }
 
 export async function signOut(): Promise<{ ok: boolean; redirectTo: string }> {
-    const jar = await cookies()
-    const sid = jar.get(AUTH_COOKIE_LABEL)?.value
-
     try {
+        const authHeaders = await authAdapter.getAuthHeaders();
         await fetch(new URL('auth/logout', serverUrl).toString(), {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
-                ...(sid ? { cookie: `${AUTH_COOKIE_LABEL}=${encodeURIComponent(sid)}` } : {}),
+                ...authHeaders,
             },
             credentials: 'include',
             cache: 'no-store',

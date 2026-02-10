@@ -1,6 +1,6 @@
 'use server'
 
-import { _get, _delete, _post, _patch, _getWithAccessToken, getCookies } from "@/auth";
+import { _get, _delete, _post, _patch, _getWithAccessToken, authAdapter } from "@/auth";
 import { ResponseType } from "../lib/definitions";
 import { unstable_cache } from 'next/cache';
 
@@ -26,7 +26,7 @@ export const listRolesAction = async (): Promise<ResponseType> => {
  */
 export const listPermissionsAction = async (useCache = false): Promise<ResponseType> => {
     if (useCache) {
-        const { accessToken } = await getCookies();
+        const accessToken = await authAdapter.getToken();
         if (!accessToken) {
             return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
