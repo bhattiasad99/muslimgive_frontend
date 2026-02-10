@@ -11,9 +11,9 @@ export default async function DashboardScreensLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    // Avoid cached variants here to prevent cookies usage inside cache scope
-    const meRes = await getMeAction();
-    const permsRes = await listPermissionsAction();
+    // Use cached variants to avoid repeated API calls on every navigation
+    const meRes = await getMeAction(true);
+    const permsRes = await listPermissionsAction(true);
 
     const me = meRes.ok ? meRes.payload?.data : null;
     const isAdmin = Boolean(me?.isAdmin);

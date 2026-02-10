@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { middlewareFn } from "@/auth/middleware";
+import { middlewareFn } from "@/auth/middleware-optimized";
 
 export default async function middleware(req: NextRequest) {
     return middlewareFn(req);
