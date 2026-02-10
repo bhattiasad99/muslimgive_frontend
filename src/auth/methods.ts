@@ -1,220 +1,191 @@
-import { parse as parseSetCookie } from 'set-cookie-parser';
-import { getCookies, setSessionCookie } from "./cookies";
-import { AUTH_COOKIE_LABEL, SESSION_REFRESH_INTERVAL_MS } from "./constants";
 import { ResponseType, serverUrl } from "@/app/lib/definitions";
+import { authAdapter } from "./adapters";
+
+// ── types ───────────────────────────────────────────────────────
 
 export type RawResponse<T = any> = {
     res: Response;
     data: T | null;
 };
 
-const fetchFailed = (requireAuth: boolean, message = 'Backend unreachable'): ResponseType => {
+type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+
+// ── helpers ─────────────────────────────────────────────────────
+
+const buildUrl = (path: string): string => {
+    try {
+        return serverUrl ? new URL(path, serverUrl).toString() : path;
+    } catch {
+        return path;
+    }
+};
+
+const fetchFailed = (requireAuth: boolean, message = 'Backend unreachable'): ResponseType => ({
+    ok: false,
+    payload: null,
+    unauthenticated: requireAuth,
+    message,
+});
+
+const normalizeResponse = (res: Response, data: any): ResponseType => {
+    if (!res.ok || data?.error) {
+        const unauth = res.status === 401;
+        return {
+            ok: false,
+            payload: null,
+            unauthenticated: unauth,
+            message:
+                data?.message ||
+                data?.error?.message ||
+                (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
+        };
+    }
     return {
-        ok: false,
-        payload: null,
-        unauthenticated: requireAuth,
-        message,
+        ok: true,
+        payload: data,
+        unauthenticated: false,
+        message: data?.message || 'Success!',
     };
 };
 
-const setCookiesFromResponse = async (res: Response) => {
-    const setCookies = res.headers.getSetCookie?.()
-    if (!setCookies || setCookies.length === 0) return;
-    const parsed = parseSetCookie(setCookies, { map: true })
-    const sessionCookie = parsed[AUTH_COOKIE_LABEL]
-    if (!sessionCookie?.value) return;
-    await setSessionCookie(AUTH_COOKIE_LABEL, sessionCookie.value, {
-        httpOnly: sessionCookie.httpOnly,
-        secure: sessionCookie.secure,
-        sameSite: sessionCookie.sameSite as 'lax' | 'strict' | 'none' | undefined,
-        path: sessionCookie.path,
-        domain: sessionCookie.domain,
-        expires: sessionCookie.expires ? new Date(sessionCookie.expires) : undefined,
-        maxAge: sessionCookie.maxAge,
-    })
-}
+// ── core request functions ──────────────────────────────────────
 
-const maybeRefreshSession = async () => {
-    if (!serverUrl) return;
-    const { accessToken, refreshMarker } = await getCookies();
-    if (!accessToken) return;
+/**
+ * Low-level request returning the raw `Response` + parsed body.
+ * Used when callers need access to headers, status, etc.
+ */
+const _requestRaw = async <T = any>(
+    method: HttpMethod,
+    path: string,
+    body?: unknown,
+    requireAuth = true,
+): Promise<RawResponse<T>> => {
+    if (requireAuth) await authAdapter.maybeRefresh();
 
-    const lastRefreshMs = refreshMarker ? Number(refreshMarker) : 0;
-    if (Number.isFinite(lastRefreshMs) && Date.now() - lastRefreshMs < SESSION_REFRESH_INTERVAL_MS) {
-        return;
-    }
-
-    try {
-        const res = await fetch(new URL('auth/refresh', serverUrl).toString(), {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                cookie: `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`,
-            },
-            cache: 'no-store',
-        })
-        if (res.ok) {
-            await setCookiesFromResponse(res);
-        }
-    } catch {
-        // ignore refresh failures; request flow will handle auth errors
-    }
-}
-
-export const _getRaw = async (request: string, requireAuth = true): Promise<RawResponse> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
-
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
+    const url = buildUrl(path);
     const headers: Record<string, string> = { Accept: 'application/json' };
 
-    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+    if (requireAuth) {
+        Object.assign(headers, await authAdapter.getAuthHeaders());
+    }
+
+    if (body !== undefined) {
+        headers['Content-Type'] = 'application/json';
+    }
 
     try {
         const res = await fetch(url, {
-            method: 'GET',
+            method,
             headers,
             cache: 'no-store',
-        })
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
 
-        let data: any = null;
-        try { data = await res.json(); } catch { /* noop */ }
+        let data: T | null = null;
+        try { data = await res.json() as T; } catch { /* noop */ }
 
         return { res, data };
     } catch {
         return { res: new Response(null, { status: 503 }), data: null };
     }
-}
+};
 
-export const _postRaw = async (request: string, body: any, requireAuth = true): Promise<RawResponse> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
+/**
+ * High-level request returning the normalised `ResponseType` envelope.
+ * This is what server actions should use 99% of the time.
+ */
+const _request = async <T = any>(
+    method: HttpMethod,
+    path: string,
+    body?: unknown,
+    requireAuth = true,
+): Promise<ResponseType<T>> => {
+    if (requireAuth) await authAdapter.maybeRefresh();
 
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
-    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
-
-    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
-
-    try {
-        const res = await fetch(url, {
-            method: 'POST',
-            headers,
-            cache: 'no-store',
-            body: JSON.stringify(body)
-        })
-
-        let data: any = null;
-        try { data = await res.json(); } catch { /* noop */ }
-
-        return { res, data };
-    } catch {
-        return { res: new Response(null, { status: 503 }), data: null };
-    }
-}
-
-export const _patchRaw = async <K = any>(request: string, body: K, requireAuth = true): Promise<RawResponse> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
-
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
-    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
-
-    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
-
-    try {
-        const res = await fetch(url, {
-            method: 'PATCH',
-            headers,
-            cache: 'no-store',
-            body: JSON.stringify(body)
-        })
-
-        let data: any = null;
-        try { data = await res.json(); } catch { /* noop */ }
-
-        return { res, data };
-    } catch {
-        return { res: new Response(null, { status: 503 }), data: null };
-    }
-}
-
-export const _deleteRaw = async (request: string, requireAuth = true): Promise<RawResponse> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
-
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
+    const url = buildUrl(path);
     const headers: Record<string, string> = { Accept: 'application/json' };
 
-    if (requireAuth && accessToken) headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+    if (requireAuth) {
+        const authHeaders = await authAdapter.getAuthHeaders();
+        if (requireAuth && !Object.keys(authHeaders).length) {
+            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
+        }
+        Object.assign(headers, authHeaders);
+    }
 
+    if (body !== undefined) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    let res: Response;
     try {
-        const res = await fetch(url, {
-            method: 'DELETE',
+        res = await fetch(url, {
+            method,
             headers,
             cache: 'no-store',
-        })
-
-        let data: any = null;
-        try { data = await res.json(); } catch { /* noop */ }
-
-        return { res, data };
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
     } catch {
-        return { res: new Response(null, { status: 503 }), data: null };
-    }
-}
-
-export const _get = async (request: string, requireAuth = true): Promise<ResponseType> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
-
-    // Build URL safely
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
+        return fetchFailed(requireAuth);
     }
 
+    let data: any = null;
+    try { data = await res.json(); } catch { /* noop */ }
+
+    return normalizeResponse(res, data);
+};
+
+// ── public API (thin delegates) ─────────────────────────────────
+
+// -- normalised (ResponseType) variants ---
+export const _get = <T = any>(path: string, requireAuth = true) =>
+    _request<T>('GET', path, undefined, requireAuth);
+
+export const _post = <T = any>(path: string, body: any, requireAuth = true) =>
+    _request<T>('POST', path, body, requireAuth);
+
+export const _patch = <T = any>(path: string, body: any, requireAuth = true) =>
+    _request<T>('PATCH', path, body, requireAuth);
+
+export const _delete = <T = any>(path: string, requireAuth = true) =>
+    _request<T>('DELETE', path, undefined, requireAuth);
+
+// -- raw variants (need Response headers / status) ---
+export const _getRaw = <T = any>(path: string, requireAuth = true) =>
+    _requestRaw<T>('GET', path, undefined, requireAuth);
+
+export const _postRaw = <T = any>(path: string, body: any, requireAuth = true) =>
+    _requestRaw<T>('POST', path, body, requireAuth);
+
+export const _patchRaw = <T = any>(path: string, body: any, requireAuth = true) =>
+    _requestRaw<T>('PATCH', path, body, requireAuth);
+
+export const _deleteRaw = <T = any>(path: string, requireAuth = true) =>
+    _requestRaw<T>('DELETE', path, undefined, requireAuth);
+
+/**
+ * GET with an explicit token (used with `unstable_cache` where
+ * cookie reading is forbidden inside the cache callback).
+ */
+export const _getWithAccessToken = async <T = any>(
+    path: string,
+    accessToken?: string | null,
+    requireAuth = true,
+): Promise<ResponseType<T>> => {
+    const url = buildUrl(path);
     const headers: Record<string, string> = { Accept: 'application/json' };
 
     if (requireAuth) {
         if (!accessToken) {
             return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
         }
-        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
+        // Build auth header from explicit token (same format the adapter uses)
+        headers.cookie = `sid=${encodeURIComponent(accessToken)}`;
     }
 
     let res: Response;
     try {
-        res = await fetch(url, {
-            method: 'GET',
-            headers,
-            cache: 'no-store',
-        })
+        res = await fetch(url, { method: 'GET', headers, cache: 'no-store' });
     } catch {
         return fetchFailed(requireAuth);
     }
@@ -222,228 +193,5 @@ export const _get = async (request: string, requireAuth = true): Promise<Respons
     let data: any = null;
     try { data = await res.json(); } catch { /* noop */ }
 
-    if (!res.ok || data?.error) {
-        const unauth = res.status === 401;
-        return {
-            ok: false,
-            payload: null,
-            unauthenticated: unauth,
-            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
-        };
-    }
-
-    return {
-        ok: true,
-        payload: data,
-        unauthenticated: false,
-        message: data?.message || 'Success!'
-    };
-}
-
-export const _getWithAccessToken = async (request: string, accessToken?: string | null, requireAuth = true): Promise<ResponseType> => {
-    // Build URL safely
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
-    const headers: Record<string, string> = { Accept: 'application/json' };
-
-    if (requireAuth) {
-        if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-        }
-        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
-    }
-
-    let res: Response;
-    try {
-        res = await fetch(url, {
-            method: 'GET',
-            headers,
-            cache: 'no-store',
-        })
-    } catch {
-        return fetchFailed(requireAuth);
-    }
-
-    let data: any = null;
-    try { data = await res.json(); } catch { /* noop */ }
-
-    if (!res.ok || data?.error) {
-        const unauth = res.status === 401;
-        return {
-            ok: false,
-            payload: null,
-            unauthenticated: unauth,
-            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
-        };
-    }
-
-    return {
-        ok: true,
-        payload: data,
-        unauthenticated: false,
-        message: data?.message || 'Success!'
-    };
-}
-
-export const _post = async (request: string, body: any, requireAuth = true): Promise<ResponseType> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
-
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
-    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
-
-    if (requireAuth) {
-        if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-        }
-        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
-    }
-
-    let res: Response;
-    try {
-        res = await fetch(url, {
-            method: 'POST',
-            headers,
-            cache: 'no-store',
-            body: JSON.stringify(body)
-        })
-    } catch {
-        return fetchFailed(requireAuth);
-    }
-
-    let data: any = null;
-    try { data = await res.json(); } catch { /* noop */ }
-
-    if (!res.ok || data?.error) {
-        const unauth = res.status === 401;
-        return {
-            ok: false,
-            payload: null,
-            unauthenticated: unauth,
-            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
-        };
-    }
-
-    return {
-        ok: true,
-        payload: data,
-        unauthenticated: false,
-        message: data?.message || 'Success!'
-    };
-}
-
-export const _patch = async <K = any>(request: string, body: K, requireAuth = true): Promise<ResponseType> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
-
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
-    const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' };
-
-    if (requireAuth) {
-        if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-        }
-        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
-    }
-
-    let res: Response;
-    try {
-        res = await fetch(url, {
-            method: 'PATCH',
-            headers,
-            cache: 'no-store',
-            body: JSON.stringify(body)
-        })
-    } catch {
-        return fetchFailed(requireAuth);
-    }
-
-    let data: any = null;
-    try { data = await res.json(); } catch { /* noop */ }
-
-    if (!res.ok || data?.error) {
-        const unauth = res.status === 401;
-        return {
-            ok: false,
-            payload: null,
-            unauthenticated: unauth,
-            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
-        };
-    }
-
-    return {
-        ok: true,
-        payload: data,
-        unauthenticated: false,
-        message: data?.message || 'Success!'
-    };
-}
-
-export const _delete = async (request: string, requireAuth = true): Promise<ResponseType> => {
-    if (requireAuth) await maybeRefreshSession();
-    const { accessToken } = await getCookies();
-
-    let url: string
-    try {
-        url = serverUrl ? new URL(request, serverUrl).toString() : request
-    } catch {
-        url = request
-    }
-
-    const headers: Record<string, string> = { Accept: 'application/json' };
-
-    if (requireAuth) {
-        if (!accessToken) {
-            return { ok: false, payload: null, unauthenticated: true, message: 'Unauthorized' };
-        }
-        headers.cookie = `${AUTH_COOKIE_LABEL}=${encodeURIComponent(accessToken)}`;
-    }
-
-    let res: Response;
-    try {
-        res = await fetch(url, {
-            method: 'DELETE',
-            headers,
-            cache: 'no-store',
-        })
-    } catch {
-        return fetchFailed(requireAuth);
-    }
-
-    let data: any = null;
-    try { data = await res.json(); } catch { /* noop */ }
-
-    if (!res.ok || data?.error) {
-        const unauth = res.status === 401;
-        return {
-            ok: false,
-            payload: null,
-            unauthenticated: unauth,
-            message: data?.message || data?.error?.message || (unauth ? 'Unauthorized' : 'Internal Server Error, Please contact Admin'),
-        };
-    }
-
-    return {
-        ok: true,
-        payload: data,
-        unauthenticated: false,
-        message: data?.message || 'Success!'
-    };
-}
+    return normalizeResponse(res, data);
+};

@@ -1,28 +1,12 @@
 'use server'
-import { parse as parseSetCookie } from 'set-cookie-parser'
 import { AUTH_COOKIE_LABEL } from './constants'
 import { LoginFormState, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema } from './forms'
 import { ResponseType, serverUrl } from '@/app/lib/definitions'
-import { clearAuthCookies, setSessionCookie } from './cookies'
+import { clearAuthCookies } from './cookies'
 import { redirect } from 'next/navigation'
 import { _patch } from './methods'
 import { cookies } from 'next/headers'
-
-const setCookiesFn = async (res: Response) => {
-    const setCookies = res.headers.getSetCookie?.()
-    const parsed = parseSetCookie(setCookies, { map: true })
-    const sessionCookie = parsed[AUTH_COOKIE_LABEL]
-    if (!sessionCookie?.value) return { message: 'Internal Server Error, contact admin' }
-    await setSessionCookie(AUTH_COOKIE_LABEL, sessionCookie.value, {
-        httpOnly: sessionCookie.httpOnly,
-        secure: sessionCookie.secure,
-        sameSite: sessionCookie.sameSite as 'lax' | 'strict' | 'none' | undefined,
-        path: sessionCookie.path,
-        domain: sessionCookie.domain,
-        expires: sessionCookie.expires ? new Date(sessionCookie.expires) : undefined,
-        maxAge: sessionCookie.maxAge,
-    })
-}
+import { authAdapter } from './adapters'
 
 // tiny guard to avoid open redirect
 function safeInternalRedirect(dest: unknown, fallback = '/') {
@@ -64,7 +48,7 @@ export async function signIn(
             return { message: msg }
         }
 
-        await setCookiesFn(res)
+        await authAdapter.persistTokenFromResponse(res)
     } catch (e) {
         console.error(e)
         return { message: 'Server unreachable. Try again.' }
