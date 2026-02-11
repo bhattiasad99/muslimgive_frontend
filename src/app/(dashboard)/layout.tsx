@@ -3,6 +3,7 @@ import PermissionGate from '@/components/common/PermissionGate';
 import { PermissionsProvider } from '@/components/common/permissions-provider';
 import { getMeAction } from '@/app/actions/users';
 import { listPermissionsAction } from '@/app/actions/roles';
+import { listCharitiesAction } from '@/app/actions/charities';
 import { resolvePermissions } from '@/lib/permissions';
 import React from 'react'
 
@@ -11,9 +12,17 @@ export default async function DashboardScreensLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    // Use cached variants to avoid repeated API calls on every navigation
-    const meRes = await getMeAction(true);
-    const permsRes = await listPermissionsAction(true);
+    // Use cached variants and parallelize to reduce navigation latency
+    const [meRes, permsRes, pendingRes] = await Promise.all([
+        getMeAction(true),
+        listPermissionsAction(true),
+        listCharitiesAction({
+            status: ['pending-eligibility'],
+            pendingEligibilitySource: 'deep-scan',
+            page: 1,
+            limit: 1,
+        }, true),
+    ]);
 
     const me = meRes.ok ? meRes.payload?.data : null;
     const isAdmin = Boolean(me?.isAdmin);
@@ -28,9 +37,16 @@ export default async function DashboardScreensLayout({
 
     const resolvedPermissions = resolvePermissions(userPermissions, catalog);
 
+    const pendingPayload = pendingRes.ok ? (pendingRes.payload?.data as any) : null;
+    const pendingCount = pendingPayload?.data?.meta?.total ?? pendingPayload?.meta?.total ?? 0;
+
     return (
         <PermissionsProvider isAdmin={isAdmin} permissions={resolvedPermissions}>
-            <DashboardLayoutComponent permissions={resolvedPermissions} isAdmin={isAdmin}>
+            <DashboardLayoutComponent
+                permissions={resolvedPermissions}
+                isAdmin={isAdmin}
+                initialDeepScanCount={pendingCount}
+            >
                 <PermissionGate>
                     {children}
                 </PermissionGate>

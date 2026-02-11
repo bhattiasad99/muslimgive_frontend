@@ -2,32 +2,16 @@ import React from 'react'
 import SideBarComponent from '../sidebar/SidebarComponent'
 import AppbarComponent from '../appbar/AppbarComponent'
 import SidebarShell from '@/components/common/SidebarShell'
-import { listCharitiesAction } from '@/app/actions/charities'
 
 type IProps = {
     children: React.ReactNode
     permissions: string[]
     isAdmin: boolean
+    initialDeepScanCount?: number
 }
 
-const unwrap = <K,>(res: { ok: boolean; payload?: { data?: K | { data?: K } } | null }): K | null => {
-    if (!res.ok) return null
-    const data = res.payload?.data as any
-    if (data && typeof data === "object" && "data" in data) return data.data ?? null
-    return (data as K) ?? null
-}
-
-const DashboardLayoutComponent = async ({ children, permissions, isAdmin }: IProps) => {
-    // Use cached version for pending count - revalidates every 30 seconds
-    const pendingRes = await listCharitiesAction({
-        status: ['pending-eligibility'],
-        pendingEligibilitySource: 'deep-scan',
-        page: 1,
-        limit: 1,
-    }, true)
-    const pendingPayload = unwrap<{ meta?: { total?: number } }>(pendingRes)
-    const pendingCount = pendingPayload?.meta?.total ?? 0
-
+const DashboardLayoutComponent = async ({ children, permissions, isAdmin, initialDeepScanCount }: IProps) => {
+    const pendingCount = typeof initialDeepScanCount === "number" ? initialDeepScanCount : 0
     return (
         <SidebarShell>
             <main className='bg-white min-h-screen flex flex-col md:flex-row w-full'>
