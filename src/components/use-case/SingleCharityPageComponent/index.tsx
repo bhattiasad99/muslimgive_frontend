@@ -150,7 +150,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [showReassessModal, setShowReassessModal] = useState(false)
     const [isReassessing, setIsReassessing] = useState(false)
     const [isSendingReportEmail, setIsSendingReportEmail] = useState(false)
-    const { isAllowed } = usePermissions()
+    const { isAllowed, me } = usePermissions()
+    const effectiveUserId = currentUserId ?? me?.id ?? null
     const projectManagerCandidates = assignmentCandidatesByRole?.projectManager ?? []
     const financeAuditorCandidates = assignmentCandidatesByRole?.financeAuditor ?? []
     const zakatAuditorCandidates = assignmentCandidatesByRole?.zakatAuditor ?? []
@@ -330,10 +331,10 @@ const SingleCharityPageComponent: FC<IProps> = ({
     }
 
     const isCurrentUserAssignedToRole = (role: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
-        if (!currentUserId) return false
-        return members.some(member => member.role === role && member.id === currentUserId)
+        if (!effectiveUserId) return false
+        return members.some(member => member.role === role && member.id === effectiveUserId)
     }
-    const isCurrentUserAssigned = currentUserId ? members.some(member => member.id === currentUserId) : false
+    const isCurrentUserAssigned = effectiveUserId ? members.some(member => member.id === effectiveUserId) : false
     const auditActionLabel = reassessmentCycle && reassessmentCycle > 0 ? 'Re-Assess' : 'Start'
     const overallScoreLabel = typeof overallScorePercent === 'number' ? `${overallScorePercent}%` : null
 

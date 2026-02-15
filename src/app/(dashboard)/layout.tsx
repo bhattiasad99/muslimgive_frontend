@@ -41,7 +41,7 @@ export default async function DashboardScreensLayout({
     const pendingCount = pendingPayload?.data?.meta?.total ?? pendingPayload?.meta?.total ?? 0;
 
     return (
-        <PermissionsProvider isAdmin={isAdmin} permissions={resolvedPermissions}>
+        <PermissionsProvider isAdmin={isAdmin} me={me} permissions={resolvedPermissions}>
             <DashboardLayoutComponent
                 permissions={resolvedPermissions}
                 isAdmin={isAdmin}

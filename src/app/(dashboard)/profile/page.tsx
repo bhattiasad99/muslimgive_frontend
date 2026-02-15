@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import UserData from '@/components/use-case/UsersExpandableTable/UserData'
 import UpdatePasswordModal from '@/components/use-case/ProfilePageComponent/UpdatePasswordModal'
 import UpdateEmailModal from '@/components/use-case/ProfilePageComponent/UpdateEmailModal'
@@ -7,12 +7,29 @@ import EditPersonalInfoModal from '@/components/use-case/ProfilePageComponent/Ed
 import EditAddressModal from '@/components/use-case/ProfilePageComponent/EditAddressModal'
 import type { CountriesInKebab } from '@/components/common/CountrySelectComponent/countries.types'
 import type { Data, Role } from '@/components/use-case/UsersExpandableTable'
-import { getMeAction } from '@/app/actions/users'
-import { toast } from 'sonner'
 import DashboardSkeleton from '@/components/use-case/DashboardSkeleton'
 import { kebabToTitle } from '@/lib/helpers'
+import { usePermissions } from '@/components/common/permissions-provider'
+import type { UserProfile } from '@/app/lib/definitions'
+import { useRouter } from 'next/navigation'
+
+const mapMeToProfile = (u: UserProfile): Data => ({
+    id: u.id,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    email: u.email,
+    dateOfBirth: u.dateOfBirth || u.dob || '',
+    location: u.countryName || u.country || '-',
+    postalCode: u.postalCode || '',
+    roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
+    status: (u.isActive ? 'Active' : 'Inactive') as any,
+    requestingPasswordReset: u.requestingPasswordReset,
+})
 
 const MyProfile = () => {
+    const router = useRouter()
+    const { me } = usePermissions()
+
     // State for modals
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
@@ -23,37 +40,17 @@ const MyProfile = () => {
     const [profile, setProfile] = useState<Data | null>(null)
     const [isLoading, setIsLoading] = useState(true)
 
+    const mappedProfile = useMemo(() => (me ? mapMeToProfile(me) : null), [me])
+
     React.useEffect(() => {
-        const fetchProfile = async () => {
-            setIsLoading(true)
-            try {
-                const res = await getMeAction()
-                if (res.ok && res.payload?.data) {
-                    const u = res.payload.data;
-                    setProfile({
-                        id: u.id,
-                        firstName: u.firstName,
-                        lastName: u.lastName,
-                        email: u.email,
-                        dateOfBirth: u.dateOfBirth || u.dob || '',
-                        location: u.countryName || u.country || '-',
-                        postalCode: u.postalCode || '',
-                        roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
-                        status: (u.isActive ? 'Active' : 'Inactive') as any,
-                        requestingPasswordReset: u.requestingPasswordReset
-                    })
-                } else {
-                    toast.error(res.message || "Failed to load profile")
-                }
-            } catch (error) {
-                console.error(error)
-                toast.error("An error occurred while loading profile")
-            } finally {
-                setIsLoading(false)
-            }
+        if (!me) {
+            setIsLoading(false)
+            router.replace('/login?continue=/profile')
+            return
         }
-        fetchProfile()
-    }, [])
+        setProfile(mappedProfile)
+        setIsLoading(false)
+    }, [me, mappedProfile, router])
 
     if (isLoading) return <DashboardSkeleton />
     if (!profile) return <div className="p-6">Profile not found.</div>

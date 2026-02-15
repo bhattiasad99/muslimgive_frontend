@@ -66,7 +66,7 @@ export const SidebarGroupComponent: FC<SidebarGroupProps> = ({ label, options })
                         return (
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton variant={"default"} asChild>
-                                    <LinkComponent prefetch={false} className={cn("flex gap-3", isActive ? "font-bold text-primary" : "")} to={item.action.target}>
+                                    <LinkComponent className={cn("flex gap-3", isActive ? "font-bold text-primary" : "")} to={item.action.target}>
                                         <span>{item.icon}</span>
                                         <span>{item.title}</span>
                                     </LinkComponent>

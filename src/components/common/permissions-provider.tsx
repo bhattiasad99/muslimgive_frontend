@@ -1,12 +1,14 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useMemo } from "react";
+import type { UserProfile } from "@/app/lib/definitions";
 import type { PermissionId, PermissionRequirement } from "@/lib/permissions";
 import { findRouteRequirement, isAllowed, toPermissionSet } from "@/lib/permissions";
 import { ROUTE_REQUIREMENTS } from "@/lib/permissions-config";
 
 type PermissionsContextValue = {
     isAdmin: boolean;
+    me: UserProfile | null;
     permissions: PermissionId[];
     hasAny: (permissions?: PermissionId[]) => boolean;
     hasAll: (permissions?: PermissionId[]) => boolean;
@@ -18,11 +20,12 @@ const PermissionsContext = createContext<PermissionsContextValue | null>(null);
 
 type PermissionsProviderProps = {
     isAdmin: boolean;
+    me: UserProfile | null;
     permissions: PermissionId[];
     children: React.ReactNode;
 };
 
-export const PermissionsProvider = ({ isAdmin, permissions, children }: PermissionsProviderProps) => {
+export const PermissionsProvider = ({ isAdmin, me, permissions, children }: PermissionsProviderProps) => {
     const permissionSet = useMemo(() => toPermissionSet(permissions), [permissions]);
 
     const hasAny = useCallback(
@@ -52,13 +55,14 @@ export const PermissionsProvider = ({ isAdmin, permissions, children }: Permissi
     const value = useMemo(
         () => ({
             isAdmin,
+            me,
             permissions,
             hasAny,
             hasAll,
             isAllowed: isAllowedRequirement,
             canAccessPath,
         }),
-        [isAdmin, permissions, hasAny, hasAll, isAllowedRequirement, canAccessPath],
+        [isAdmin, me, permissions, hasAny, hasAll, isAllowedRequirement, canAccessPath],
     );
 
     return <PermissionsContext.Provider value={value}>{children}</PermissionsContext.Provider>;

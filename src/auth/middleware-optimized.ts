@@ -1,50 +1,15 @@
-// OPTIONAL OPTIMIZATION: Cached middleware session validation
-// This reduces the /auth/session API call overhead
-// Only use this if you're still experiencing slow middleware validation
-
 import { NextRequest, NextResponse } from "next/server";
-import { authAdapter } from "./adapters";
 
-// Simple in-memory cache for session validation
-// In production, consider Redis or a distributed cache
-const sessionCache = new Map<string, { valid: boolean; expiresAt: number }>();
-const CACHE_DURATION = 30 * 1000; // 30 seconds
-
-function getCachedSession(token: string): boolean | null {
-    const cached = sessionCache.get(token);
-    if (!cached) return null;
-    if (Date.now() > cached.expiresAt) {
-        sessionCache.delete(token);
-        return null;
-    }
-    return cached.valid;
-}
-
-function setCachedSession(token: string, valid: boolean) {
-    sessionCache.set(token, {
-        valid,
-        expiresAt: Date.now() + CACHE_DURATION
-    });
-
-    // Cleanup old entries (prevent memory leak)
-    if (sessionCache.size > 1000) {
-        const now = Date.now();
-        for (const [key, value] of sessionCache.entries()) {
-            if (now > value.expiresAt) {
-                sessionCache.delete(key);
-            }
-        }
-    }
-}
-
+// Fast middleware: only check for presence of the session cookie.
+// The backend remains the source of truth for auth/authorization.
 export const middlewareFn = async (req: NextRequest) => {
-    // Try the adapter first (handles route matching + validation)
-    const adapterResult = await authAdapter.handleMiddleware(req);
+    const token = req.cookies.get('sid')?.value;
 
-    // If adapter says "let it through" (null), no caching needed
-    // If adapter would redirect, we can add caching around it
-    if (adapterResult) {
-        return adapterResult;
+    if (!token) {
+        const url = new URL('/login', req.url);
+        const dest = req.nextUrl.pathname + req.nextUrl.search;
+        url.searchParams.set('continue', dest);
+        return NextResponse.redirect(url);
     }
 
     return NextResponse.next();
