@@ -37,6 +37,7 @@ export type UserProfile = {
     permissions?: string[];
     status: string;
     requestingPasswordReset: boolean;
+    profilePicture?: string;
 }
 
 export type ChangePasswordPayload = {

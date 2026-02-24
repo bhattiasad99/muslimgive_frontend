@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { updateMeAction, UpdateMePayload } from '@/app/actions/users'
 import { toast } from 'sonner'
+import { formatDateToYYYYMMDD } from '@/lib/helpers'
 
 type PersonalInfo = {
     firstName: string
@@ -28,6 +29,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
     const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
     const [showConfirm, setShowConfirm] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
+    const [errors, setErrors] = useState<{ firstName?: string, lastName?: string }>({})
     const [capturedInitial, setCapturedInitial] = useState<PersonalInfo>({
         firstName: '',
         lastName: '',
@@ -52,6 +54,20 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
     }, [firstName, lastName, dateOfBirth, capturedInitial])
 
     const handleUpdate = () => {
+        const newErrors: { firstName?: string, lastName?: string } = {}
+        if (!firstName.trim()) {
+            newErrors.firstName = 'First name is required'
+        }
+        if (!lastName.trim()) {
+            newErrors.lastName = 'Last name is required'
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
+
+        setErrors({})
         setShowConfirm(true)
     }
 
@@ -61,7 +77,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
         if (firstName !== capturedInitial.firstName) changedPayload.firstName = firstName
         if (lastName !== capturedInitial.lastName) changedPayload.lastName = lastName
         if (dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime()) {
-            changedPayload.dateOfBirth = dateOfBirth?.toISOString().split('T')[0]
+            changedPayload.dateOfBirth = formatDateToYYYYMMDD(dateOfBirth)
         }
 
         setIsUpdating(true)
@@ -107,15 +123,27 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                     label="First Name"
                     placeholder="Enter first name"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => {
+                        setFirstName(e.target.value)
+                        if (e.target.value.trim()) {
+                            setErrors(prev => ({ ...prev, firstName: undefined }))
+                        }
+                    }}
                 />
+                {errors.firstName && <p className="text-red-500 text-xs -mt-3">{errors.firstName}</p>}
 
                 <ControlledTextFieldComponent
                     label="Last Name"
                     placeholder="Enter last name"
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={(e) => {
+                        setLastName(e.target.value)
+                        if (e.target.value.trim()) {
+                            setErrors(prev => ({ ...prev, lastName: undefined }))
+                        }
+                    }}
                 />
+                {errors.lastName && <p className="text-red-500 text-xs -mt-3">{errors.lastName}</p>}
 
                 <div className="flex flex-col gap-1">
                     <Label className="text-sm">Date of Birth</Label>

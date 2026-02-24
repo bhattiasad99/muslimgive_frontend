@@ -17,6 +17,7 @@ export type Page = {
     permissions?: {
         anyOf?: string[];
         allOf?: string[];
+        adminOnly?: boolean;
     }
 }
 
@@ -58,7 +59,10 @@ export const PAGES: Page[] = [
         icon: <AccessControl />,
         type: 'admin',
         show: true,
-        permissions: { anyOf: [PERMISSIONS.ROLE_LIST, PERMISSIONS.ROLE_MANAGE, PERMISSIONS.ROLE_PERMISSIONS_ALL] },
+        permissions: {
+            adminOnly: true,
+            anyOf: [PERMISSIONS.ROLE_LIST, PERMISSIONS.ROLE_MANAGE, PERMISSIONS.ROLE_PERMISSIONS_ALL]
+        },
     },
     {
         name: 'email-logs',

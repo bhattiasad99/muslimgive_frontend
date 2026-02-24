@@ -32,7 +32,8 @@ export type Data = {
     postalCode: string
     roles: Role[]
     status: 'Active' | 'Inactive',
-    requestingPasswordReset: boolean
+    requestingPasswordReset: boolean,
+    profilePicture?: string
 }
 
 type IProps = {

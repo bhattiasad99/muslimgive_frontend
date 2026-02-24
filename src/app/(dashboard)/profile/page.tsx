@@ -8,7 +8,7 @@ import EditAddressModal from '@/components/use-case/ProfilePageComponent/EditAdd
 import type { CountriesInKebab } from '@/components/common/CountrySelectComponent/countries.types'
 import type { Data, Role } from '@/components/use-case/UsersExpandableTable'
 import DashboardSkeleton from '@/components/use-case/DashboardSkeleton'
-import { kebabToTitle } from '@/lib/helpers'
+import { kebabToTitle, formatDateToYYYYMMDD } from '@/lib/helpers'
 import { usePermissions } from '@/components/common/permissions-provider'
 import type { UserProfile } from '@/app/lib/definitions'
 import { useRouter } from 'next/navigation'
@@ -24,6 +24,7 @@ const mapMeToProfile = (u: UserProfile): Data => ({
     roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
     status: (u.isActive ? 'Active' : 'Inactive') as any,
     requestingPasswordReset: u.requestingPasswordReset,
+    profilePicture: u.profilePicture,
 })
 
 const MyProfile = () => {
@@ -90,7 +91,7 @@ const MyProfile = () => {
                         ...prev,
                         firstName: data.firstName,
                         lastName: data.lastName,
-                        dateOfBirth: data.dateOfBirth ? data.dateOfBirth.toISOString().split('T')[0] : ''
+                        dateOfBirth: formatDateToYYYYMMDD(data.dateOfBirth)
                     } : null)
                 }}
             />

@@ -27,6 +27,7 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
     const [postalCode, setPostalCode] = useState('')
     const [showConfirm, setShowConfirm] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
+    const [errors, setErrors] = useState<{ postalCode?: string }>({})
     const [capturedInitial, setCapturedInitial] = useState<AddressInfo>({
         country: '',
         postalCode: ''
@@ -48,6 +49,17 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
     }, [country, postalCode, capturedInitial])
 
     const handleUpdate = () => {
+        const newErrors: { postalCode?: string } = {}
+        if (!postalCode.trim()) {
+            newErrors.postalCode = 'Postal code is required'
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
+
+        setErrors({})
         setShowConfirm(true)
     }
 
@@ -110,8 +122,14 @@ const EditAddressModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave 
                         label="Postal Code"
                         placeholder="Enter postal code"
                         value={postalCode}
-                        onChange={(e) => setPostalCode(e.target.value)}
+                        onChange={(e) => {
+                            setPostalCode(e.target.value)
+                            if (e.target.value.trim()) {
+                                setErrors(prev => ({ ...prev, postalCode: undefined }))
+                            }
+                        }}
                     />
+                    {errors.postalCode && <p className="text-red-500 text-xs -mt-3">{errors.postalCode}</p>}
 
                     <div className="flex flex-col gap-3 mt-2">
                         <Button

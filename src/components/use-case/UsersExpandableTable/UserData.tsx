@@ -8,6 +8,7 @@ import UserCardLayout from './UserCardLayout';
 import { Button } from '@/components/ui/button';
 import EditIcon from '@/components/common/IconComponents/EditIcon';
 import SimpleCardDataFormat from './SimpleCardDataFormat';
+import ProfilePictureUpload from '../ProfilePageComponent/ProfilePictureUpload';
 
 type IProps = Data & {
     onEditPersonalInfo?: () => void;
@@ -28,6 +29,7 @@ const UserData: FC<IProps> = ({
     roles,
     status,
     requestingPasswordReset,
+    profilePicture,
     onEditPersonalInfo,
     onEditAddress,
     onChangePassword,
@@ -38,7 +40,12 @@ const UserData: FC<IProps> = ({
     return (
         <div className='p-4 flex flex-col gap-6 lg:flex-row'>
             <div className="w-full lg:min-w-[342px] flex flex-col gap-4">
-                <AvatarComponent fallback={`${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`} />
+                <ProfilePictureUpload
+                    firstName={firstName}
+                    lastName={lastName}
+                    profilePicture={profilePicture}
+                    editable={showEditButtons}
+                />
                 <span className='text-2xl font-semibold'>{capitalizeWords(firstName)} {capitalizeWords(lastName)}</span>
                 <span className='text-[#666E76] '>{email}</span>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -50,7 +57,7 @@ const UserData: FC<IProps> = ({
                             {id}
                         </span>
                     </div>
-                    <button 
+                    <button
                         className='bg-[rgba(187,201,222,0.2)] border border-[rgba(0,0,0,0.1)] rounded-2xl h-full px-4'
                         onClick={() => navigator.clipboard.writeText(id)}
                     >
@@ -59,7 +66,7 @@ const UserData: FC<IProps> = ({
                 </div>
                 {requestingPasswordReset ? <Button variant={"primary"} className='w-full'>Requesting Password Reset</Button> : null}
                 {onChangePassword && showEditButtons ? (
-                    <Button 
+                    <Button
                         variant="primary"
                         className='w-full'
                         onClick={onChangePassword}
@@ -78,7 +85,7 @@ const UserData: FC<IProps> = ({
                 ) : null}
             </div>
             <div className="w-full flex flex-col gap-6">
-                <UserCardLayout 
+                <UserCardLayout
                     headingText='Personal Information'
                     action={onEditPersonalInfo && showEditButtons ? (
                         <Button
@@ -103,7 +110,7 @@ const UserData: FC<IProps> = ({
                         }
                     ]} />
                 </UserCardLayout>
-                <UserCardLayout 
+                <UserCardLayout
                     headingText='Address'
                     action={onEditAddress && showEditButtons ? (
                         <Button

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { CORE_AREA_2_FORMS } from '@/lib/audit-forms/core-area-2'
 import { Question } from '@/lib/audit-forms/types'
+import { formatDateToYYYYMMDD } from '@/lib/helpers'
 
 type IProps = {
     location: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
@@ -193,7 +194,7 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
                     }
                 } else if (q.type === 'date' && val instanceof Date) {
                     // Format date as YYYY-MM-DD
-                    answers[key] = val.toISOString().split('T')[0];
+                    answers[key] = formatDateToYYYYMMDD(val);
                 } else {
                     answers[key] = val;
                 }

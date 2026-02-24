@@ -14,9 +14,14 @@ import CountrySelectComponent from '@/components/common/CountrySelectComponent'
 import type { CountriesInKebab } from '@/components/common/CountrySelectComponent/countries.types'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import EligibilitySuggestionCard, { buildEligibilitySuggestion } from '@/components/common/EligibilitySuggestionCard'
+import { LogoUploadComponent } from '@/components/common/LogoUploadComponent'
+import { uploadCharityLogoAction } from '@/app/actions/charities'
+import { toast } from 'sonner'
 
 const CreateCharityStandalonePage = () => {
     const [name, setName] = useState('')
+    const [logoUrl, setLogoUrl] = useState('')
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false)
     const [assessmentRequested, setAssessmentRequested] = useState(false)
     const [country, setCountry] = useState<CountriesInKebab | ''>('')
     const [category, setCategory] = useState<string>('')
@@ -70,6 +75,9 @@ const CreateCharityStandalonePage = () => {
             try {
                 const parsed = JSON.parse(decodeURIComponent(raw))
                 if (parsed.name) setName(parsed.name)
+                if (parsed.logoUrl) {
+                    setLogoUrl(parsed.logoUrl)
+                }
                 if (parsed.assessmentRequested) setAssessmentRequested(Boolean(parsed.assessmentRequested))
                 if (parsed.countryCode) setCountry(parsed.countryCode)
                 if (parsed.category) setCategory(parsed.category)
@@ -100,6 +108,30 @@ const CreateCharityStandalonePage = () => {
             }
         }
     }, [searchParams])
+
+    const handleLogoUpload = async (file: File) => {
+        setIsUploadingLogo(true)
+        
+        try {
+            const res = await uploadCharityLogoAction(file)
+            if (res.ok && res.payload?.data?.url) {
+                const uploadedUrl = res.payload.data.url
+                setLogoUrl(uploadedUrl)
+                toast.success('Logo uploaded successfully!')
+            } else {
+                toast.error(res.message || 'Failed to upload logo')
+            }
+        } catch (error) {
+            console.error('Error uploading logo:', error)
+            toast.error('An error occurred while uploading the logo')
+        } finally {
+            setIsUploadingLogo(false)
+        }
+    }
+
+    const handleLogoRemove = () => {
+        setLogoUrl('')
+    }
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -155,6 +187,7 @@ const CreateCharityStandalonePage = () => {
 
         const payload = {
             name,
+            logoUrl: logoUrl || null,
             assessmentRequested,
             countryCode: country,
             category,
@@ -189,6 +222,19 @@ const CreateCharityStandalonePage = () => {
                             <Label htmlFor="charity-name" className="text-sm">Name of Charity <span className="text-red-500">*</span></Label>
                             <ControlledTextFieldComponent id="charity-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="" required />
                             {errors.name ? <div className="text-xs text-red-500 mt-1">{errors.name}</div> : null}
+                        </div>
+
+                        <div className="max-w-sm">
+                            <LogoUploadComponent
+                                label="Charity Logo (Optional)"
+                                description="Upload a logo for the charity"
+                                value={logoUrl}
+                                onFileUpload={handleLogoUpload}
+                                onRemove={handleLogoRemove}
+                                isUploading={isUploadingLogo}
+                                accept={['image/png', 'image/jpeg', 'image/jpg']}
+                                maxSizeBytes={5 * 1024 * 1024}
+                            />
                         </div>
 
                         <div className="flex items-center gap-3">

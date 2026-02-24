@@ -39,15 +39,14 @@ export const PermissionsProvider = ({ isAdmin, me, permissions, children }: Perm
     );
 
     const isAllowedRequirement = useCallback(
-        (requirement?: PermissionRequirement) => (isAdmin ? true : isAllowed(permissionSet, requirement)),
+        (requirement?: PermissionRequirement) => isAllowed(permissionSet, requirement, isAdmin),
         [isAdmin, permissionSet],
     );
 
     const canAccessPath = useCallback(
         (pathname: string) => {
-            if (isAdmin) return true;
             const requirement = findRouteRequirement(pathname, ROUTE_REQUIREMENTS);
-            return isAllowed(permissionSet, requirement);
+            return isAllowed(permissionSet, requirement, isAdmin);
         },
         [isAdmin, permissionSet],
     );

@@ -69,16 +69,17 @@ const _requestRaw = async <T = any>(
         Object.assign(headers, await authAdapter.getAuthHeaders());
     }
 
-    if (body !== undefined) {
+    const isFormData = body instanceof FormData;
+    if (body !== undefined && !isFormData) {
         headers['Content-Type'] = 'application/json';
     }
 
     try {
         const res = await fetch(url, {
             method,
-            headers,
+            headers: isFormData ? { ...headers } : headers,
             cache: 'no-store',
-            body: body !== undefined ? JSON.stringify(body) : undefined,
+            body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
         });
 
         let data: T | null = null;
@@ -113,7 +114,8 @@ const _request = async <T = any>(
         Object.assign(headers, authHeaders);
     }
 
-    if (body !== undefined) {
+    const isFormData = body instanceof FormData;
+    if (body !== undefined && !isFormData) {
         headers['Content-Type'] = 'application/json';
     }
 
@@ -123,7 +125,7 @@ const _request = async <T = any>(
             method,
             headers,
             cache: 'no-store',
-            body: body !== undefined ? JSON.stringify(body) : undefined,
+            body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
         });
     } catch {
         return fetchFailed(requireAuth);

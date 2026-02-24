@@ -30,6 +30,7 @@ export type ListCharitiesParams = {
  */
 export type CreateCharityPayload = {
     name: string;
+    logoUrl?: string | null;
     assessmentRequested: boolean;
     isIslamic: boolean;
     doesCharityGiveZakat: boolean;
@@ -105,6 +106,16 @@ export const listCharitiesAction = async (params: ListCharitiesParams, useCache 
  */
 export const getCharityAction = async (id: string): Promise<ResponseType> => {
     return await _get(`/charities/${id}`);
+}
+
+/**
+ * POST /charities/upload-logo
+ * Uploads a charity logo and returns the URL
+ */
+export const uploadCharityLogoAction = async (file: File): Promise<ResponseType> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return await _post('/charities/upload-logo', formData);
 }
 
 /**

@@ -92,6 +92,7 @@ export enum CountryEnum {
 export type SingleCharityType = {
     id: string
     charityTitle: string
+    logoUrl?: string | null
     charityOwnerName: string
     charityDesc: string
     members: Member[]

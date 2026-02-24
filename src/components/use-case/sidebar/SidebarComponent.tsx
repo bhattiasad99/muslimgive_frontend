@@ -7,6 +7,8 @@ import { authAdapter } from "@/auth/adapters";
 import { redirect } from "next/navigation";
 import { isAllowed, toPermissionSet } from "@/lib/permissions";
 
+import LinkComponent from "@/components/common/LinkComponent";
+
 type MenuItemType = {
     title: string,
     items: Item[]
@@ -28,7 +30,7 @@ const SideBarComponent = async ({ permissions, isAdmin }: SideBarComponentProps)
     const buildPages = (name: PageType) => PAGES
         .filter(eachPage => eachPage.show)
         .filter(eachPage => eachPage.type === name)
-        .filter(eachPage => adminBypass || isAllowed(permissionSet, eachPage.permissions))
+        .filter(eachPage => isAllowed(permissionSet, eachPage.permissions, isAdmin))
         .map(page => ({
             name: page.name,
             title: page.heading,
@@ -60,7 +62,9 @@ const SideBarComponent = async ({ permissions, isAdmin }: SideBarComponentProps)
             <Sidebar>
                 <SidebarContent>
                     <div className="pt-5 px-3" >
-                        <ImageComponent source="/logo__white.png" alt="MuslimGive Logo" height={30} width={120} priority />
+                        <LinkComponent to="/charities">
+                            <ImageComponent source="/logo__white.png" alt="MuslimGive Logo" height={30} width={120} priority />
+                        </LinkComponent>
                     </div>
                     <div className="flex flex-col gap-2 grow">
                         {menu.map(eachMenuItem => {

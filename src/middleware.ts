@@ -13,5 +13,6 @@ export const config = {
         "/access-control/:path*",
         "/email-logs/:path*",
         "/create-charity/:path*",
+        "/reports/:path*",
     ],
 };

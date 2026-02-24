@@ -103,6 +103,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     charityDesc,
     charityOwnerName,
     charityTitle,
+    logoUrl,
     id: charityId,
     members,
     status,
@@ -525,11 +526,22 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
                     <CardComponent className="w-full border-[#D9E4F2] bg-gradient-to-b from-[#F8FCFF] to-white">
                         <div className="flex items-start justify-between gap-3">
-                            <div className="flex flex-col gap-1">
-                                <TypographyComponent variant='h1'>{charityTitle}</TypographyComponent>
-                                <TypographyComponent variant='body2' className="text-[#5A6472]">
-                                    Submitted by {charityOwnerName}
-                                </TypographyComponent>
+                            <div className="flex items-start gap-3 flex-1">
+                                {logoUrl ? (
+                                    <div className="flex-shrink-0 w-16 h-16 border rounded-md overflow-hidden bg-white">
+                                        <img 
+                                            src={logoUrl} 
+                                            alt={`${charityTitle} logo`}
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+                                ) : null}
+                                <div className="flex flex-col gap-1">
+                                    <TypographyComponent variant='h1'>{charityTitle}</TypographyComponent>
+                                    <TypographyComponent variant='body2' className="text-[#5A6472]">
+                                        Submitted by {charityOwnerName}
+                                    </TypographyComponent>
+                                </div>
                             </div>
                             <IconDropdownMenuComponent
                                 className='rounded-full border-[#E6E6E6] shadow-none border bg-white'

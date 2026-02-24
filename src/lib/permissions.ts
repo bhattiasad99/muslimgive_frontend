@@ -8,6 +8,7 @@ export type PermissionNode = {
 export type PermissionRequirement = {
     anyOf?: PermissionId[];
     allOf?: PermissionId[];
+    adminOnly?: boolean;
 };
 
 export type RouteRequirement = {
@@ -59,8 +60,11 @@ export const hasAll = (permissionSet: Set<PermissionId>, permissions: Permission
 export const isAllowed = (
     permissionSet: Set<PermissionId>,
     requirement?: PermissionRequirement,
+    isAdmin: boolean = false,
 ): boolean => {
+    if (isAdmin) return true;
     if (!requirement) return true;
+    if (requirement.adminOnly && !isAdmin) return false;
     if (requirement.allOf && !hasAll(permissionSet, requirement.allOf)) return false;
     if (requirement.anyOf && !hasAny(permissionSet, requirement.anyOf)) return false;
     return true;

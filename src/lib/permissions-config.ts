@@ -69,6 +69,7 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     {
         pattern: /^\/config$/,
         requirement: {
+            adminOnly: true,
             anyOf: [
                 PERMISSIONS.ROLE_LIST,
                 PERMISSIONS.ROLE_MANAGE,

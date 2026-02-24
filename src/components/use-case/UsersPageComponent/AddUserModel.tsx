@@ -9,6 +9,7 @@ import MultiSelectComboboxComponent from '@/components/common/MultiSelectCombobo
 import { createMgMemberAction } from '@/app/actions/users'
 import { listRolesAction } from '@/app/actions/roles'
 import { toast } from 'sonner'
+import { formatDateToYYYYMMDD } from '@/lib/helpers'
 
 type IProps = {
     onClose?: () => void
@@ -86,7 +87,7 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
             firstName: user.firstName.value,
             lastName: user.lastName.value,
             email: user.email.value,
-            dateOfBirth: user.dob.value ? new Date(user.dob.value).toISOString().split('T')[0] : undefined, // Format: YYYY-MM-DD
+            dateOfBirth: formatDateToYYYYMMDD(user.dob.value), // Format: YYYY-MM-DD
             countryName: user.country.value,
             postalCode: user.postalcode.value,
             roles: user.roles.value,

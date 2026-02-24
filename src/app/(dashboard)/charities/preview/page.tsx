@@ -55,6 +55,7 @@ const PreviewCharityPage = () => {
         return {
             id: 'preview',
             charityTitle: parsed.name || 'Untitled Charity',
+            logoUrl: parsed.logoUrl ?? null,
             charityOwnerName: parsed.submittedByName || '-',
             charityDesc: '',
             members: [],
@@ -97,7 +98,20 @@ const PreviewCharityPage = () => {
 
             <div className="flex flex-col gap-6 xl:flex-row xl:gap-[77px]">
                 <div className="w-full xl:w-[675px] flex flex-col gap-4 items-start">
-                    <TypographyComponent variant="h1">{charity.charityTitle}</TypographyComponent>
+                    <div className="flex items-start gap-3">
+                        {charity.logoUrl ? (
+                            <div className="flex-shrink-0 w-16 h-16 border rounded-md overflow-hidden bg-white">
+                                <img 
+                                    src={charity.logoUrl} 
+                                    alt={`${charity.charityTitle} logo`}
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                        ) : null}
+                        <div className="flex-1">
+                            <TypographyComponent variant="h1">{charity.charityTitle}</TypographyComponent>
+                        </div>
+                    </div>
                     <div className="flex flex-col gap-2">
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
                             <TypographyComponent variant='caption' className="w-32 sm:w-[178px] text-[#666E76]">Submitted By:</TypographyComponent>
@@ -124,6 +138,7 @@ const PreviewCharityPage = () => {
                                 : parsed.category
                             const payload = {
                                 name: parsed.name,
+                                logoUrl: parsed.logoUrl ?? null,
                                 assessmentRequested: Boolean(parsed.assessmentRequested),
                                 countryCode: parsed.countryCode,
                                 category: resolvedCategory,

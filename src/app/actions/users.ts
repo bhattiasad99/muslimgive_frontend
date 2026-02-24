@@ -3,7 +3,7 @@
 import { _get, _getWithAccessToken, _patch, _post, authAdapter } from "@/auth";
 import { ChangePasswordPayload, ResponseType, UserProfile } from "../lib/definitions";
 import type { CountriesInKebab } from "@/components/common/CountrySelectComponent/countries.types";
-import { unstable_cache } from 'next/cache';
+import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
 
 export type CreateMgMemberPayload = {
     firstName: string;
@@ -156,4 +156,17 @@ export const resendEmailChangeAction = async (payload: RequestEmailChangePayload
  */
 export const verifyEmailChangeAction = async (payload: VerifyEmailChangePayload): Promise<ResponseType> => {
     return await _post('/users/email-change/verify', payload);
+}
+
+/**
+ * PATCH /users/me/profile-picture
+ * Updates the currently logged-in user's profile picture
+ */
+export const updateProfilePictureAction = async (formData: FormData): Promise<ResponseType> => {
+    const res = await _patch('/users/me/profile-picture', formData);
+    if (res.ok) {
+        revalidateTag('user-me');
+        revalidatePath('/');
+    }
+    return res;
 }

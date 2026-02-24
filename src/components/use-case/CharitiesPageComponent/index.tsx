@@ -85,6 +85,7 @@ const CharitiesPageComponent = () => {
                 const mapped: SingleCharityType[] = Array.isArray(rawCharities) ? rawCharities.map((c: any) => ({
                     id: c.id,
                     charityTitle: c.name,
+                    logoUrl: c.logoUrl ?? null,
                     charityOwnerName: c.submittedByName || [c.owner?.firstName, c.owner?.lastName].filter(Boolean).join(' ') || "-",
                     charityDesc: c.description || "",
                     members: (c.assignments || []).map((a: any) => ({
