@@ -24,7 +24,7 @@ export default async function DashboardScreensLayout({
         }, true),
     ]);
 
-    const me = meRes.ok ? meRes.payload?.data : null;
+    const me = meRes.ok ? (meRes.payload?.data ?? null) : null;
     const isAdmin = Boolean(me?.isAdmin);
     const userPermissions = Array.isArray(me?.permissions) ? me.permissions : [];
 
