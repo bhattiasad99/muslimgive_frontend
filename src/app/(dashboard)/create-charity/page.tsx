@@ -17,6 +17,7 @@ import EligibilitySuggestionCard, { buildEligibilitySuggestion } from '@/compone
 import { LogoUploadComponent } from '@/components/common/LogoUploadComponent'
 import { uploadCharityLogoAction } from '@/app/actions/charities'
 import { toast } from 'sonner'
+import { getCurrencySymbol, getCurrencyCode } from '@/lib/utils'
 
 const CreateCharityStandalonePage = () => {
     const [name, setName] = useState('')
@@ -59,8 +60,9 @@ const CreateCharityStandalonePage = () => {
             assessmentRequested,
             startDate: startDateType === 'date' ? startDate : null,
             startYear: startDateType === 'year' ? startYear : null,
+            countryCode: country,
         })
-    }, [annualRevenue, isIslamic, category, assessmentRequested, startDateType, startDate, startYear])
+    }, [annualRevenue, isIslamic, category, assessmentRequested, startDateType, startDate, startYear, country])
 
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -111,7 +113,7 @@ const CreateCharityStandalonePage = () => {
 
     const handleLogoUpload = async (file: File) => {
         setIsUploadingLogo(true)
-        
+
         try {
             const res = await uploadCharityLogoAction(file)
             if (res.ok && res.payload?.data?.url) {
@@ -414,7 +416,10 @@ const CreateCharityStandalonePage = () => {
                         </div>
 
                         <div className="max-w-sm">
-                            <Label htmlFor="annual-revenue" className="text-sm">Annual revenue  (in $ USD)<span className="text-red-500">*</span></Label>
+                            <Label htmlFor="annual-revenue" className="text-sm">
+                                Annual revenue (in {getCurrencySymbol(country)} {getCurrencyCode(country)})
+                                <span className="text-red-500">*</span>
+                            </Label>
                             <ControlledTextFieldComponent id="annual-revenue" value={annualRevenue} onChange={(e) => setAnnualRevenue(e.target.value)} placeholder="" type="number" />
                             {errors.annualRevenue ? <div className="text-xs text-red-500 mt-1">{errors.annualRevenue}</div> : null}
                         </div>

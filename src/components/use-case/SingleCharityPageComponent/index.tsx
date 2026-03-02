@@ -21,6 +21,7 @@ import ModelComponentWithExternalControl from '@/components/common/ModelComponen
 import AssignProjectManager from './models/AssignProjectManager'
 import { toast } from 'sonner'
 import { capitalizeWords, kebabToTitle } from '@/lib/helpers'
+import { getCurrencySymbol } from '@/lib/utils'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
 import LinkComponent from '@/components/common/LinkComponent'
 import { addCharityCommentAction, assignRolesToCharityAction, deleteCharityAction, listCharityCommentsAction, reassignRoleToCharityAction, sendBulkEmailReportAction, startCharityReassessmentAction } from '@/app/actions/charities'
@@ -529,8 +530,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             <div className="flex items-start gap-3 flex-1">
                                 {logoUrl ? (
                                     <div className="flex-shrink-0 w-16 h-16 border rounded-md overflow-hidden bg-white">
-                                        <img 
-                                            src={logoUrl} 
+                                        <img
+                                            src={logoUrl}
                                             alt={`${charityTitle} logo`}
                                             className="w-full h-full object-contain"
                                         />
@@ -726,7 +727,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             <InfoRow label="Start Date:" value={startDate ? formatStableDate(startDate) : '-'} />
                             {!startDate ? <InfoRow label="Start Year:" value={startYear ?? '-'} /> : null}
                             <InfoRow label="Assessment Requested:" value={assessmentRequested ? 'Yes' : 'No'} />
-                            <InfoRow label="Annual Revenue:" value={typeof annualRevenue === 'number' ? annualRevenue.toLocaleString() : '-'} />
+                            <InfoRow label="Annual Revenue:" value={typeof annualRevenue === 'number' ? `${getCurrencySymbol(country)}${annualRevenue.toLocaleString()}` : '-'} />
                             <InfoRow label="Muslim Charity:" value={isThisMuslimCharity ? 'Yes' : 'No'} />
                             <InfoRow label="Pays Zakat:" value={doTheyPayZakat ? 'Yes' : 'No'} />
                         </div>
@@ -1050,6 +1051,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             assessmentRequested: Boolean(assessmentRequested),
                             startDate: startDate ?? null,
                             startYear: startYear ?? null,
+                            countryCode: country,
                         }}
                         onCancel={handleCloseModel}
                         onUpdated={() => {
@@ -1076,6 +1078,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             assessmentRequested: Boolean(assessmentRequested),
                             startDate: startDate ?? null,
                             startYear: startYear ?? null,
+                            countryCode: country,
                         }}
                         onCancel={handleCloseModel}
                         onUpdated={() => {

@@ -6,6 +6,7 @@ import { kebabToTitle } from '@/lib/helpers'
 import YesIcon from '@/components/common/IconComponents/YesIcon'
 import NoIcon from '@/components/common/IconComponents/NoIcon'
 import AvatarGroupComponent from '@/components/common/AvatarGroupComponent'
+import { getCurrencySymbol } from '@/lib/utils'
 
 type KeyValueProps = {
     label: string,
@@ -61,7 +62,7 @@ const SingleCharityDetails: FC<IProps> = ({
             {!startDate && startYear ? <KeyValue label='Start Year:' value={startYear} /> : null}
             {totalDuration ? <KeyValue label='Total Duration:' value={totalDuration || '-'} /> : null}
             {typeof assessmentRequested === 'boolean' ? <KeyValue label='Assessment Requested:' value={assessmentRequested ? <YesIcon /> : <NoIcon />} /> : null}
-            {typeof annualRevenue === 'number' ? <KeyValue label='Annual Revenue:' value={annualRevenue.toLocaleString()} /> : null}
+            {typeof annualRevenue === 'number' ? <KeyValue label='Annual Revenue:' value={`${getCurrencySymbol(country)}${annualRevenue.toLocaleString()}`} /> : null}
             {website ? <KeyValue label='Website:' value={<a href={website.startsWith('http') ? website : `https://${website}`} target='_blank' className='text-blue-600 underline text-sm font-medium'>Click here to visit Website</a>} /> : null}
             <KeyValue label='Is this a Muslim charity?' value={isThisMuslimCharity ? <YesIcon /> : <NoIcon />} />
             <KeyValue label='Do they pay Zakat?' value={doTheyPayZakat ? <YesIcon /> : <NoIcon />} />

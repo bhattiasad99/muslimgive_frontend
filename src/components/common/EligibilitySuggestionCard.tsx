@@ -1,6 +1,6 @@
 import React from 'react'
 import clsx from 'clsx'
-
+import { getCurrencySymbol } from '@/lib/utils'
 export type EligibilitySuggestion = {
     suggestedEligible: boolean
     reasons: Array<{
@@ -16,6 +16,7 @@ export type EligibilitySuggestionInput = {
     assessmentRequested?: boolean | null
     startDate?: Date | string | null
     startYear?: number | string | null
+    countryCode?: string | null
 }
 
 export const buildEligibilitySuggestion = (input: EligibilitySuggestionInput): EligibilitySuggestion => {
@@ -44,8 +45,10 @@ export const buildEligibilitySuggestion = (input: EligibilitySuggestionInput): E
         }
     }
 
-    if (revenueOk) reasons.push({ text: 'Annual revenue is at least $500k.', ok: true })
-    else reasons.push({ text: 'Annual revenue is below $500k.', ok: false })
+    const currencySymbol = getCurrencySymbol(input.countryCode)
+
+    if (revenueOk) reasons.push({ text: `Annual revenue is at least ${currencySymbol}500k.`, ok: true })
+    else reasons.push({ text: `Annual revenue is below ${currencySymbol}500k.`, ok: false })
 
     if (islamicOk) reasons.push({ text: 'Marked as Islamic charity.', ok: true })
     else reasons.push({ text: 'Not marked as Islamic charity.', ok: false })
