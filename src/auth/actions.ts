@@ -100,7 +100,7 @@ export async function setPasswordAction(
     }
 
     try {
-        const url = new URL(`users/redeem/${encodeURIComponent(tokenRaw)}`, serverUrl).toString();
+        const url = new URL(`users/redeem/${tokenRaw}`, serverUrl).toString();
         const res = await fetch(url, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -125,12 +125,11 @@ export async function setPasswordAction(
 }
 
 export const verifyToken = async (token: string): Promise<ResponseType> => {
-    const profileRes = await _patch<null>(`password-token/verify/${token}`, null, false);
+    const profileRes = await _patch<null>(`password-token/verify/${token}`, undefined, false);
     return profileRes;
 }
 
 export const redeemToken = async (token: string, password: string): Promise<ResponseType> => {
-    void password;
-    const profileRes = await _patch<null>(`password-token/redeem/${token}`, null, false);
+    const profileRes = await _patch<null>(`users/redeem/${token}`, { password }, false);
     return profileRes;
 }
