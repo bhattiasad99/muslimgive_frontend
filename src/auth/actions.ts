@@ -1,5 +1,5 @@
 'use server'
-import { LoginFormState, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema } from './forms'
+import { LoginFormState, SignInFormSchema, SetPasswordFormState, SetPasswordFormSchema, ForgotPasswordFormState, ForgotPasswordFormSchema } from './forms'
 import { ResponseType, serverUrl } from '@/app/lib/definitions'
 import { clearAuthCookies } from './cookies'
 import { redirect } from 'next/navigation'
@@ -121,6 +121,43 @@ export async function setPasswordAction(
 
     } catch {
         return { errors: {}, message: "Network or server error while setting password" };
+    }
+}
+
+export async function forgotPasswordAction(
+    state: ForgotPasswordFormState,
+    formData: FormData
+): Promise<ForgotPasswordFormState> {
+    const parsed = ForgotPasswordFormSchema.safeParse({
+        email: formData.get('forgot_password__email'),
+    })
+    if (!parsed.success) {
+        return { errors: parsed.error.flatten().fieldErrors }
+    }
+
+    try {
+        const url = new URL('forgot-password', serverUrl).toString()
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: parsed.data.email }),
+        })
+
+        const data = await res.json().catch(() => ({}))
+
+        if (!res.ok) {
+            return {
+                message: data?.message || 'Something went wrong. Please try again.',
+                success: false,
+            }
+        }
+
+        return {
+            message: 'If that email is registered, you will receive a password reset link shortly.',
+            success: true,
+        }
+    } catch {
+        return { message: 'Server unreachable. Please try again later.', success: false }
     }
 }
 

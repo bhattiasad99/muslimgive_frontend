@@ -26,6 +26,7 @@ const SetPasswordComponent: FC<IProps> = ({ token }) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordTouched, setPasswordTouched] = useState(false);
     const [confirmTouched, setConfirmTouched] = useState(false);
+    const [redirecting, setRedirecting] = useState(false);
 
     const ruleResults = useMemo(() =>
         PASSWORD_RULES.map(r => ({ label: r.label, passed: r.test(password) })),
@@ -36,11 +37,11 @@ const SetPasswordComponent: FC<IProps> = ({ token }) => {
 
     const noErrors = Object.keys(state?.errors || {}).length === 0;
     const isDisabled = useMemo(() => {
-        if (pending) return true;
+        if (pending || redirecting) return true;
         if (!passwordValid) return true;
         if (!confirmPassword || !passwordsMatch) return true;
         return false;
-    }, [pending, passwordValid, confirmPassword, passwordsMatch]);
+    }, [pending, redirecting, passwordValid, confirmPassword, passwordsMatch]);
 
     const [showErrors, setShowErrors] = useState(false);
 
@@ -51,12 +52,37 @@ const SetPasswordComponent: FC<IProps> = ({ token }) => {
     const router = useRouter();
     useEffect(() => {
         if (noErrors && state?.message) {
-            setPassword('');
-            setConfirmPassword('');
-            const t = setTimeout(() => router.replace('/login'), 1200)
+            setRedirecting(true);
+            const t = setTimeout(() => router.replace('/login'), 1500)
             return () => clearTimeout(t)
         }
     }, [noErrors, state?.message, router]);
+
+    if (redirecting) {
+        return (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white gap-4">
+                <svg
+                    className="animate-spin h-10 w-10 text-primary"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        className="opacity-25"
+                        cx="12" cy="12" r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                    />
+                    <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"
+                    />
+                </svg>
+                <p className="text-sm text-muted-foreground">Password set! Redirecting to sign in…</p>
+            </div>
+        );
+    }
 
     return (
         <AuthScreenLayoutComponent

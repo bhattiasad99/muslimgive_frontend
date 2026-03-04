@@ -40,3 +40,20 @@ export type SetPasswordFormState =
         message?: string
     }
     | undefined
+
+export const ForgotPasswordFormSchema = z.object({
+    email: z
+        .string('Email is required')
+        .email({ message: 'Please enter a valid email address.' })
+        .trim(),
+})
+
+export type ForgotPasswordFormState =
+    | {
+        errors?: {
+            email?: string[]
+        }
+        message?: string
+        success?: boolean
+    }
+    | undefined
