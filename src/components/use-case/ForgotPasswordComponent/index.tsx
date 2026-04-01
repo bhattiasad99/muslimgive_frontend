@@ -6,6 +6,7 @@ import { ForgotPasswordFormState } from '@/auth/forms'
 import { Button } from '@/components/ui/button'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
 import LinkComponent from '@/components/common/LinkComponent'
+import { Loader2 } from 'lucide-react'
 
 const ForgotPasswordComponent = () => {
     const [state, action, pending] = useActionState(forgotPasswordAction, undefined as ForgotPasswordFormState)
@@ -55,7 +56,14 @@ const ForgotPasswordComponent = () => {
                 variant="primary"
                 disabled={pending || !email}
             >
-                {pending ? 'Sending…' : 'Request Password Reset'}
+                {pending ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                        Sending…
+                    </>
+                ) : (
+                    'Request Password Reset'
+                )}
             </Button>
 
             <LinkComponent to="login" className="text-xs w-full text-center">
