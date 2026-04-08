@@ -29,7 +29,7 @@ const ManageTeamModal: FC<ManageTeamModalProps> = ({ members = [], onUpdate, onC
         {
             id: 'dummy-2',
             name: 'Arsalan Waheed',
-            role: 'finance-auditor',
+            role: 'finance-assessor',
             profilePicture: null
         },
         {

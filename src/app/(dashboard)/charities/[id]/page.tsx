@@ -10,14 +10,12 @@ import { redirect } from 'next/navigation'
 const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params
 
-    const [res, pmUsersRes, financeUsersRes, zakatUsersRes] = await Promise.all([
+    const [res, usersRes] = await Promise.all([
         getCharityAction(id),
-        listUsersAction({ limit: 200, role: 'project-manager' }),
-        listUsersAction({ limit: 200, role: 'finance-auditor' }),
-        listUsersAction({ limit: 200, role: 'zakat-auditor' }),
+        listUsersAction({ limit: 200 }),
     ])
 
-    const isUnauthenticated = [res, pmUsersRes, financeUsersRes, zakatUsersRes].some((r) => r?.unauthenticated)
+    const isUnauthenticated = Boolean(res?.unauthenticated)
     if (isUnauthenticated) {
         redirect(`/login?continue=${encodeURIComponent(`/charities/${id}`)}`)
     }
@@ -28,12 +26,27 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
 
     const c = res.payload.data.data;
     console.log('Page Value Verification:', JSON.stringify(c.verificationSummary, null, 2));
-    const toRoleSlug = (value: string) => value.trim().toLowerCase().replace(/\s+/g, '-');
-    const mapCandidates = (source: any, requiredRole: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
-        const users = Array.isArray(source?.payload?.data) ? source.payload.data : []
+    const toRoleSlug = (value: string) => value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    const roleAliases: Record<'project-manager' | 'finance-assessor' | 'zakat-assessor', string[]> = {
+        'project-manager': ['project-manager'],
+        'finance-assessor': ['finance-assessor', 'financial-assessor', 'financial-auditor', 'finance-auditor'],
+        'zakat-assessor': ['zakat-assessor', 'zakat-auditor'],
+    }
+    const normalizeAssignmentRole = (rawRole?: string) => {
+        const normalized = toRoleSlug(String(rawRole || ''))
+        if (roleAliases['project-manager'].includes(normalized)) return 'project-manager'
+        if (roleAliases['finance-assessor'].includes(normalized)) return 'finance-assessor'
+        if (roleAliases['zakat-assessor'].includes(normalized)) return 'zakat-assessor'
+        return normalized || 'project-manager'
+    }
+    const allUsers = Array.isArray(usersRes?.payload?.data) ? usersRes.payload.data : []
+    const mapCandidates = (requiredRole: 'project-manager' | 'finance-assessor' | 'zakat-assessor') => {
+        const aliases = roleAliases[requiredRole]
+        const accepted = new Set(aliases)
+        const users = allUsers
         const filtered = users.filter((u: any) => {
             const roles: string[] = Array.isArray(u?.roles) ? u.roles : []
-            return roles.some(r => toRoleSlug(String(r)) === requiredRole)
+            return roles.some(r => accepted.has(toRoleSlug(String(r))))
         })
         const deduped = new Map<string, { id: string; name: string; email: string | null }>()
         filtered.forEach((u: any) => {
@@ -47,9 +60,9 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
         return Array.from(deduped.values())
     }
     const assignmentCandidatesByRole = {
-        projectManager: pmUsersRes.ok ? mapCandidates(pmUsersRes, 'project-manager') : [],
-        financeAuditor: financeUsersRes.ok ? mapCandidates(financeUsersRes, 'finance-auditor') : [],
-        zakatAuditor: zakatUsersRes.ok ? mapCandidates(zakatUsersRes, 'zakat-auditor') : [],
+        projectManager: usersRes.ok ? mapCandidates('project-manager') : [],
+        financeAssessor: usersRes.ok ? mapCandidates('finance-assessor') : [],
+        zakatAssessor: usersRes.ok ? mapCandidates('zakat-assessor') : [],
     };
     const members = (c.assignments || []).flatMap((a: any) => {
         const userId = a.user?.id
@@ -62,7 +75,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
             id: userId,
             name,
             profilePicture: null,
-            role: role?.slug || 'project-manager',
+            role: normalizeAssignmentRole(role?.slug),
         }))
     })
 
@@ -74,7 +87,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
         charityDesc: c.description || "",
         members,
         comments: c.commentsCount || 0,
-        auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
+        assessmentsCompleted: (c.reviews?.summary?.completed || 0) as any,
         status: c.status || 'unassigned',
         category: c.category ?? null,
         reassessmentCycle: c.reassessmentCycle ?? 0,

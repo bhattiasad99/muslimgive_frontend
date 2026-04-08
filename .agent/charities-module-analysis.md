@@ -1,7 +1,7 @@
 # Charities Module - Comprehensive Analysis
 
 ## Overview
-The charities module is a comprehensive charity management and auditing system built with Next.js. Currently, it operates entirely on **dummy/mock data** with no backend API integration. The module is designed to manage charity applications, conduct multi-area audits, assign team members, and track the entire lifecycle of charity verification.
+The charities module is a comprehensive charity management and auditing system built with Next.js. Currently, it operates entirely on **dummy/mock data** with no backend API integration. The module is designed to manage charity applications, conduct multi-area assessments, assign team members, and track the entire lifecycle of charity verification.
 
 ---
 
@@ -12,22 +12,22 @@ The charities module is a comprehensive charity management and auditing system b
 2. **`/create-charity`** - Charity creation form
 3. **`/charities/preview`** - Preview charity before publishing
 4. **`/charities/[id]`** - Single charity detail page
-5. **`/charities/[id]/audits`** - Audit history/status page
-6. **`/charities/[id]/audits/[audit]`** - Individual audit page (with preview mode)
+5. **`/charities/[id]/assessments`** - Assessment history/status page
+6. **`/charities/[id]/assessments/[assessment]`** - Individual assessment page (with preview mode)
 7. **`/charities/[id]/email-logs`** - Email logs (directory exists)
 
 ### **Component Hierarchy**
 ```
 src/
 ├── DUMMY_CHARITIES.tsx (415 lines) - Mock charity data
-├── DUMMY_AUDIT_VALS.tsx (138 lines) - Mock audit data
+├── DUMMY_AUDIT_VALS.tsx (138 lines) - Mock assessment data
 ├── app/(dashboard)/charities/
 │   ├── page.tsx - Renders CharitiesPageComponent
 │   ├── [id]/
 │   │   ├── page.tsx - Renders SingleCharityPageComponent
-│   │   ├── audits/
-│   │   │   ├── page.tsx - Audit history accordion view
-│   │   │   └── [audit]/page.tsx - Individual audit page
+│   │   ├── assessments/
+│   │   │   ├── page.tsx - Assessment history accordion view
+│   │   │   └── [assessment]/page.tsx - Individual assessment page
 │   │   └── email-logs/
 │   ├── create-charity/page.tsx - Charity creation form
 │   └── preview/page.tsx - Preview before publishing
@@ -87,8 +87,8 @@ Charities progress through 6 statuses:
 
 ### 2. **Team Member Roles**
 - **Project Manager** (`project-manager`)
-- **Finance Auditor** (`finance-auditor`)
-- **Zakat Auditor** (`zakat-auditor`)
+- **Finance Assessor** (`finance-assessor`)
+- **Zakat Assessor** (`zakat-assessor`)
 - **Admin** (`admin`)
 
 ### 3. **Charity Categories**
@@ -111,9 +111,9 @@ enum CategoryEnum {
 
 ---
 
-## 🔍 Audit System
+## 🔍 Assessment System
 
-### **Audit Types** (4 Core Areas)
+### **Assessment Types** (4 Core Areas)
 1. **Core Area 1** - Charity Status (`core-area-1`)
    - Charity number, registration status
    - Gift Aid eligibility
@@ -136,12 +136,12 @@ enum CategoryEnum {
    - Leadership team transparency
    - Governance structure
 
-### **Audit Grading System**
+### **Assessment Grading System**
 - **Grades**: A, B, C, D, F
 - **Score**: Numerical score out of total score
 - **Status**: `submitted`, `draft`, `pending`, `in-progress`
 
-### **Audit Data Storage**
+### **Assessment Data Storage**
 Currently stored in `DUMMY_AUDIT_VALS.tsx` with complete sample data for all 4 core areas.
 
 ---
@@ -151,10 +151,10 @@ Currently stored in `DUMMY_AUDIT_VALS.tsx` with complete sample data for all 4 c
 Each charity has a task list (`DUMMY_TASKS`):
 1. **Assign Project Manager** - Modal-based assignment
 2. **Perform Eligibility Test** - Modal-based review
-3. **Core Area 1 Audit** - Navigates to audit page
-4. **Core Area 2 Audit** - Navigates to audit page
-5. **Core Area 3 Audit** - Navigates to audit page
-6. **Core Area 4 Audit** - Navigates to audit page
+3. **Core Area 1 Assessment** - Navigates to assessment page
+4. **Core Area 2 Assessment** - Navigates to assessment page
+5. **Core Area 3 Assessment** - Navigates to assessment page
+6. **Core Area 4 Assessment** - Navigates to assessment page
 
 ---
 
@@ -188,7 +188,7 @@ Each charity has a task list (`DUMMY_TASKS`):
 // Main charity data
 import { DUMMY_CHARITIES } from '@/DUMMY_CHARITIES'
 
-// Audit values
+// Assessment values
 import { DUMMY_AUDIT_VALUES } from '@/DUMMY_AUDIT_VALS'
 
 // Task definitions
@@ -203,12 +203,12 @@ import { DUMMY_TASKS } from '@/DUMMY_CHARITIES'
 5. User clicks charity → navigates to `/charities/[id]`
 6. `SingleCharityPageComponent` finds charity by ID from `DUMMY_CHARITIES`
 
-### **Example: Audit Flow**
-1. User clicks audit task on charity detail page
-2. Navigates to `/charities/[id]/audits/[audit]?country=usa`
+### **Example: Assessment Flow**
+1. User clicks assessment task on charity detail page
+2. Navigates to `/charities/[id]/assessments/[assessment]?country=usa`
 3. Page loads charity from `DUMMY_CHARITIES`
-4. Loads audit definition from `AUDIT_DEFINITIONS`
-5. Renders audit form or preview based on `preview-mode` param
+4. Loads assessment definition from `AUDIT_DEFINITIONS`
+5. Renders assessment form or preview based on `preview-mode` param
 
 ---
 
@@ -271,18 +271,18 @@ export const serverUrl = process.env.SERVER!
 - Assignment via `AssignProjectManager` modal (hardcoded 4 managers)
 - No actual API call on assignment
 
-### **3. Audit System**
+### **3. Assessment System**
 **Endpoints Needed:**
-- `GET /charities/:id/audits` - Get all audits for charity
-- `GET /charities/:id/audits/:auditId` - Get specific audit
-- `POST /charities/:id/audits/:auditType` - Create/submit audit
-- `PATCH /charities/:id/audits/:auditId` - Update audit (save draft)
-- `GET /audits/definitions` - Get audit form definitions
+- `GET /charities/:id/assessments` - Get all assessments for charity
+- `GET /charities/:id/assessments/:auditId` - Get specific assessment
+- `POST /charities/:id/assessments/:auditType` - Create/submit assessment
+- `PATCH /charities/:id/assessments/:auditId` - Update assessment (save draft)
+- `GET /assessments/definitions` - Get assessment form definitions
 
 **Current Implementation:**
-- All audit data from `DUMMY_AUDIT_VALUES`
-- Audit forms exist but don't submit to backend
-- Preview mode shows hardcoded auditor info
+- All assessment data from `DUMMY_AUDIT_VALUES`
+- Assessment forms exist but don't submit to backend
+- Preview mode shows hardcoded assessor info
 
 ### **4. Email System**
 **Endpoints Needed:**
@@ -319,7 +319,7 @@ type Member = {
   role: BaseRoles
 }
 
-// Audit Common
+// Assessment Common
 type AuditValueCommonExtension = {
   score: number
   totalScore: number
@@ -328,7 +328,7 @@ type AuditValueCommonExtension = {
   auditedBy?: AuditedByType
 }
 
-// Audit Specific (4 types)
+// Assessment Specific (4 types)
 type CoreArea1Values = { ... }
 type CoreArea2Values = { ... }
 type CoreArea3Values = { ... }
@@ -343,19 +343,19 @@ type CoreArea4Values = { ... }
 1. Replace `DUMMY_CHARITIES` with `GET /charities` API call
 2. Implement charity detail fetching
 3. Load team members from API
-4. Fetch audit data from backend
+4. Fetch assessment data from backend
 
 ### **Phase 2: Write Operations**
 1. Implement charity creation (`POST /charities`)
 2. Enable team member assignment
-3. Implement audit submission
+3. Implement assessment submission
 4. Add eligibility review submission
 
 ### **Phase 3: Advanced Features**
 1. Bulk email functionality
 2. Email logs
 3. Real-time updates (WebSocket/polling)
-4. File upload for audit evidence
+4. File upload for assessment evidence
 
 ### **Phase 4: Optimization**
 1. Implement pagination on backend
@@ -377,7 +377,7 @@ const fuse = new Fuse(DUMMY_CHARITIES, {
 ```
 
 ### **2. Routing Patterns**
-- Dynamic routes: `[id]`, `[audit]`
+- Dynamic routes: `[id]`, `[assessment]`
 - Query params: `?country=usa`, `?preview-mode=true`
 - Data passed via URL encoding for preview
 
@@ -452,7 +452,7 @@ The module is ready for auth:
 
 The charities module is a **feature-complete frontend implementation** with:
 - ✅ Full UI/UX for charity management
-- ✅ Complete audit system (4 core areas)
+- ✅ Complete assessment system (4 core areas)
 - ✅ Team member assignment
 - ✅ Search, filter, and view modes
 - ✅ Bulk operations

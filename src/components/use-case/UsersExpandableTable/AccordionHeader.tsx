@@ -17,9 +17,10 @@ type IProps = {
     setOpenId: (val: string | null) => void;
     close: () => void;
     onToggleStatus?: (userId: string, status: "Active" | "Inactive") => Promise<void> | void;
+    onDelete?: (userId: string) => Promise<void> | void;
 }
 
-const AccordionHeader: FC<IProps> = ({ id, firstName, lastName, status, location, isOpen, setOpenId, close, onToggleStatus }) => {
+const AccordionHeader: FC<IProps> = ({ id, firstName, lastName, status, location, isOpen, setOpenId, close, onToggleStatus, onDelete }) => {
     const [isUpdating, setIsUpdating] = useState(false)
 
     return (
@@ -87,6 +88,25 @@ const AccordionHeader: FC<IProps> = ({ id, firstName, lastName, status, location
                                 ? 'Deactivate User'
                                 : 'Activate User'}
                         </Button>
+                        {onDelete && (
+                            <Button
+                                variant="outline"
+                                className="text-red-500 hover:bg-red-50 mt-2"
+                                disabled={isUpdating}
+                                onClick={async (e) => {
+                                    e.stopPropagation()
+                                    try {
+                                        setIsUpdating(true)
+                                        await onDelete(id)
+                                    } finally {
+                                        setIsUpdating(false)
+                                        close()
+                                    }
+                                }}
+                            >
+                                Delete User
+                            </Button>
+                        )}
                     </Can>
                 </PopoverContent>
             </Popover>

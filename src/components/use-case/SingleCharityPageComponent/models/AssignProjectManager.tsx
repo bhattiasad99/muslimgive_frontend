@@ -10,6 +10,7 @@ type IProps = {
     onCancel?: () => void;
     roleLabel?: string;
     actionLabel?: string;
+    isSubmitting?: boolean;
     users: Array<{ id: string; name: string; email?: string | null }>;
 }
 
@@ -18,6 +19,7 @@ const AssignProjectManager: React.FC<IProps> = ({
     onCancel,
     roleLabel = 'project manager',
     actionLabel = 'Assign Project Manager',
+    isSubmitting = false,
     users,
 }) => {
     const [selectedManager, setSelectedManager] = React.useState<string | null>(null)
@@ -61,11 +63,11 @@ const AssignProjectManager: React.FC<IProps> = ({
                     </div>
                 </div>
             </> : <TypographyComponent className="text-gray-800 text-xs">{`Please select a ${roleLabel}.`}</TypographyComponent>}
-            <Button className="w-full" variant={"primary"} disabled={!selectedManager} onClick={() => {
+            <Button className="w-full" variant={"primary"} loading={isSubmitting} disabled={!selectedManager || isSubmitting} onClick={() => {
                 if (selectedManager)
                     onSelection(selectedManager)
             }}>{actionLabel}</Button>
-            <Button className="w-full" variant={"outline"} onClick={onCancel}>Cancel</Button>
+            <Button className="w-full" variant={"outline"} disabled={isSubmitting} onClick={onCancel}>Cancel</Button>
         </div>
     )
 }

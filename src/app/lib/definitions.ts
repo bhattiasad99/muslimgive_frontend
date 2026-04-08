@@ -28,8 +28,6 @@ export type UserProfile = {
     isAdmin?: boolean;
     isActive?: boolean;
     isVerified?: boolean;
-    dob?: string;
-    dateOfBirth?: string;
     country?: string;
     countryName?: string;
     postalCode?: string;
@@ -38,6 +36,7 @@ export type UserProfile = {
     status: string;
     requestingPasswordReset: boolean;
     profilePicture?: string;
+    isDeleted?: boolean;
 }
 
 export type ChangePasswordPayload = {

@@ -154,7 +154,7 @@ export const assignRolesToCharityAction = async (charityId: string, payload: Ass
  */
 export type ReassignRolePayload = {
     userId: string;
-    role: 'project-manager' | 'finance-auditor' | 'zakat-auditor';
+    role: 'project-manager' | 'finance-assessor' | 'zakat-assessor';
     removeUserIds?: string[];
 }
 

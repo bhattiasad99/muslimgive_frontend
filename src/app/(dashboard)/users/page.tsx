@@ -1,8 +1,16 @@
 import { getUsers } from '@/app/actions/admin'
+import { getMeAction } from '@/app/actions/users'
 import UsersPageComponent from '@/components/use-case/UsersPageComponent'
+import { redirect } from 'next/navigation'
 import React from 'react'
 
 const UsersPage = async () => {
+    const meRes = await getMeAction(true)
+    const me = meRes.ok ? meRes.payload?.data : null
+    if (!me || !me.isAdmin) {
+        redirect('/unauthorized')
+    }
+
     try {
         const usersRes = await getUsers()
         const { ok, payload, message } = usersRes;

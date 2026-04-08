@@ -49,8 +49,8 @@ const ReportPage = async ({ params }: { params: Promise<{ charityId: string }> }
                         <TypographyComponent variant="body2" className="font-semibold">{summary.eligibilityResult?.toUpperCase()}</TypographyComponent>
                     </div>
                     <div>
-                        <TypographyComponent variant="caption" className="text-[#667085]">Audits Completed</TypographyComponent>
-                        <TypographyComponent variant="body2" className="font-semibold">{summary.auditsCompleted}/{summary.auditsTotal}</TypographyComponent>
+                        <TypographyComponent variant="caption" className="text-[#667085]">Assessments Completed</TypographyComponent>
+                        <TypographyComponent variant="body2" className="font-semibold">{summary.assessmentsCompleted}/{summary.assessmentsTotal}</TypographyComponent>
                     </div>
                 </div>
             </div>

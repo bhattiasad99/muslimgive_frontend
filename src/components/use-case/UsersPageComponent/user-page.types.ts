@@ -18,7 +18,6 @@ export interface UserForm {
     firstName: FieldState<string>;
     lastName: FieldState<string>;
     email: FieldState<string>;
-    dob: FieldState<Date | undefined>;
     country: FieldState<CountriesInKebab | ''>;
     postalcode: FieldState<string>;
     roles: FieldState<string[]>;

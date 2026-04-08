@@ -221,7 +221,7 @@ const charity = DUMMY_CHARITIES.find(eachCharity => eachCharity.id === id);
     {
       "userId": "uuid",
       "add": ["project-manager", "operations-manager"],
-      "remove": ["zakat-auditor"],
+      "remove": ["zakat-assessor"],
       "set": ["operations-manager"]
     }
   ]
@@ -241,11 +241,11 @@ const charity = DUMMY_CHARITIES.find(eachCharity => eachCharity.id === id);
 **Gaps Identified:**
 
 1. **Role Types:**
-   - API supports: `project-manager`, `operations-manager`, `zakat-auditor`
+   - API supports: `project-manager`, `operations-manager`, `zakat-assessor`
    - Frontend only has UI for: `project-manager`
-   - Frontend data model has: `project-manager`, `finance-auditor`, `zakat-auditor`, `admin`
+   - Frontend data model has: `project-manager`, `finance-assessor`, `zakat-assessor`, `admin`
    
-   **⚠️ MISMATCH:** `operations-manager` vs `finance-auditor`
+   **⚠️ MISMATCH:** `operations-manager` vs `finance-assessor`
 
 2. **Assignment Operations:**
    - API supports: `add`, `remove`, `set`
@@ -319,12 +319,12 @@ const handleUpdateFormData = (field, value) => { ... }
    - **Current:** Hardcoded 4 managers
    - **Impact:** Cannot assign real users
 
-2. **Audit Endpoints** (All 4 Core Areas)
-   - `GET /charities/{id}/audits` - List all audits
-   - `GET /charities/{id}/audits/{audit_id}` - Get specific audit
-   - `POST /charities/{id}/audits/{type}` - Submit audit
-   - `PATCH /charities/{id}/audits/{audit_id}` - Update/save draft
-   - **Impact:** Entire audit system non-functional
+2. **Assessment Endpoints** (All 4 Core Areas)
+   - `GET /charities/{id}/assessments` - List all assessments
+   - `GET /charities/{id}/assessments/{audit_id}` - Get specific assessment
+   - `POST /charities/{id}/assessments/{type}` - Submit assessment
+   - `PATCH /charities/{id}/assessments/{audit_id}` - Update/save draft
+   - **Impact:** Entire assessment system non-functional
 
 3. **Email Endpoints**
    - `POST /charities/bulk-email` - Send bulk emails
@@ -435,7 +435,7 @@ const handleUpdateFormData = (field, value) => { ... }
 7. **Bulk Role Assignment** - No UI
 
 ### **❌ Missing Backend APIs:**
-1. **Audit System** (all 4 core areas)
+1. **Assessment System** (all 4 core areas)
 2. **Email System** (bulk email, logs)
 3. **Comments System**
 4. **User/Team Member Listing**
@@ -574,8 +574,8 @@ const handleUpdateFormData = (field, value) => { ... }
 
 **Frontend Roles:**
 - `project-manager` ✅
-- `finance-auditor` ⚠️ (API has `operations-manager`)
-- `zakat-auditor` ✅
+- `finance-assessor` ⚠️ (API has `operations-manager`)
+- `zakat-assessor` ✅
 - `admin` ❓ (not in API docs)
 
 ---
@@ -627,12 +627,12 @@ const handleUpdateFormData = (field, value) => { ... }
 
 These require backend APIs that don't exist yet:
 
-#### **6.1 Audit System**
-- **BLOCKED:** No audit APIs
-- [ ] Wait for audit endpoints
-- [ ] Integrate audit submission
-- [ ] Integrate audit history
-- [ ] Integrate audit preview
+#### **6.1 Assessment System**
+- **BLOCKED:** No assessment APIs
+- [ ] Wait for assessment endpoints
+- [ ] Integrate assessment submission
+- [ ] Integrate assessment history
+- [ ] Integrate assessment preview
 
 #### **6.2 Email System**
 - **BLOCKED:** No email APIs
@@ -743,7 +743,7 @@ export const performEligibilityTest = async (
 ## ⚠️ Critical Issues & Questions
 
 ### **1. Role Name Mismatch**
-- Frontend: `finance-auditor`
+- Frontend: `finance-assessor`
 - Backend: `operations-manager`
 - **Action Required:** Clarify with backend team
 
@@ -774,9 +774,9 @@ export const performEligibilityTest = async (
 - Cannot edit charity after creation
 - **Action Required:** Add `PATCH /charities/{id}` endpoint
 
-### **8. Audit APIs Missing**
-- Entire audit system (4 core areas) has no backend
-- **Action Required:** Implement audit APIs
+### **8. Assessment APIs Missing**
+- Entire assessment system (4 core areas) has no backend
+- **Action Required:** Implement assessment APIs
 
 ### **9. Email APIs Missing**
 - Bulk email and email logs have no backend
@@ -800,7 +800,7 @@ export const performEligibilityTest = async (
 | Sorting UI | 🟢 Low | Low | No | 2h |
 | Manage Team | 🟢 Low | Medium | Yes (User API) | 6h |
 | Data Model Alignment | 🔴 High | Medium | No | 4h |
-| Audit System | ⚫ Blocked | High | Yes (Audit APIs) | - |
+| Assessment System | ⚫ Blocked | High | Yes (Assessment APIs) | - |
 | Email System | ⚫ Blocked | Medium | Yes (Email APIs) | - |
 | Edit Charity | ⚫ Blocked | Medium | Yes (Update API) | - |
 
@@ -832,7 +832,7 @@ export const performEligibilityTest = async (
 2. Filter Integration (2h)
 
 ### **Future Sprints: Blocked Features**
-- Audit System (requires audit APIs)
+- Assessment System (requires assessment APIs)
 - Email System (requires email APIs)
 - Edit Charity (requires update API)
 - Comments (requires comments API)
@@ -851,7 +851,7 @@ export const performEligibilityTest = async (
 
 ### **What's Missing from Backend:**
 ❌ User/Team member listing API
-❌ All audit APIs (4 core areas)
+❌ All assessment APIs (4 core areas)
 ❌ Email APIs (bulk email, logs)
 ❌ Comments API
 ❌ Charity update API

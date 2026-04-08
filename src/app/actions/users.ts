@@ -9,7 +9,6 @@ export type CreateMgMemberPayload = {
     firstName: string;
     lastName: string;
     email: string;
-    dateOfBirth?: string;
     countryName?: CountriesInKebab;
     postalCode?: string;
     roles: string[];
@@ -111,7 +110,6 @@ export const updateUserRolesAction = async (userId: string, payload: UpdateUserR
 export type UpdateMePayload = {
     firstName?: string;
     lastName?: string;
-    dateOfBirth?: string;
     countryName?: CountriesInKebab | null;
     postalCode?: string;
 }
@@ -169,4 +167,12 @@ export const updateProfilePictureAction = async (formData: FormData): Promise<Re
         revalidatePath('/');
     }
     return res;
+}
+
+/**
+ * PATCH /admin/users/{id}/delete-status
+ * Soft-deletes a user
+ */
+export const deleteUserAction = async (id: string, isDeleted: boolean = true): Promise<ResponseType> => {
+    return await _patch(`/admin/users/${id}/delete-status`, { isDeleted });
 }

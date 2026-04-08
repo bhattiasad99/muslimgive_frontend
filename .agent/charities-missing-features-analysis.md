@@ -115,8 +115,8 @@ const handleEditSave = (data: { id: string; name: string; description: string })
 
 // Filter state
 const [filterOpts, setFilterOpts] = useState<Record<FilterKey, boolean>>({
-  'Financial Auditor': true,
-  'Zakat Auditor': true,
+  'Financial Assessor': true,
+  'Zakat Assessor': true,
   'Project Manager': true,
   'MG Admin': true,
   'Operations Manager': true,
@@ -217,7 +217,7 @@ Could create similar "Manage Team" page:
 
 **Search Results:**
 - Searched for "remove" in use-case components
-- Only found in audit components (not related)
+- Only found in assessment components (not related)
 - **Conclusion:** No remove/unassign pattern exists
 
 **Note:** The API supports `remove` in assignment payload, but no UI exists
@@ -473,7 +473,7 @@ const handleRemoveMember = async (memberId: string) => {
   // API call with remove operation
   await assignCharityRoles(charityId, [{
     userId: memberId,
-    remove: ['project-manager', 'finance-auditor', 'zakat-auditor'] // all roles
+    remove: ['project-manager', 'finance-assessor', 'zakat-assessor'] // all roles
   }])
   
   // Refresh charity data

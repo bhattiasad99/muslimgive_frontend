@@ -9,7 +9,7 @@ import ThreeDotIcon from '@/components/common/IconComponents/ThreeDotIcon'
 import IconDropdownMenuComponent from '@/components/common/IconDropdownMenuComponent'
 import EmailIcon from '@/components/common/IconComponents/EmailIcon'
 import CardComponent from '@/components/common/CardComponent'
-import { TaskIds } from '@/types/audits'
+import { TaskIds } from '@/types/assessments'
 
 // Extending TaskIds for local modal state management if needed, or ensuring TaskIds includes it.
 // Since TaskIds is imported, we can't easily extend it here without changing the type definition in the other file.
@@ -35,7 +35,7 @@ import EligibilityOverrideModal from './models/EligibilityOverrideModal'
 import EligibilityTest from './models/EligibilityTest'
 import TabsComponent from '@/components/common/TabsComponent'
 import { Progress } from '@/components/ui/progress'
-import { AUDIT_DEFINITIONS } from '../SingleAuditPageComponent/AUDIT_DEFINITIONS'
+import { AUDIT_DEFINITIONS } from '../SingleAssessmentPageComponent/ASSESSMENT_DEFINITIONS'
 import { BadgeCheck, CalendarDays, CheckCircle2, CircleDashed, Globe, Mail, MapPin, Pencil, UserCircle2, UserCheck, XCircle } from 'lucide-react'
 
 type Member = SingleCharityType['members'][0]
@@ -44,7 +44,7 @@ type IProps = SingleCharityType & {
 };
 
 type ModelControl = {
-    nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-auditor' | 'assign-zakat-auditor';
+    nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor';
 }
 type AssignmentMode = 'assign' | 'reassign'
 
@@ -143,8 +143,9 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const [isDeleting, setIsDeleting] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [selectedMemberForRoleEdit, setSelectedMemberForRoleEdit] = useState<Member | null>(null)
-    const [auditTab, setAuditTab] = useState<'completed' | 'pending'>('pending')
+    const [assessmentTab, setAssessmentTab] = useState<'completed' | 'pending'>('pending')
     const [assignmentMode, setAssignmentMode] = useState<AssignmentMode>('assign')
+    const [isAssigningRole, setIsAssigningRole] = useState(false)
     const [comments, setComments] = useState<Array<{ id: string; message: string; createdAt: string; user?: { firstName?: string | null; lastName?: string | null; email?: string | null } }>>([])
     const [isCommentsLoading, setIsCommentsLoading] = useState(false)
     const [commentInput, setCommentInput] = useState('')
@@ -155,8 +156,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const { isAllowed, me } = usePermissions()
     const effectiveUserId = currentUserId ?? me?.id ?? null
     const projectManagerCandidates = assignmentCandidatesByRole?.projectManager ?? []
-    const financeAuditorCandidates = assignmentCandidatesByRole?.financeAuditor ?? []
-    const zakatAuditorCandidates = assignmentCandidatesByRole?.zakatAuditor ?? []
+    const financeAssessorCandidates = assignmentCandidatesByRole?.financeAssessor ?? []
+    const zakatAssessorCandidates = assignmentCandidatesByRole?.zakatAssessor ?? []
 
     const resolveCountry = (value?: string) => {
         if (!value) return 'united-states'
@@ -175,26 +176,27 @@ const SingleCharityPageComponent: FC<IProps> = ({
 
     const resolvedCountry = resolveCountry(country)
 
-    const handleOpenModel = (nameOfModel: TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-auditor' | 'assign-zakat-auditor') => {
+    const handleOpenModel = (nameOfModel: TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor') => {
         setModelState(prevState => ({ ...prevState, nameOfModel }));
     }
 
     const handleCloseModel = () => {
         setModelState({ nameOfModel: null });
+        setIsAssigningRole(false)
         setAssignmentMode('assign')
     }
 
-    const openAssignmentModal = (role: 'project-manager' | 'finance-auditor' | 'zakat-auditor', mode: AssignmentMode = 'assign') => {
+    const openAssignmentModal = (role: 'project-manager' | 'finance-assessor' | 'zakat-assessor', mode: AssignmentMode = 'assign') => {
         setAssignmentMode(mode)
         if (role === 'project-manager') {
             handleOpenModel('assign-project-manager')
             return
         }
-        if (role === 'finance-auditor') {
-            handleOpenModel('assign-finance-auditor')
+        if (role === 'finance-assessor') {
+            handleOpenModel('assign-finance-assessor')
             return
         }
-        handleOpenModel('assign-zakat-auditor')
+        handleOpenModel('assign-zakat-assessor')
     }
 
     useEffect(() => {
@@ -212,21 +214,21 @@ const SingleCharityPageComponent: FC<IProps> = ({
         }
         setPendingTaskId(taskId)
         startNavigation()
-        startTaskTransition(() => router.push(`/charities/${charityId}/audits/${taskId}?country=${resolvedCountry}`))
+        startTaskTransition(() => router.push(`/charities/${charityId}/assessments/${taskId}?country=${resolvedCountry}`))
     }
 
     const canAssignPM = isAllowed({ anyOf: [PERMISSIONS.ASSIGN_PM_CHARITY] })
     const canViewEmailLogs = isAllowed({ anyOf: [PERMISSIONS.SEND_EMAIL_CHARITY_OWNER] })
     const canDeleteCharity = isAllowed({ anyOf: [PERMISSIONS.DELETE_CHARITY] })
-    const canSubmitAudit = isAllowed({
+    const canSubmitAssessment = isAllowed({
         anyOf: [PERMISSIONS.AUDIT_SUBMISSION_CREATE, PERMISSIONS.AUDIT_SUBMISSION_COMPLETE],
     })
     const canManageCharity = isAllowed({ anyOf: [PERMISSIONS.CHARITY_MANAGE] })
 
     const roleSlots = [
         { slug: 'project-manager', label: 'Project Manager' },
-        { slug: 'finance-auditor', label: 'Finance Auditor' },
-        { slug: 'zakat-auditor', label: 'Zakat Auditor' },
+        { slug: 'finance-assessor', label: 'Finance Assessor' },
+        { slug: 'zakat-assessor', label: 'Zakat Assessor' },
         { slug: 'admin', label: 'Admin' },
     ]
 
@@ -242,12 +244,12 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const projectManagerAssigned = membersByRole.find(m => m.slug === 'project-manager')?.names.length
         ? true
         : Boolean(verificationSummary?.projectManagerAssigned)
-    const financeAuditorAssigned = (membersByRole.find(m => m.slug === 'finance-auditor')?.names.length ?? 0) > 0
-    const zakatAuditorAssigned = (membersByRole.find(m => m.slug === 'zakat-auditor')?.names.length ?? 0) > 0
+    const financeAssessorAssigned = (membersByRole.find(m => m.slug === 'finance-assessor')?.names.length ?? 0) > 0
+    const zakatAssessorAssigned = (membersByRole.find(m => m.slug === 'zakat-assessor')?.names.length ?? 0) > 0
 
-    const auditsCompleted = verificationSummary?.audits?.completed ?? reviews?.summary?.completed ?? 0
-    const auditsTotal = verificationSummary?.audits?.total ?? reviews?.summary?.total ?? 4
-    const auditProgress = auditsTotal > 0 ? Math.round((auditsCompleted / auditsTotal) * 100) : 0
+    const assessmentsCompleted = verificationSummary?.assessments?.completed ?? reviews?.summary?.completed ?? 0
+    const assessmentsTotal = verificationSummary?.assessments?.total ?? reviews?.summary?.total ?? 4
+    const assessmentProgress = assessmentsTotal > 0 ? Math.round((assessmentsCompleted / assessmentsTotal) * 100) : 0
 
     const eligibilityLabel = verificationSummary?.eligibility?.pending
         ? 'Pending'
@@ -257,7 +259,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 ? 'Ineligible'
                 : 'Pending'
     const isEligibilityDone = !verificationSummary?.eligibility?.pending
-    const shouldHideAuditAndProgress = status === 'ineligible' || verificationSummary?.eligibility?.pending
+    const shouldHideAssessmentAndProgress = status === 'ineligible' || verificationSummary?.eligibility?.pending
     const isAdminReviewed = status === 'pending-admin-review' || status === 'approved'
     const passFailValue = overallScoreResult
         ? (overallScoreResult === 'pass' ? 'Pass' : 'Fail')
@@ -283,7 +285,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
         return comment.user?.email || 'Unknown user'
     }
 
-    const auditStatusLabel = (status?: string) => {
+    const assessmentStatusLabel = (status?: string) => {
         if (!status) return 'Pending'
         const normalized = status.replace('_', '-')
         const labels: Record<string, string> = {
@@ -297,47 +299,47 @@ const SingleCharityPageComponent: FC<IProps> = ({
         return labels[normalized] || kebabToTitle(normalized)
     }
 
-    const auditMeta = [
+    const assessmentMeta = [
         { id: 'core-area-1', statusKey: 'coreArea1', reviewKey: 'core1' },
         { id: 'core-area-2', statusKey: 'coreArea2', reviewKey: 'core2' },
         { id: 'core-area-3', statusKey: 'coreArea3', reviewKey: 'core3' },
         { id: 'core-area-4', statusKey: 'coreArea4', reviewKey: 'core4' },
     ] as const
 
-    const roleByAudit: Record<typeof auditMeta[number]['id'], 'project-manager' | 'finance-auditor' | 'zakat-auditor'> = {
+    const roleByAssessment: Record<typeof assessmentMeta[number]['id'], 'project-manager' | 'finance-assessor' | 'zakat-assessor'> = {
         'core-area-1': 'project-manager',
-        'core-area-2': 'finance-auditor',
-        'core-area-3': 'zakat-auditor',
+        'core-area-2': 'finance-assessor',
+        'core-area-3': 'zakat-assessor',
         'core-area-4': 'project-manager',
     }
 
-    const getReview = (key: typeof auditMeta[number]['reviewKey']) => {
+    const getReview = (key: typeof assessmentMeta[number]['reviewKey']) => {
         return reviews ? (reviews as any)[key] : undefined
     }
 
-    const getAuditStatus = (key: typeof auditMeta[number]['statusKey'], reviewKey: typeof auditMeta[number]['reviewKey']) => {
-        return getReview(reviewKey)?.status ?? (verificationSummary?.audits as any)?.[key]
+    const getAssessmentStatus = (key: typeof assessmentMeta[number]['statusKey'], reviewKey: typeof assessmentMeta[number]['reviewKey']) => {
+        return getReview(reviewKey)?.status ?? (verificationSummary?.assessments as any)?.[key]
     }
 
-    const isAuditComplete = (status?: string) => {
+    const isAssessmentComplete = (status?: string) => {
         return status === 'completed' || status === 'submitted'
     }
 
-    const completedAudits = auditMeta.filter(item => isAuditComplete(getAuditStatus(item.statusKey, item.reviewKey)))
-    const pendingAudits = auditMeta.filter(item => !isAuditComplete(getAuditStatus(item.statusKey, item.reviewKey)))
+    const completedAssessments = assessmentMeta.filter(item => isAssessmentComplete(getAssessmentStatus(item.statusKey, item.reviewKey)))
+    const pendingAssessments = assessmentMeta.filter(item => !isAssessmentComplete(getAssessmentStatus(item.statusKey, item.reviewKey)))
 
-    const getAssignedNamesForAudit = (auditId: typeof auditMeta[number]['id']) => {
-        const role = roleByAudit[auditId]
+    const getAssignedNamesForAssessment = (assessmentId: typeof assessmentMeta[number]['id']) => {
+        const role = roleByAssessment[assessmentId]
         const names = membersByRole.find(m => m.slug === role)?.names ?? []
         return names.length ? names.join(', ') : 'Unassigned'
     }
 
-    const isCurrentUserAssignedToRole = (role: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
+    const isCurrentUserAssignedToRole = (role: 'project-manager' | 'finance-assessor' | 'zakat-assessor') => {
         if (!effectiveUserId) return false
         return members.some(member => member.role === role && member.id === effectiveUserId)
     }
     const isCurrentUserAssigned = effectiveUserId ? members.some(member => member.id === effectiveUserId) : false
-    const auditActionLabel = reassessmentCycle && reassessmentCycle > 0 ? 'Re-Assess' : 'Start'
+    const assessmentActionLabel = reassessmentCycle && reassessmentCycle > 0 ? 'Re-Assess' : 'Start'
     const overallScoreLabel = typeof overallScorePercent === 'number' ? `${overallScorePercent}%` : null
 
     useEffect(() => {
@@ -362,7 +364,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
         }
     }, [charityId])
 
-    const assignSingleRole = async (userId: string, roleSlug: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
+    const assignSingleRole = async (userId: string, roleSlug: 'project-manager' | 'finance-assessor' | 'zakat-assessor') => {
         try {
             const res = await assignRolesToCharityAction(charityId, [{
                 userId,
@@ -373,8 +375,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
             if (res.ok) {
                 const labels = {
                     'project-manager': 'Project manager',
-                    'finance-auditor': 'Financial auditor',
-                    'zakat-auditor': 'Zakat auditor',
+                    'finance-assessor': 'Financial assessor',
+                    'zakat-assessor': 'Zakat assessor',
                 } as const
                 toast.success(`${labels[roleSlug]} assigned successfully`)
                 handleCloseModel()
@@ -388,7 +390,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
         }
     }
 
-    const reassignSingleRole = async (userId: string, roleSlug: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
+    const reassignSingleRole = async (userId: string, roleSlug: 'project-manager' | 'finance-assessor' | 'zakat-assessor') => {
         try {
             const existingRoleMembers = members.filter(member => member.role === roleSlug)
             const removeUserIds = existingRoleMembers
@@ -404,8 +406,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
             if (res.ok) {
                 const labels = {
                     'project-manager': 'Project manager',
-                    'finance-auditor': 'Financial auditor',
-                    'zakat-auditor': 'Zakat auditor',
+                    'finance-assessor': 'Financial assessor',
+                    'zakat-assessor': 'Zakat assessor',
                 } as const
                 toast.success(`${labels[roleSlug]} reassigned successfully`)
                 handleCloseModel()
@@ -419,12 +421,17 @@ const SingleCharityPageComponent: FC<IProps> = ({
         }
     }
 
-    const handleRoleSelection = async (userId: string, roleSlug: 'project-manager' | 'finance-auditor' | 'zakat-auditor') => {
-        if (assignmentMode === 'reassign') {
-            await reassignSingleRole(userId, roleSlug)
-            return
+    const handleRoleSelection = async (userId: string, roleSlug: 'project-manager' | 'finance-assessor' | 'zakat-assessor') => {
+        setIsAssigningRole(true)
+        try {
+            if (assignmentMode === 'reassign') {
+                await reassignSingleRole(userId, roleSlug)
+                return
+            }
+            await assignSingleRole(userId, roleSlug)
+        } finally {
+            setIsAssigningRole(false)
         }
-        await assignSingleRole(userId, roleSlug)
     }
 
     const handleSubmitComment = async () => {
@@ -610,7 +617,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             <TypographyComponent className="mt-4 text-[#475467]">{charityDesc}</TypographyComponent>
                         ) : null}
                     </CardComponent>
-                    {!shouldHideAuditAndProgress ? (
+                    {!shouldHideAssessmentAndProgress ? (
                         <CardComponent heading="Progress Overview" className="border-[#D9E4F2] bg-gradient-to-b from-[#F8FCFF] to-white">
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
@@ -618,10 +625,10 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                         Perform Assessments
                                     </TypographyComponent>
                                     <TypographyComponent variant='body2' className="font-semibold text-[#101928]">
-                                        {auditsCompleted}/{auditsTotal}
+                                        {assessmentsCompleted}/{assessmentsTotal}
                                     </TypographyComponent>
                                 </div>
-                                <Progress value={auditProgress} className="h-2.5" />
+                                <Progress value={assessmentProgress} className="h-2.5" />
                                 <div className="mt-1 flex flex-col gap-2">
                                     <ProgressStepRow
                                         title="Perform Eligibility"
@@ -638,10 +645,10 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                     />
                                     <ProgressStepRow
                                         title="Perform Assessments"
-                                        done={auditsCompleted === auditsTotal}
+                                        done={assessmentsCompleted === assessmentsTotal}
                                         successText="Completed"
                                         pendingText="In Progress"
-                                        meta={`${auditsCompleted}/${auditsTotal}`}
+                                        meta={`${assessmentsCompleted}/${assessmentsTotal}`}
                                     />
                                     <ProgressStepRow
                                         title="Reviewed by Admin"
@@ -786,31 +793,31 @@ const SingleCharityPageComponent: FC<IProps> = ({
                         </div>
                     </CardComponent>
                 </div>
-                {!shouldHideAuditAndProgress ? (
-                    <CardComponent heading="Audit Summary">
+                {!shouldHideAssessmentAndProgress ? (
+                    <CardComponent heading="Assessment Summary">
                         <TabsComponent
-                            value={auditTab}
-                            onValueChange={(value) => setAuditTab(value as 'completed' | 'pending')}
+                            value={assessmentTab}
+                            onValueChange={(value) => setAssessmentTab(value as 'completed' | 'pending')}
                             items={[
                                 {
                                     value: 'completed',
-                                    label: `Completed (${completedAudits.length})`,
+                                    label: `Completed (${completedAssessments.length})`,
                                     content: (
                                         <div className="flex flex-col gap-3 pt-3">
-                                            {completedAudits.length === 0 ? (
+                                            {completedAssessments.length === 0 ? (
                                                 <TypographyComponent variant="body2" className="text-[#666E76]">
                                                     No completed assessments yet.
                                                 </TypographyComponent>
                                             ) : (
-                                                completedAudits.map(item => {
+                                                completedAssessments.map(item => {
                                                     const review = getReview(item.reviewKey)
-                                                    const status = getAuditStatus(item.statusKey, item.reviewKey)
+                                                    const status = getAssessmentStatus(item.statusKey, item.reviewKey)
                                                     const score = review?.score
                                                     const total = review?.totalScore
                                                     const percent = typeof score === 'number' && typeof total === 'number' && total > 0
                                                         ? Math.round((score / total) * 100)
                                                         : null
-                                                    const assignedNames = getAssignedNamesForAudit(item.id)
+                                                    const assignedNames = getAssignedNamesForAssessment(item.id)
                                                     const isAssigned = assignedNames !== 'Unassigned'
                                                     return (
                                                         <div key={item.id} className="flex flex-col gap-2 rounded-md border border-[#EFF2F6] p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -826,14 +833,14 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                             size="icon"
                                                                             className="h-6 w-6"
                                                                             aria-label={`Reassign ${AUDIT_DEFINITIONS[item.id].title}`}
-                                                                            onClick={() => openAssignmentModal(roleByAudit[item.id], 'reassign')}
+                                                                            onClick={() => openAssignmentModal(roleByAssessment[item.id], 'reassign')}
                                                                         >
                                                                             <Pencil className="h-3.5 w-3.5" />
                                                                         </Button>
                                                                     ) : null}
                                                                 </TypographyComponent>
                                                                 <TypographyComponent variant="caption" className="text-[#666E76]">
-                                                                    Status: {auditStatusLabel(status)}
+                                                                    Status: {assessmentStatusLabel(status)}
                                                                 </TypographyComponent>
                                                                 {percent !== null ? (
                                                                     <TypographyComponent variant="caption" className="text-[#666E76]">
@@ -842,7 +849,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 ) : null}
                                                             </div>
                                                             <div className="flex gap-2">
-                                                                <LinkComponent to={`/charities/${charityId}/audits`}>
+                                                                <LinkComponent to={`/charities/${charityId}/assessments`}>
                                                                     <Button variant="outline">View</Button>
                                                                 </LinkComponent>
                                                             </div>
@@ -855,40 +862,40 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                 },
                                 {
                                     value: 'pending',
-                                    label: `Pending (${pendingAudits.length})`,
+                                    label: `Pending (${pendingAssessments.length})`,
                                     content: (
                                         <div className="flex flex-col gap-3 pt-3">
-                                            {pendingAudits.length === 0 ? (
+                                            {pendingAssessments.length === 0 ? (
                                                 <TypographyComponent variant="body2" className="text-[#666E76]">
                                                     No pending assessments.
                                                 </TypographyComponent>
                                             ) : (
-                                                pendingAudits.map(item => {
-                                                    const status = getAuditStatus(item.statusKey, item.reviewKey)
+                                                pendingAssessments.map(item => {
+                                                    const status = getAssessmentStatus(item.statusKey, item.reviewKey)
                                                     const isCore1Or4 = item.id === 'core-area-1' || item.id === 'core-area-4'
                                                     const needsProjectManager = isCore1Or4 && !projectManagerAssigned
-                                                    const needsFinanceAuditor = item.id === 'core-area-2' && !financeAuditorAssigned
-                                                    const needsZakatAuditor = item.id === 'core-area-3' && !zakatAuditorAssigned
-                                                    const requiredRole = roleByAudit[item.id]
-                                                    const assignedNames = getAssignedNamesForAudit(item.id)
+                                                    const needsFinanceAssessor = item.id === 'core-area-2' && !financeAssessorAssigned
+                                                    const needsZakatAssessor = item.id === 'core-area-3' && !zakatAssessorAssigned
+                                                    const requiredRole = roleByAssessment[item.id]
+                                                    const assignedNames = getAssignedNamesForAssessment(item.id)
                                                     const isAssigned = assignedNames !== 'Unassigned'
-                                                    const canStartAudit = canSubmitAudit && isCurrentUserAssignedToRole(requiredRole)
+                                                    const canStartAssessment = canSubmitAssessment && isCurrentUserAssignedToRole(requiredRole)
                                                     const assignmentAction = needsProjectManager
                                                         ? {
                                                             label: 'Assign Project Manager',
                                                             onClick: () => openAssignmentModal('project-manager', 'assign'),
                                                             disabled: !canAssignPM
                                                         }
-                                                        : needsFinanceAuditor
+                                                        : needsFinanceAssessor
                                                             ? {
-                                                                label: 'Assign Financial Auditor',
-                                                                onClick: () => openAssignmentModal('finance-auditor', 'assign'),
+                                                                label: 'Assign Financial Assessor',
+                                                                onClick: () => openAssignmentModal('finance-assessor', 'assign'),
                                                                 disabled: !canAssignPM
                                                             }
-                                                            : needsZakatAuditor
+                                                            : needsZakatAssessor
                                                                 ? {
-                                                                    label: 'Add Zakat Auditor',
-                                                                    onClick: () => openAssignmentModal('zakat-auditor', 'assign'),
+                                                                    label: 'Add Zakat Assessor',
+                                                                    onClick: () => openAssignmentModal('zakat-assessor', 'assign'),
                                                                     disabled: !canAssignPM
                                                                 }
                                                                 : null
@@ -906,14 +913,14 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                             size="icon"
                                                                             className="h-6 w-6"
                                                                             aria-label={`Reassign ${AUDIT_DEFINITIONS[item.id].title}`}
-                                                                            onClick={() => openAssignmentModal(roleByAudit[item.id], 'reassign')}
+                                                                            onClick={() => openAssignmentModal(roleByAssessment[item.id], 'reassign')}
                                                                         >
                                                                             <Pencil className="h-3.5 w-3.5" />
                                                                         </Button>
                                                                     ) : null}
                                                                 </TypographyComponent>
                                                                 <TypographyComponent variant="caption" className="text-[#666E76]">
-                                                                    Status: {auditStatusLabel(status)}
+                                                                    Status: {assessmentStatusLabel(status)}
                                                                 </TypographyComponent>
                                                             </div>
                                                             <div className="flex gap-2">
@@ -925,13 +932,13 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                     >
                                                                         {assignmentAction.label}
                                                                     </Button>
-                                                                ) : canStartAudit ? (
+                                                                ) : canStartAssessment ? (
                                                                     <Button
                                                                         variant="outline"
                                                                         onClick={() => handleTask(item.id as TaskIds)}
                                                                         disabled={pendingTaskId === item.id && isTaskPending}
                                                                     >
-                                                                        {auditActionLabel}
+                                                                        {assessmentActionLabel}
                                                                     </Button>
                                                                 ) : null}
                                                             </div>
@@ -994,42 +1001,44 @@ const SingleCharityPageComponent: FC<IProps> = ({
                         await handleRoleSelection(userId, 'project-manager')
                     }} users={projectManagerCandidates} onCancel={() => {
                         handleCloseModel()
-                    }} />
+                    }} isSubmitting={isAssigningRole} />
                 ) : null}
             </ModelComponentWithExternalControl>
 
             <ModelComponentWithExternalControl
-                title="Assign Financial Auditor"
+                title="Assign Financial Assessor"
                 onOpenChange={handleCloseModel}
-                open={modelState.nameOfModel === 'assign-finance-auditor'}
+                open={modelState.nameOfModel === 'assign-finance-assessor'}
             >
                 {canAssignPM ? (
                     <AssignProjectManager
-                        roleLabel="financial auditor"
-                        actionLabel="Assign Financial Auditor"
-                        users={financeAuditorCandidates}
+                        roleLabel="financial assessor"
+                        actionLabel="Assign Financial Assessor"
+                        users={financeAssessorCandidates}
                         onSelection={async (userId) => {
-                            await handleRoleSelection(userId, 'finance-auditor')
+                            await handleRoleSelection(userId, 'finance-assessor')
                         }}
                         onCancel={handleCloseModel}
+                        isSubmitting={isAssigningRole}
                     />
                 ) : null}
             </ModelComponentWithExternalControl>
 
             <ModelComponentWithExternalControl
-                title="Add Zakat Auditor"
+                title="Add Zakat Assessor"
                 onOpenChange={handleCloseModel}
-                open={modelState.nameOfModel === 'assign-zakat-auditor'}
+                open={modelState.nameOfModel === 'assign-zakat-assessor'}
             >
                 {canAssignPM ? (
                     <AssignProjectManager
-                        roleLabel="zakat auditor"
-                        actionLabel="Add Zakat Auditor"
-                        users={zakatAuditorCandidates}
+                        roleLabel="zakat assessor"
+                        actionLabel="Add Zakat Assessor"
+                        users={zakatAssessorCandidates}
                         onSelection={async (userId) => {
-                            await handleRoleSelection(userId, 'zakat-auditor')
+                            await handleRoleSelection(userId, 'zakat-assessor')
                         }}
                         onCancel={handleCloseModel}
+                        isSubmitting={isAssigningRole}
                     />
                 ) : null}
             </ModelComponentWithExternalControl>
@@ -1140,7 +1149,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 open={showReassessModal}
                 onOpenChange={setShowReassessModal}
                 title="Re-Assess Charity"
-                description={`This will move ${capitalizeWords(charityTitle)} back to Open to Review and start a new audit cycle. Continue?`}
+                description={`This will move ${capitalizeWords(charityTitle)} back to Open to Review and start a new assessment cycle. Continue?`}
                 confirmText={isReassessing ? "Re-Assessing..." : "Start Re-Assessment"}
                 onConfirm={async () => {
                     if (!canManageCharity) return;

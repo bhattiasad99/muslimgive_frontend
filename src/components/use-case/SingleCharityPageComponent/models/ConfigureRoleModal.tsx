@@ -32,12 +32,12 @@ const ConfigureRoleModal: FC<ConfigureRoleModalProps> = ({ member, onUpdate, onC
                     <Label htmlFor="r2" className="font-normal text-[#101928]">Operations Manager</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="finance-auditor" id="r3" />
-                    <Label htmlFor="r3" className="font-normal text-[#101928]">Finance Auditor</Label>
+                    <RadioGroupItem value="finance-assessor" id="r3" />
+                    <Label htmlFor="r3" className="font-normal text-[#101928]">Finance Assessor</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="zakat-auditor" id="r4" />
-                    <Label htmlFor="r4" className="font-normal text-[#101928]">Zakat Auditor</Label>
+                    <RadioGroupItem value="zakat-assessor" id="r4" />
+                    <Label htmlFor="r4" className="font-normal text-[#101928]">Zakat Assessor</Label>
                 </div>
             </RadioGroup>
 

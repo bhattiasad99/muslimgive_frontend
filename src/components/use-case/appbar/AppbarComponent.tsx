@@ -3,7 +3,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 import { PAGES } from '../sidebar/pages';
 import { TypographyComponent } from '@/components/common/TypographyComponent';
-import { AUDIT_DEFINITIONS, isAuditSlug } from '@/components/use-case/SingleAuditPageComponent/AUDIT_DEFINITIONS';
+import { AUDIT_DEFINITIONS, isAssessmentSlug } from '@/components/use-case/SingleAssessmentPageComponent/ASSESSMENT_DEFINITIONS';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -17,18 +17,18 @@ type TitleResolver = {
 
 const TITLE_RESOLVERS: TitleResolver[] = [
     {
-        match: (segments) => segments[0] === 'charities' && segments[2] === 'audits' && Boolean(segments[3]),
+        match: (segments) => segments[0] === 'charities' && segments[2] === 'assessments' && Boolean(segments[3]),
         getTitle: (segments) => {
-            const auditSlug = segments[3];
-            if (auditSlug && isAuditSlug(auditSlug)) {
-                return AUDIT_DEFINITIONS[auditSlug].title;
+            const assessmentSlug = segments[3];
+            if (assessmentSlug && isAssessmentSlug(assessmentSlug)) {
+                return AUDIT_DEFINITIONS[assessmentSlug].title;
             }
             return undefined;
         },
     },
     {
-        match: (segments) => segments[0] === 'charities' && segments[2] === 'audits' && !segments[3],
-        getTitle: () => 'Audit History',
+        match: (segments) => segments[0] === 'charities' && segments[2] === 'assessments' && !segments[3],
+        getTitle: () => 'Assessment History',
     },
     {
         match: () => true,

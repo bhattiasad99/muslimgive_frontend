@@ -22,7 +22,7 @@ type IProps = Omit<SingleCharityType, 'category'> & {
 }
 
 const SingleCharityCard: FC<IProps> = ({
-    auditsCompleted,
+    assessmentsCompleted,
     charityDesc,
     charityOwnerName,
     charityTitle,
@@ -86,7 +86,7 @@ const SingleCharityCard: FC<IProps> = ({
                                     <CardChatIcon /></span><span>{comments} Comments</span>
                             </div>
                             <div className="flex items-center min-w-max gap-0.5">
-                                <span><DocumentIcon /></span><span>{auditsCompleted}/4 Audits Completed</span>
+                                <span><DocumentIcon /></span><span>{assessmentsCompleted}/4 Assessments Completed</span>
                             </div>
                         </div>
                         {isDeepScan ? (

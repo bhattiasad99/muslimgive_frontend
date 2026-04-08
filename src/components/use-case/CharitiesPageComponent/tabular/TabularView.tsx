@@ -66,7 +66,7 @@ const TabularView: FC<Props> = ({ charities }) => {
                         <TableHead>Status</TableHead>
                         <TableHead>Submitted By</TableHead>
                         <TableHead className="w-[180px]">Team</TableHead>
-                        <TableHead className="text-center">Audits Completed</TableHead>
+                        <TableHead className="text-center">Assessments Completed</TableHead>
                         <TableHead>Progress</TableHead>
                         <TableHead className="text-center">Within 2 years</TableHead>
                         <TableHead>Pending Reason</TableHead>
@@ -77,7 +77,7 @@ const TabularView: FC<Props> = ({ charities }) => {
                     {pageItems.map((c, idx) => {
                         const globalIdx = start + idx
                         const status = statusMeta[c.status] || { title: c.status, color: '#999' }
-                        const percent = Math.round((Number(c.auditsCompleted || 0) / 4) * 100)
+                        const percent = Math.round((Number(c.assessmentsCompleted || 0) / 4) * 100)
                         const months = parseMonths(c.totalDuration)
                         const withinTwoYears = typeof months === 'number' ? months <= 24 : undefined
                         const pendingSource = (c.pendingEligibilitySource || '').toLowerCase().replace(/_/g, '-')
@@ -114,7 +114,7 @@ const TabularView: FC<Props> = ({ charities }) => {
                                     </div>
                                 </TableCell>
 
-                                <TableCell className="py-4 text-center">{`${c.auditsCompleted}/4`}</TableCell>
+                                <TableCell className="py-4 text-center">{`${c.assessmentsCompleted}/4`}</TableCell>
 
                                 <TableCell className="py-4">
                                     <div className="w-40">

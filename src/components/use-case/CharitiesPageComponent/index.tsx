@@ -95,7 +95,7 @@ const CharitiesPageComponent = () => {
                         role: a.roles?.[0]?.slug || 'project-manager'
                     })),
                     comments: c.commentsCount || 0,
-                    auditsCompleted: (c.reviews?.summary?.completed || 0) as any,
+                    assessmentsCompleted: (c.reviews?.summary?.completed || 0) as any,
                     status: c.status || 'unassigned',
                     category: c.category ?? null,
                     reassessmentCycle: c.reassessmentCycle ?? 0,

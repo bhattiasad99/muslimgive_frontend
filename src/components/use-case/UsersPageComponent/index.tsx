@@ -15,9 +15,11 @@ import { useRouter } from 'next/navigation'
 import ControlledSearchBarComponent from '@/components/common/SearchBarComponent/ControlledSearchBarComponent'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import AddUserModel from './AddUserModel'
+import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
 import { updateUserStatusAction } from '@/app/actions/admin'
+import { deleteUserAction } from '@/app/actions/users'
 import { toast } from 'sonner'
 import { kebabToTitle } from '@/lib/helpers'
 
@@ -28,8 +30,8 @@ type PaginationType = {
 }
 
 const ROLE_KEYS = [
-    'Financial Auditor',
-    'Zakat Auditor',
+    'Financial Assessor',
+    'Zakat Assessor',
     'Project Manager',
     'MG Admin',
     'Operations Manager',
@@ -45,8 +47,8 @@ type FilterKey =
 
 // Start permissive: everything visible; reset-requests off by default.
 const STARTING_FILTER_OPTIONS: Record<FilterKey, boolean> = {
-    'Financial Auditor': true,
-    'Zakat Auditor': true,
+    'Financial Assessor': true,
+    'Zakat Assessor': true,
     'Project Manager': true,
     'MG Admin': true,
     'Operations Manager': true,
@@ -108,9 +110,13 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
     // Apply fuzzy search
     const searchedRows = useMemo(() => {
         const q = query.trim()
-        if (!q) return usersArr
-        return fuse.search(q).map((r) => r.item)
-    }, [query, fuse, usersArr])
+        const activeUsers = usersArr.filter(u => !u.isDeleted)
+        if (!q) return activeUsers
+        return new Fuse(activeUsers, {
+            threshold: 0.4,
+            keys: [{ name: 'name', getFn: (u: Data) => `${u.firstName} ${u.lastName}`.trim() }]
+        }).search(q).map((r) => r.item)
+    }, [query, usersArr])
 
     // Then apply toggle filters (only when not "all on")
     const filteredRows = useMemo(() => {
@@ -121,8 +127,8 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
         const allStatusesOn = activeStatusFilters.length === STATUS_KEYS.length
 
         const resetOn = filterOpts[RESET_KEY]
-        console.log({searchedRows})
-        
+        console.log({ searchedRows })
+
         return searchedRows.filter((u) => {
             const rolesOk = allRolesOn
                 ? true
@@ -131,9 +137,9 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
             const statusOk = allStatusesOn ? true : activeStatusFilters.includes(u.status as (typeof STATUS_KEYS)[number])
 
             const resetOk = resetOn ? u.requestingPasswordReset === true : true
-            
+
             return rolesOk && statusOk && resetOk
-        }).map(eachRow => ({...eachRow, location: kebabToTitle(eachRow.location || '')}));
+        }).map(eachRow => ({ ...eachRow, location: kebabToTitle(eachRow.location || '') }));
     }, [searchedRows, filterOpts])
 
     // keep totalEntries + page clamp in sync with results
@@ -178,6 +184,9 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
         `filter_switch__${label.toLowerCase().replace(/\s+/g, '_')}`
 
     const [openNewUserModal, setOpenNewUserModal] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleToggleUserStatus = async (userId: string, status: Data["status"]) => {
         const isActive = status !== 'Active';
@@ -192,6 +201,30 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
             toast.error(res.message || `Failed to ${actionLabel} user`);
         } catch {
             toast.error('An unexpected error occurred');
+        }
+    }
+
+    const handleDeleteUser = async (userId: string) => {
+        setUserToDelete(userId);
+        setShowDeleteConfirm(true);
+    }
+
+    const confirmDelete = async () => {
+        if (!userToDelete) return;
+        setIsDeleting(true);
+        try {
+            const res = await deleteUserAction(userToDelete);
+            if (res.ok) {
+                toast.success('User deleted successfully');
+                router.refresh();
+                setShowDeleteConfirm(false);
+            } else {
+                toast.error(res.message || 'Failed to delete user');
+            }
+        } catch {
+            toast.error('An unexpected error occurred');
+        } finally {
+            setIsDeleting(false);
         }
     }
 
@@ -294,6 +327,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                 <UsersExpandableTable
                     rows={pageRows.filter(eachRow => eachRow.firstName !== "")}
                     onToggleStatus={handleToggleUserStatus}
+                    onDelete={handleDeleteUser}
                 />
                 <div className="w-full flex flex-wrap justify-end items-center text-xs gap-2">
                     <span>Rows per page:</span>
@@ -349,6 +383,16 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                     />
                 </ModelComponentWithExternalControl>
             </Can>
+
+            <ConfirmActionModal
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+                onConfirm={confirmDelete}
+                title="Confirm Delete"
+                description="Are you sure you want to delete this user? This action cannot be undone."
+                confirmText="Delete User"
+                isLoading={isDeleting}
+            />
         </CardComponent>
     )
 }

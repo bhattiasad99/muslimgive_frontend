@@ -25,10 +25,10 @@ export const PERMISSIONS = {
     CREATE_USER_MG: "create:user_mg",
     CHARITY_MANAGE: "charity:manage",
     CREATE_CHARITY: "create:charity",
-    AUDIT_CHARITY_SUMMARY_VIEW: "audit:charity:summary:view",
-    AUDIT_CHARITY_VIEW: "audit:charity:view",
-    AUDIT_SUBMISSION_CREATE: "audit:submission:create",
-    AUDIT_SUBMISSION_COMPLETE: "audit:submission:complete",
+    AUDIT_CHARITY_SUMMARY_VIEW: "assessment:charity:summary:view",
+    AUDIT_CHARITY_VIEW: "assessment:charity:view",
+    AUDIT_SUBMISSION_CREATE: "assessment:submission:create",
+    AUDIT_SUBMISSION_COMPLETE: "assessment:submission:complete",
 } as const;
 
 export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
@@ -41,11 +41,11 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
         requirement: { anyOf: [PERMISSIONS.VIEW_CHARITIES, PERMISSIONS.CHARITY_MANAGE] },
     },
     {
-        pattern: /^\/charities\/[^/]+\/audits$/,
+        pattern: /^\/charities\/[^/]+\/assessments$/,
         requirement: { anyOf: [PERMISSIONS.AUDIT_CHARITY_SUMMARY_VIEW, PERMISSIONS.AUDIT_CHARITY_VIEW] },
     },
     {
-        pattern: /^\/charities\/[^/]+\/audits\/[^/]+$/,
+        pattern: /^\/charities\/[^/]+\/assessments\/[^/]+$/,
         requirement: {
             anyOf: [
                 PERMISSIONS.AUDIT_CHARITY_VIEW,
@@ -64,7 +64,7 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     },
     {
         pattern: /^\/users$/,
-        requirement: { anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
+        requirement: { adminOnly: true, anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
     },
     {
         pattern: /^\/config$/,

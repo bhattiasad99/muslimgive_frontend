@@ -21,7 +21,7 @@ const KanbanColumn: FC<IProps> = ({ color, title, cards, onCardNavigate }) => {
             <div className="max-h-full overflow-y-auto scrollbar-sleek pr-1">
                 <div className="flex flex-col gap-4">
                     {cards.map(eachCard => <SingleCharityCard key={eachCard.id}
-                        auditsCompleted={eachCard.auditsCompleted}
+                        assessmentsCompleted={eachCard.assessmentsCompleted}
                         charityDesc={eachCard.charityDesc}
                         charityOwnerName={eachCard.charityOwnerName}
                         charityTitle={eachCard.charityTitle}

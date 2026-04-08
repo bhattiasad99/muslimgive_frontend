@@ -9,7 +9,7 @@ Global rules
 Core Area 1 (Charity Status)
 Files:
 - core_area_forms.json
-- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea1_CharityStatus/index.tsx
+- src/components/use-case/SingleAuditPageComponent/Assessments/CoreArea1_CharityStatus/index.tsx
 Changes:
 1) Add JSON questions for the UI-only fields:
    - Registration Date (date input). Add a new question entry (new id) with type "date".
@@ -30,7 +30,7 @@ Changes:
 Core Area 2 (Financial Assessment)
 Files:
 - core_area_forms.json
-- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea2_FinancialAccountability/index.tsx
+- src/components/use-case/SingleAuditPageComponent/Assessments/CoreArea2_FinancialAccountability/index.tsx
 Changes:
 1) Add JSON questions for existing UI fields:
    - Financials (Link), Tax Return (Link), IRS Returns (Link), CRA's Returns (Link)
@@ -49,8 +49,8 @@ Changes:
 Core Area 3 (Zakat Policy Compliance)
 Files:
 - core_area_forms.json
-- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea3_Zakat/MULTI_STEP_DEFS.ts
-- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea3_Zakat/index.tsx
+- src/components/use-case/SingleAuditPageComponent/Assessments/CoreArea3_Zakat/MULTI_STEP_DEFS.ts
+- src/components/use-case/SingleAuditPageComponent/Assessments/CoreArea3_Zakat/index.tsx
 Changes:
 1) Add missing metrics to JSON (currently in UI but not in JSON):
    - Formal approval on Zakat campaigns
@@ -71,7 +71,7 @@ Changes:
 Core Area 4 (Governance & Leadership)
 Files:
 - core_area_forms.json
-- src/components/use-case/SingleAuditPageComponent/Audits/CoreArea4_Governance/index.tsx
+- src/components/use-case/SingleAuditPageComponent/Assessments/CoreArea4_Governance/index.tsx
 Changes:
 1) Add missing JSON question for the existing UI question:
    - Number of Board Members (add to JSON with id/label/type/options consistent with the UI)

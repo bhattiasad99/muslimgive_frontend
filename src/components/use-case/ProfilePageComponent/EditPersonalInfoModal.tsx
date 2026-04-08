@@ -2,18 +2,14 @@
 import React, { FC, useState, useEffect, useMemo } from 'react'
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
-import DatePicker from '@/components/common/ControlledDatePickerComponent'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import ConfirmActionModal from '@/components/common/ConfirmActionModal'
 import { updateMeAction, UpdateMePayload } from '@/app/actions/users'
 import { toast } from 'sonner'
-import { formatDateToYYYYMMDD } from '@/lib/helpers'
 
 type PersonalInfo = {
     firstName: string
     lastName: string
-    dateOfBirth: Date | undefined
 }
 
 type IProps = {
@@ -26,21 +22,18 @@ type IProps = {
 const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, onSave }) => {
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
-    const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
     const [showConfirm, setShowConfirm] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
     const [errors, setErrors] = useState<{ firstName?: string, lastName?: string }>({})
     const [capturedInitial, setCapturedInitial] = useState<PersonalInfo>({
         firstName: '',
-        lastName: '',
-        dateOfBirth: undefined
+        lastName: ''
     })
 
     useEffect(() => {
         if (open) {
             setFirstName(initialData.firstName)
             setLastName(initialData.lastName)
-            setDateOfBirth(initialData.dateOfBirth)
             setCapturedInitial({ ...initialData })
         }
     }, [open, initialData])
@@ -48,10 +41,9 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
     const hasChanges = useMemo(() => {
         return (
             firstName !== capturedInitial.firstName ||
-            lastName !== capturedInitial.lastName ||
-            dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime()
+            lastName !== capturedInitial.lastName
         )
-    }, [firstName, lastName, dateOfBirth, capturedInitial])
+    }, [firstName, lastName, capturedInitial])
 
     const handleUpdate = () => {
         const newErrors: { firstName?: string, lastName?: string } = {}
@@ -76,9 +68,6 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
         const changedPayload: UpdateMePayload = {}
         if (firstName !== capturedInitial.firstName) changedPayload.firstName = firstName
         if (lastName !== capturedInitial.lastName) changedPayload.lastName = lastName
-        if (dateOfBirth?.getTime() !== capturedInitial.dateOfBirth?.getTime()) {
-            changedPayload.dateOfBirth = formatDateToYYYYMMDD(dateOfBirth)
-        }
 
         setIsUpdating(true)
         try {
@@ -87,8 +76,7 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                 toast.success('Personal information updated successfully')
                 onSave({
                     firstName,
-                    lastName,
-                    dateOfBirth
+                    lastName
                 })
                 onOpenChange(false)
             } else {
@@ -106,7 +94,6 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
     const handleCancel = () => {
         setFirstName(capturedInitial.firstName)
         setLastName(capturedInitial.lastName)
-        setDateOfBirth(capturedInitial.dateOfBirth)
         onOpenChange(false)
     }
 
@@ -145,15 +132,6 @@ const EditPersonalInfoModal: FC<IProps> = ({ open, onOpenChange, initialData, on
                 />
                 {errors.lastName && <p className="text-red-500 text-xs -mt-3">{errors.lastName}</p>}
 
-                <div className="flex flex-col gap-1">
-                    <Label className="text-sm">Date of Birth</Label>
-                    <DatePicker
-                        value={dateOfBirth}
-                        onChange={setDateOfBirth}
-                        placeholder="Select date of birth"
-                        disabledFutureDates
-                    />
-                </div>
 
                 <div className="flex flex-col gap-3 mt-2">
                     <Button

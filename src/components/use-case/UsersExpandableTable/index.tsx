@@ -16,9 +16,9 @@ import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
 
 export type Role =
-    | "Financial Auditor"
+    | "Financial Assessor"
     | "Project Manager"
-    | "Zakat Auditor"
+    | "Zakat Assessor"
     | "Operations Manager"
     | "MG Admin";
 
@@ -27,21 +27,22 @@ export type Data = {
     firstName: string
     lastName: string
     email: string
-    dateOfBirth: string
     location: string
     postalCode: string
     roles: Role[]
     status: 'Active' | 'Inactive',
     requestingPasswordReset: boolean,
-    profilePicture?: string
+    profilePicture?: string,
+    isDeleted?: boolean
 }
 
 type IProps = {
     rows: Data[];
     onToggleStatus?: (userId: string, status: Data["status"]) => Promise<void> | void;
+    onDelete?: (userId: string) => Promise<void> | void;
 }
 
-const UsersExpandableTable: FC<IProps> = ({ rows, onToggleStatus }) => {
+const UsersExpandableTable: FC<IProps> = ({ rows, onToggleStatus, onDelete }) => {
     const [openId, setOpenId] = useState<string | null>(null)
     const [editingUser, setEditingUser] = useState<{ id: string, name: string } | null>(null)
 
@@ -63,7 +64,8 @@ const UsersExpandableTable: FC<IProps> = ({ rows, onToggleStatus }) => {
                                 location: eachUser.location,
                                 isOpen: isOpen,
                                 setOpenId: setOpenId,
-                                onToggleStatus: onToggleStatus
+                                onToggleStatus: onToggleStatus,
+                                onDelete: onDelete
                             }}
                             />
                         </AccordionTrigger>
@@ -82,7 +84,6 @@ const UsersExpandableTable: FC<IProps> = ({ rows, onToggleStatus }) => {
                                     firstName: eachUser.firstName,
                                     lastName: eachUser.lastName,
                                     email: eachUser.email,
-                                    dateOfBirth: eachUser.dateOfBirth,
                                     location: eachUser.location,
                                     postalCode: eachUser.postalCode,
                                     roles: eachUser.roles,

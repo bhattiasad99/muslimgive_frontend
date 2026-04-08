@@ -2,14 +2,11 @@ import { Button } from '@/components/ui/button'
 import React, { useState, useEffect } from 'react'
 import { UserForm } from './user-page.types'
 import { ControlledTextFieldComponent } from '@/components/common/TextFieldComponent/ControlledTextFieldComponent'
-import ControlledDatePickerComponent from '@/components/common/ControlledDatePickerComponent'
 import CountrySelectComponent from '@/components/common/CountrySelectComponent'
 import MultiSelectComboboxComponent from '@/components/common/MultiSelectComboboxComponent'
-
 import { createMgMemberAction } from '@/app/actions/users'
 import { listRolesAction } from '@/app/actions/roles'
 import { toast } from 'sonner'
-import { formatDateToYYYYMMDD } from '@/lib/helpers'
 
 type IProps = {
     onClose?: () => void
@@ -31,10 +28,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
         },
         email: {
             value: '',
-            error: ''
-        },
-        dob: {
-            value: undefined,
             error: ''
         },
         country: {
@@ -87,7 +80,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
             firstName: user.firstName.value,
             lastName: user.lastName.value,
             email: user.email.value,
-            dateOfBirth: formatDateToYYYYMMDD(user.dob.value), // Format: YYYY-MM-DD
             countryName: user.country.value,
             postalCode: user.postalcode.value,
             roles: user.roles.value,
@@ -133,19 +125,6 @@ const AddUserModel: React.FC<IProps> = ({ onClose, onSuccess }) => {
                 </label>
                 <ControlledTextFieldComponent
                     value={user.email.value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormValue('email', e.target.value)} name="email" id='add_user__email' />
-            </div>
-            <div className="flex items-center">
-                <label htmlFor='add_user__dob' className='w-50'>
-                    Date of Birth
-                </label>
-                <ControlledDatePickerComponent
-                    value={user.dob.value}
-                    onChange={(updatedDate) => {
-                        updateFormValue('dob', updatedDate)
-                    }}
-                    id="add_user__dob"
-                    label="Date of birth"
-                />
             </div>
             <div className="flex items-center">
                 <label htmlFor='add_user__country' className='w-50'>

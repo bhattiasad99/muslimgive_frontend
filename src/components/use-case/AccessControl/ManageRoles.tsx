@@ -104,7 +104,7 @@ const ManageRoles: FC<ManageRolesProps> = ({ initialRoles = [], initialPermissio
     setIsAdding(true)
     try {
       const body = {
-        title: data.name,
+        name: data.name,
         description: data.description,
         permissions: (data.permissions || []).filter(p => p.enabled).map(p => p.id)
       }
@@ -141,7 +141,7 @@ const ManageRoles: FC<ManageRolesProps> = ({ initialRoles = [], initialPermissio
   const handleEditSave = async (data: { id: string; name: string; description: string }) => {
     setIsEditing(true)
     try {
-      const body = { title: data.name, description: data.description }
+      const body = { name: data.name, description: data.description }
       const res = await updateRoleAction(data.id, body)
       if (res.ok) {
         setRoles(prev => prev.map(r => r.id === data.id ? { ...r, name: data.name, description: data.description } : r))
@@ -268,7 +268,7 @@ const ManageRoles: FC<ManageRolesProps> = ({ initialRoles = [], initialPermissio
               </TableCell>
               <TableCell className="py-4 w-[160px]">
                 <div className="flex items-center gap-2 justify-center">
-                  {r.canEditDelete !== false && (
+                  {r.rolePolicy !== 'system' && (
                     <Can anyOf={[PERMISSIONS.ROLE_UPDATE, PERMISSIONS.ROLE_MANAGE]}>
                       <Tooltip>
                         <TooltipTrigger asChild>

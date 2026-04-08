@@ -124,12 +124,12 @@ const BulkEmailModal: FC<BulkEmailModalProps> = ({ onClose, charities = [] }) =>
         },
         {
 
-            accessorKey: 'auditsCompleted',
+            accessorKey: 'assessmentsCompleted',
             header: () => {
-                return <div className="text-center">Audits Completed</div>
+                return <div className="text-center">Assessments Completed</div>
             },
             cell: ({ row }) => (
-                <div className="text-center">{`${row.original.auditsCompleted}/4`}</div>
+                <div className="text-center">{`${row.original.assessmentsCompleted}/4`}</div>
             ),
         },
     ]

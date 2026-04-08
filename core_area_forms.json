@@ -875,7 +875,7 @@
             },
             {
               "metricId": "ZP08",
-              "question": "Shariah Advisory board established to advise, set policies, review and audit",
+              "question": "Shariah Advisory board established to advise, set policies, review and assessment",
               "maxScore": 7.0,
               "criteria": [
                 {
@@ -1079,7 +1079,7 @@
             },
             {
               "metricId": "ZP16",
-              "question": "Audit procedures (internal/external)",
+              "question": "Assessment procedures (internal/external)",
               "maxScore": 2.0,
               "criteria": [
                 {

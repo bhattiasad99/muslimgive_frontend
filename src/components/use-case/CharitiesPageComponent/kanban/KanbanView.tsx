@@ -9,12 +9,12 @@ export type KanbanColType = {
     cards?: SingleCharityType[]
 }
 
-export type BaseRoles = 'project-manager' | 'finance-auditor' | 'zakat-auditor' | 'admin'
+export type BaseRoles = 'project-manager' | 'finance-assessor' | 'zakat-assessor' | 'admin'
 
 export enum RolesEnum {
     'project-manager' = 'Project Manager',
-    'finance-auditor' = 'Finance Auditor',
-    'zakat-auditor' = 'Zakat Auditor',
+    'finance-assessor' = 'Finance Assessor',
+    'zakat-assessor' = 'Zakat Assessor',
     'admin' = 'Admin'
 }
 
@@ -33,8 +33,8 @@ type AssignmentCandidate = {
 
 type AssignmentCandidatesByRole = {
     projectManager: AssignmentCandidate[]
-    financeAuditor: AssignmentCandidate[]
-    zakatAuditor: AssignmentCandidate[]
+    financeAssessor: AssignmentCandidate[]
+    zakatAssessor: AssignmentCandidate[]
 }
 
 export type StatusType = 'pending-eligibility' | 'unassigned' | 'open-to-review' | 'pending-admin-review' | 'approved' | 'ineligible'
@@ -97,7 +97,7 @@ export type SingleCharityType = {
     charityDesc: string
     members: Member[]
     comments: number
-    auditsCompleted: 0 | 1 | 2 | 3 | 4
+    assessmentsCompleted: 0 | 1 | 2 | 3 | 4
     status: StatusType,
     category: string,
     country?: keyof typeof CountryEnum,
@@ -139,7 +139,7 @@ export type SingleCharityType = {
             pending: boolean
             result: string
         }
-        audits: {
+        assessments: {
             coreArea1: string
             coreArea2: string
             coreArea3: string

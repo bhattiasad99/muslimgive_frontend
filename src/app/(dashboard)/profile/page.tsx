@@ -18,7 +18,6 @@ const mapMeToProfile = (u: UserProfile): Data => ({
     firstName: u.firstName,
     lastName: u.lastName,
     email: u.email,
-    dateOfBirth: u.dateOfBirth || u.dob || '',
     location: u.countryName || u.country || '-',
     postalCode: u.postalCode || '',
     roles: (u.roles || []).map(r => kebabToTitle(r) as Role),
@@ -84,14 +83,12 @@ const MyProfile = () => {
                 initialData={{
                     firstName: profile.firstName,
                     lastName: profile.lastName,
-                    dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth) : undefined
                 }}
                 onSave={(data) => {
                     setProfile(prev => prev ? {
                         ...prev,
                         firstName: data.firstName,
                         lastName: data.lastName,
-                        dateOfBirth: formatDateToYYYYMMDD(data.dateOfBirth)
                     } : null)
                 }}
             />

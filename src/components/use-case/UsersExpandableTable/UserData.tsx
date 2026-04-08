@@ -23,7 +23,6 @@ const UserData: FC<IProps> = ({
     firstName,
     lastName,
     email,
-    dateOfBirth,
     location,
     postalCode,
     roles,
@@ -104,9 +103,6 @@ const UserData: FC<IProps> = ({
                         },
                         {
                             lastName: capitalizeWords(lastName)
-                        },
-                        {
-                            dateOfBirth: capitalizeWords(dateOfBirth)
                         }
                     ]} />
                 </UserCardLayout>

@@ -40,7 +40,7 @@ export const listPermissionsAction = async (useCache = false): Promise<ResponseT
  * Creates a new role
  */
 export type CreateRolePayload = {
-    title: string;
+    name: string;
     description?: string;
     permissions?: string[];
     rolePolicy?: string;
@@ -55,7 +55,7 @@ export const createRoleAction = async (payload: CreateRolePayload): Promise<Resp
  * Updates a role
  */
 export type UpdateRolePayload = {
-    title: string;
+    name: string;
     description?: string;
 }
 

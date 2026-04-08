@@ -60,7 +60,7 @@ const PreviewCharityPage = () => {
             charityDesc: '',
             members: [],
             comments: 0,
-            auditsCompleted: 0 as const,
+            assessmentsCompleted: 0 as const,
             status: parsed.isEligible ? 'unassigned' : 'ineligible',
             category: resolvedCategory,
             country: parsed.countryCode,
