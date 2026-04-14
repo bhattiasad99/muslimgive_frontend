@@ -42,12 +42,13 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     },
     {
         pattern: /^\/charities\/[^/]+\/assessments$/,
-        requirement: { anyOf: [PERMISSIONS.AUDIT_CHARITY_SUMMARY_VIEW, PERMISSIONS.AUDIT_CHARITY_VIEW] },
+        requirement: { anyOf: [PERMISSIONS.VIEW_CHARITIES, PERMISSIONS.AUDIT_CHARITY_SUMMARY_VIEW, PERMISSIONS.AUDIT_CHARITY_VIEW] },
     },
     {
         pattern: /^\/charities\/[^/]+\/assessments\/[^/]+$/,
         requirement: {
             anyOf: [
+                PERMISSIONS.VIEW_CHARITIES,
                 PERMISSIONS.AUDIT_CHARITY_VIEW,
                 PERMISSIONS.AUDIT_SUBMISSION_CREATE,
                 PERMISSIONS.AUDIT_SUBMISSION_COMPLETE,

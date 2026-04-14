@@ -134,16 +134,17 @@ export type SingleCharityType = {
         core4: CoreAreaReview
         summary: { completed: number; total: number }
     },
+    currentUserRoles?: string[],
     verificationSummary?: {
         eligibility: {
             pending: boolean
             result: string
         }
         assessments: {
-            coreArea1: string
-            coreArea2: string
-            coreArea3: string
-            coreArea4: string
+            coreArea1: string | { status: string; isEditable?: boolean }
+            coreArea2: string | { status: string; isEditable?: boolean }
+            coreArea3: string | { status: string; isEditable?: boolean }
+            coreArea4: string | { status: string; isEditable?: boolean }
             completed: number
             total: number
         }

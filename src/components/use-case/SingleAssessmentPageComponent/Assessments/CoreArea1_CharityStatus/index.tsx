@@ -38,6 +38,7 @@ type CoreArea1Props = {
 const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }) => {
     const router = useRouter()
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
+    const [isEditable, setIsEditable] = useState(true)
 
     const currentForm = useMemo(() => {
         // Map app country codes to form definition country codes
@@ -78,8 +79,9 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                 const { getAssessmentAction } = await import('@/app/actions/assessments');
                 const res = await getAssessmentAction(charityId, 1);
 
-                if (res.ok && res.payload?.data?.data?.answers) {
-                    const answers = res.payload.data.data.answers;
+                if (res.ok && res.payload?.data?.data) {
+                    const answers = res.payload.data.data.answers || {};
+                    setIsEditable(res.payload.data.data.isEditable !== false);
                     const newFormData: FormDataType = {};
 
                     // Helper to convert label to snake_case to match API keys
@@ -413,24 +415,31 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
     return (
         <>
             <div className="flex flex-col gap-4">
+                {isEditable === false && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium">
+                        View Only Mode: You are not authorized to edit this core area.
+                    </div>
+                )}
                 <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
                 {reorderedQuestions.map(question => renderQuestion(question))}
             </div>
 
-            <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
-                <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
-                    // Save to local storage for immediate preview usage
-                    if (typeof window !== 'undefined') {
-                        localStorage.setItem(`assessment-form-data-${charityId}-core-area-1`, JSON.stringify(formData));
-                    }
+            {!isEditable ? null : (
+                <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
+                    <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
+                        // Save to local storage for immediate preview usage
+                        if (typeof window !== 'undefined') {
+                            localStorage.setItem(`assessment-form-data-${charityId}-core-area-1`, JSON.stringify(formData));
+                        }
 
-                    // Save to API as draft
-                    await handleSaveDraft();
+                        // Save to API as draft
+                        await handleSaveDraft();
 
-                    router.push(`/charities/${charityId}/assessments/core-area-1?preview-mode=true&country=${country}`)
-                }}>Preview</Button>
-                <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
-            </div>
+                        router.push(`/charities/${charityId}/assessments/core-area-1?preview-mode=true&country=${country}`)
+                    }}>Preview</Button>
+                    <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
+                </div>
+            )}
         </>
     )
 }

@@ -17,6 +17,7 @@ type IProps = {
 const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
     const router = useRouter();
     const [formData, setFormData] = useState<Record<string, any>>({});
+    const [isEditable, setIsEditable] = useState(true);
 
     const formDefinition = useMemo(() => {
         const normalized = location === 'uk' ? 'united-kingdom'
@@ -44,8 +45,9 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
                 const { getAssessmentAction } = await import('@/app/actions/assessments');
                 const res = await getAssessmentAction(charityId, 2);
 
-                if (res.ok && res.payload?.data?.data?.answers) {
-                    const answers = res.payload.data.data.answers;
+                if (res.ok && res.payload?.data?.data) {
+                    const answers = res.payload.data.data.answers || {};
+                    setIsEditable(res.payload.data.data.isEditable !== false);
                     const newFormData: Record<string, any> = {};
 
                     const toSnakeCase = (str: string) =>
@@ -218,22 +220,29 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
     return (
         <>
             <div className='flex flex-col gap-6'>
+                {isEditable === false && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium">
+                        View Only Mode: You are not authorized to edit this core area.
+                    </div>
+                )}
                 {formDefinition.questions.map(q => renderQuestion(q))}
             </div>
 
             {/* Action Buttons */}
-            <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
-                <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
-                    if (typeof window !== 'undefined') {
-                        localStorage.setItem(`assessment-form-data-${charityId}-core-area-2`, JSON.stringify(formData));
-                    }
+            {!isEditable ? null : (
+                <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
+                    <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
+                        if (typeof window !== 'undefined') {
+                            localStorage.setItem(`assessment-form-data-${charityId}-core-area-2`, JSON.stringify(formData));
+                        }
 
-                    await handleSaveDraft();
+                        await handleSaveDraft();
 
-                    router.push(`/charities/${charityId}/assessments/core-area-2?preview-mode=true&country=${location}`)
-                }}>Preview</Button>
-                <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
-            </div>
+                        router.push(`/charities/${charityId}/assessments/core-area-2?preview-mode=true&country=${location}`)
+                    }}>Preview</Button>
+                    <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
+                </div>
+            )}
         </>
     )
 }

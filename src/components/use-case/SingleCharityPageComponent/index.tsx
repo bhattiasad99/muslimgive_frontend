@@ -44,7 +44,7 @@ type IProps = SingleCharityType & {
 };
 
 type ModelControl = {
-    nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor';
+    nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor' | 'assign-finance-auditor' | 'assign-zakat-auditor';
 }
 type AssignmentMode = 'assign' | 'reassign'
 
@@ -133,6 +133,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     reassessmentCycle,
     overallScorePercent,
     overallScoreResult,
+    currentUserRoles = [],
 }) => {
     const router = useRouter();
     const [modelState, setModelState] = useState<ModelControl>({ nameOfModel: null });
@@ -186,17 +187,17 @@ const SingleCharityPageComponent: FC<IProps> = ({
         setAssignmentMode('assign')
     }
 
-    const openAssignmentModal = (role: 'project-manager' | 'finance-assessor' | 'zakat-assessor', mode: AssignmentMode = 'assign') => {
+    const openAssignmentModal = (role: 'project-manager' | 'finance-assessor' | 'zakat-assessor' | 'finance-auditor' | 'zakat-auditor', mode: AssignmentMode = 'assign') => {
         setAssignmentMode(mode)
         if (role === 'project-manager') {
             handleOpenModel('assign-project-manager')
             return
         }
-        if (role === 'finance-assessor') {
-            handleOpenModel('assign-finance-assessor')
+        if (role === 'finance-assessor' || role === 'finance-auditor') {
+            handleOpenModel(role === 'finance-auditor' ? 'assign-finance-auditor' as any : 'assign-finance-assessor')
             return
         }
-        handleOpenModel('assign-zakat-assessor')
+        handleOpenModel(role === 'zakat-auditor' ? 'assign-zakat-auditor' as any : 'assign-zakat-assessor')
     }
 
     useEffect(() => {
@@ -225,27 +226,39 @@ const SingleCharityPageComponent: FC<IProps> = ({
     })
     const canManageCharity = isAllowed({ anyOf: [PERMISSIONS.CHARITY_MANAGE] })
 
+    const roleAliasesByCanonical: Record<'project-manager' | 'finance-auditor' | 'zakat-auditor' | 'admin', string[]> = {
+        'project-manager': ['project-manager'],
+        'finance-auditor': ['finance-auditor', 'financial-auditor', 'finance-assessor', 'financial-assessor'],
+        'zakat-auditor': ['zakat-auditor', 'zakat-assessor'],
+        'admin': ['admin'],
+    }
+
     const roleSlots = [
         { slug: 'project-manager', label: 'Project Manager' },
-        { slug: 'finance-assessor', label: 'Finance Assessor' },
-        { slug: 'zakat-assessor', label: 'Zakat Assessor' },
+        { slug: 'finance-auditor', label: 'Finance Assessor' },
+        { slug: 'zakat-auditor', label: 'Zakat Assessor' },
         { slug: 'admin', label: 'Admin' },
     ]
 
-    const membersByRole = roleSlots.map(slot => {
-        const names = members
-            .filter(m => m.role === slot.slug)
-            .map(m => m.name)
-        return {
-            ...slot,
-            names
-        }
-    })
+    const getMemberNamesByRole = (role: 'project-manager' | 'finance-auditor' | 'zakat-auditor' | 'admin') => {
+        const aliases = new Set(roleAliasesByCanonical[role])
+        return Array.from(new Set(
+            members
+                .filter(member => aliases.has(member.role))
+                .map(member => member.name)
+                .filter(Boolean)
+        ))
+    }
+
+    const membersByRole = roleSlots.map(slot => ({
+        ...slot,
+        names: getMemberNamesByRole(slot.slug as 'project-manager' | 'finance-auditor' | 'zakat-auditor' | 'admin')
+    }))
     const projectManagerAssigned = membersByRole.find(m => m.slug === 'project-manager')?.names.length
         ? true
         : Boolean(verificationSummary?.projectManagerAssigned)
-    const financeAssessorAssigned = (membersByRole.find(m => m.slug === 'finance-assessor')?.names.length ?? 0) > 0
-    const zakatAssessorAssigned = (membersByRole.find(m => m.slug === 'zakat-assessor')?.names.length ?? 0) > 0
+    const financeAssessorAssigned = (membersByRole.find(m => m.slug === 'finance-auditor')?.names.length ?? 0) > 0
+    const zakatAssessorAssigned = (membersByRole.find(m => m.slug === 'zakat-auditor')?.names.length ?? 0) > 0
 
     const assessmentsCompleted = verificationSummary?.assessments?.completed ?? reviews?.summary?.completed ?? 0
     const assessmentsTotal = verificationSummary?.assessments?.total ?? reviews?.summary?.total ?? 4
@@ -306,10 +319,10 @@ const SingleCharityPageComponent: FC<IProps> = ({
         { id: 'core-area-4', statusKey: 'coreArea4', reviewKey: 'core4' },
     ] as const
 
-    const roleByAssessment: Record<typeof assessmentMeta[number]['id'], 'project-manager' | 'finance-assessor' | 'zakat-assessor'> = {
+    const roleByAssessment: Record<typeof assessmentMeta[number]['id'], 'project-manager' | 'finance-auditor' | 'zakat-auditor' | 'finance-assessor' | 'zakat-assessor'> = {
         'core-area-1': 'project-manager',
-        'core-area-2': 'finance-assessor',
-        'core-area-3': 'zakat-assessor',
+        'core-area-2': 'finance-auditor',
+        'core-area-3': 'zakat-auditor',
         'core-area-4': 'project-manager',
     }
 
@@ -318,7 +331,22 @@ const SingleCharityPageComponent: FC<IProps> = ({
     }
 
     const getAssessmentStatus = (key: typeof assessmentMeta[number]['statusKey'], reviewKey: typeof assessmentMeta[number]['reviewKey']) => {
-        return getReview(reviewKey)?.status ?? (verificationSummary?.assessments as any)?.[key]
+        const review = getReview(reviewKey)?.status;
+        if (review) return review;
+        
+        const summaryStatus = (verificationSummary?.assessments as any)?.[key];
+        if (typeof summaryStatus === 'object' && summaryStatus !== null) {
+            return summaryStatus.status;
+        }
+        return summaryStatus;
+    }
+
+    const getAssessmentIsEditable = (key: typeof assessmentMeta[number]['statusKey']) => {
+        const summaryStatus = (verificationSummary?.assessments as any)?.[key];
+        if (typeof summaryStatus === 'object' && summaryStatus !== null) {
+            return summaryStatus.isEditable;
+        }
+        return null; // Don't default to true; let the role check handle it if missing
     }
 
     const isAssessmentComplete = (status?: string) => {
@@ -330,13 +358,22 @@ const SingleCharityPageComponent: FC<IProps> = ({
 
     const getAssignedNamesForAssessment = (assessmentId: typeof assessmentMeta[number]['id']) => {
         const role = roleByAssessment[assessmentId]
-        const names = membersByRole.find(m => m.slug === role)?.names ?? []
+        const canonicalRole = role === 'finance-assessor'
+            ? 'finance-auditor'
+            : role === 'zakat-assessor'
+                ? 'zakat-auditor'
+                : role
+        const names = membersByRole.find(m => m.slug === canonicalRole)?.names ?? []
         return names.length ? names.join(', ') : 'Unassigned'
     }
 
-    const isCurrentUserAssignedToRole = (role: 'project-manager' | 'finance-assessor' | 'zakat-assessor') => {
+    const isCurrentUserAssignedToRole = (role: string) => {
+        if (currentUserRoles.includes(role)) return true
+        // Also support old mapping if needed
+        if (role === 'finance-auditor' && currentUserRoles.includes('finance-assessor')) return true
+        if (role === 'zakat-auditor' && currentUserRoles.includes('zakat-assessor')) return true
         if (!effectiveUserId) return false
-        return members.some(member => member.role === role && member.id === effectiveUserId)
+        return members.some(member => (member.role === role || (role === 'zakat-auditor' && member.role === 'zakat-assessor') || (role === 'finance-auditor' && member.role === 'finance-assessor')) && member.id === effectiveUserId)
     }
     const isCurrentUserAssigned = effectiveUserId ? members.some(member => member.id === effectiveUserId) : false
     const assessmentActionLabel = reassessmentCycle && reassessmentCycle > 0 ? 'Re-Assess' : 'Start'
@@ -872,6 +909,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                             ) : (
                                                 pendingAssessments.map(item => {
                                                     const status = getAssessmentStatus(item.statusKey, item.reviewKey)
+                                                    const isEditable = getAssessmentIsEditable(item.statusKey)
+                                                    const isLocked = isEditable === false
                                                     const isCore1Or4 = item.id === 'core-area-1' || item.id === 'core-area-4'
                                                     const needsProjectManager = isCore1Or4 && !projectManagerAssigned
                                                     const needsFinanceAssessor = item.id === 'core-area-2' && !financeAssessorAssigned
@@ -879,7 +918,13 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                     const requiredRole = roleByAssessment[item.id]
                                                     const assignedNames = getAssignedNamesForAssessment(item.id)
                                                     const isAssigned = assignedNames !== 'Unassigned'
-                                                    const canStartAssessment = canSubmitAssessment && isCurrentUserAssignedToRole(requiredRole)
+                                                    
+                                                    // Allow starting if isEditable is explicitly true or implicitly true due to role
+                                                    // but definitely block if isLocked is true.
+                                                    // Allow starting if isEditable is explicitly true or implicitly true due to role
+                                                    // but definitely block if isLocked is true.
+                                                    const canStartAssessment = (isEditable === true) || (isEditable !== false && !isLocked && isCurrentUserAssignedToRole(requiredRole))
+                                                    
                                                     const assignmentAction = needsProjectManager
                                                         ? {
                                                             label: 'Assign Project Manager',
@@ -905,6 +950,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 <TypographyComponent variant="body2" className="font-medium text-[#101928]">
                                                                     {AUDIT_DEFINITIONS[item.id].title}
                                                                 </TypographyComponent>
+                                                                {isLocked && <div className="text-red-500 font-bold text-xs mt-1">LOCKED</div>}
                                                                 <TypographyComponent variant="caption" className="flex items-center gap-1 text-[#666E76]">
                                                                     <span>Assigned to: {assignedNames}</span>
                                                                     {isAssigned && canAssignPM ? (
@@ -924,7 +970,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 </TypographyComponent>
                                                             </div>
                                                             <div className="flex gap-2">
-                                                                {assignmentAction ? (
+                                                                {assignmentAction && canAssignPM ? (
                                                                     <Button
                                                                         variant="outline"
                                                                         onClick={assignmentAction.onClick}
@@ -932,15 +978,16 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                     >
                                                                         {assignmentAction.label}
                                                                     </Button>
-                                                                ) : canStartAssessment ? (
+                                                                ) : null}
+                                                                {canStartAssessment && (
                                                                     <Button
-                                                                        variant="outline"
+                                                                        variant="primary"
                                                                         onClick={() => handleTask(item.id as TaskIds)}
                                                                         disabled={pendingTaskId === item.id && isTaskPending}
                                                                     >
                                                                         {assessmentActionLabel}
                                                                     </Button>
-                                                                ) : null}
+                                                                )}
                                                             </div>
                                                         </div>
                                                     )

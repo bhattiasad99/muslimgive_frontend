@@ -56,6 +56,7 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
     const router = useRouter();
     const [step, setStep] = useState<Steps>(0);
     const [formEntries, setFormEntries] = useState<FormEntry[]>([]);
+    const [isEditable, setIsEditable] = useState(true);
     const scrollToTop = () => {
         if (typeof window !== 'undefined') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -84,8 +85,9 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
                 const res = await getAssessmentAction(charityId, 3);
                 console.log("CoreArea3 Prefill result:", res);
 
-                if (res.ok && res.payload?.data?.data?.answers) {
-                    const answers = res.payload.data.data.answers;
+                if (res.ok && res.payload?.data?.data) {
+                    const answers = res.payload.data.data.answers || {};
+                    setIsEditable(res.payload.data.data.isEditable !== false);
                     const loadedEntries: FormEntry[] = [];
 
                     // Flatten DEFS to iterate all possible questions
@@ -152,6 +154,11 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
     return (
         <>
             <div className="flex flex-col gap-2 max-w-[350px]">
+                {isEditable === false && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium w-full max-w-[600px] mb-2">
+                        View Only Mode: You are not authorized to edit this core area.
+                    </div>
+                )}
                 <Progress value={(step + 1) * 20} />
                 Page {step + 1} of 5
             </div>
@@ -173,21 +180,24 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
                     </AssessmentSectionCard>
                 })}
             </div>
+            
             <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
-                <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
-                    if (step < 4) {
-                        handleNext()
-                    }
-                    else {
-                        if (typeof window !== 'undefined') {
-                            localStorage.setItem(`assessment-form-data-${charityId}-core-area-3`, JSON.stringify(formEntries));
+                {!isEditable ? null : (
+                    <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
+                        if (step < 4) {
+                            handleNext()
                         }
+                        else {
+                            if (typeof window !== 'undefined') {
+                                localStorage.setItem(`assessment-form-data-${charityId}-core-area-3`, JSON.stringify(formEntries));
+                            }
 
-                        await handleSaveDraft();
+                            await handleSaveDraft();
 
-                        router.push(`/charities/${charityId}/assessments/core-area-3?preview-mode=true`)
-                    }
-                }}>{step === 4 ? 'Preview' : 'Next'}</Button>
+                            router.push(`/charities/${charityId}/assessments/core-area-3?preview-mode=true`)
+                        }
+                    }}>{step === 4 ? 'Preview' : 'Next'}</Button>
+                )}
                 <Button className="w-full sm:w-36" variant={'outline'} onClick={() => {
                     if (step > 0) {
                         handlePrev()

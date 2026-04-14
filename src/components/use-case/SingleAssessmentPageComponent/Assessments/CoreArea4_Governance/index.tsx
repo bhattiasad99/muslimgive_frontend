@@ -30,6 +30,7 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }
 
     // State for form data
     const [formVals, setFormVals] = React.useState<Record<string, any>>({});
+    const [isEditable, setIsEditable] = React.useState(true);
 
     const updateFormData = (field: string, value: any) => {
         setFormVals(prev => ({
@@ -46,8 +47,9 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }
                 const { getAssessmentAction } = await import('@/app/actions/assessments');
                 const res = await getAssessmentAction(charityId, 4);
 
-                if (res.ok && res.payload?.data?.data?.answers) {
-                    const answers = res.payload.data.data.answers;
+                if (res.ok && res.payload?.data?.data) {
+                    const answers = res.payload.data.data.answers || {};
+                    setIsEditable(res.payload.data.data.isEditable !== false);
                     const newFormData: Record<string, any> = {};
 
                     const toSnakeCase = (str: string) =>
@@ -143,23 +145,30 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }
     return (
         <>
             <div className="flex flex-col gap-4">
+                {isEditable === false && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium">
+                        View Only Mode: You are not authorized to edit this core area.
+                    </div>
+                )}
                 <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
                 {currentForm.questions.map(question => renderQuestion(question))}
             </div>
 
             <div className='flex gap-4 mb-8 mt-8'>
-                <Button className="w-36" variant='primary'
-                    disabled={currentForm.questions.some(q => q.required && !formVals[q.code])}
-                    onClick={async () => {
-                        // Pass current country for consistency in preview/next steps
-                        if (typeof window !== 'undefined') {
-                            localStorage.setItem(`assessment-form-data-${charityId}-core-area-4`, JSON.stringify(formVals));
-                        }
+                {!isEditable ? null : (
+                    <Button className="w-36" variant='primary'
+                        disabled={currentForm.questions.some(q => q.required && !formVals[q.code])}
+                        onClick={async () => {
+                            // Pass current country for consistency in preview/next steps
+                            if (typeof window !== 'undefined') {
+                                localStorage.setItem(`assessment-form-data-${charityId}-core-area-4`, JSON.stringify(formVals));
+                            }
 
-                        await handleSaveDraft();
+                            await handleSaveDraft();
 
-                        router.push(`/charities/${charityId}/assessments/core-area-4?preview-mode=true&country=${country}`)
-                    }}>Preview</Button>
+                            router.push(`/charities/${charityId}/assessments/core-area-4?preview-mode=true&country=${country}`)
+                        }}>Preview</Button>
+                )}
                 <Button className="w-36" variant={'outline'}>Cancel</Button>
             </div>
         </>

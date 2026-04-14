@@ -66,7 +66,10 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
     };
     const members = (c.assignments || []).flatMap((a: any) => {
         const userId = a.user?.id
-        const name = `${a.user?.firstName} ${a.user?.lastName}`.trim()
+        const name = [a.user?.firstName, a.user?.lastName].filter(Boolean).join(' ').trim()
+            || a.user?.name
+            || a.user?.email
+            || 'Assigned user'
         const roles = Array.isArray(a.roles) ? a.roles : []
         if (!userId || roles.length === 0) {
             return []
@@ -75,7 +78,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
             id: userId,
             name,
             profilePicture: null,
-            role: normalizeAssignmentRole(role?.slug),
+            role: normalizeAssignmentRole(typeof role === 'string' ? role : role?.slug),
         }))
     })
 
@@ -122,6 +125,7 @@ const CharityDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                 : undefined,
         reviews: c.reviews,
         verificationSummary: c.verificationSummary,
+        currentUserRoles: c.currentUserRoles || [],
     }
 
 
