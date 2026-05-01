@@ -16,9 +16,9 @@ import { usePermissions } from '@/components/common/permissions-provider'
 import { PERMISSIONS } from '@/lib/permissions-config'
 import { assignRolesToCharityAction } from '@/app/actions/charities'
 import LinkComponent from '@/components/common/LinkComponent'
-
 type IProps = Omit<SingleCharityType, 'category'> & {
     onNavigate?: () => void
+    projectManagers?: { id: string, name: string, email: string | null }[]
 }
 
 const SingleCharityCard: FC<IProps> = ({
@@ -32,9 +32,11 @@ const SingleCharityCard: FC<IProps> = ({
     status,
     pendingEligibilitySource,
     pendingEligibilityReason,
-    onNavigate
+    onNavigate,
+    projectManagers = []
 }) => {
     const [assignPMModelOpen, setAssignPMModelOpen] = React.useState<null | string>(null)
+    const [isAssigning, setIsAssigning] = React.useState(false)
     const handleOpenModel = (modelName: string) => {
         setAssignPMModelOpen(modelName)
     }
@@ -121,13 +123,11 @@ const SingleCharityCard: FC<IProps> = ({
                 open={!!assignPMModelOpen}
             >
                 <AssignProjectManager
-                    users={members.map((member) => ({
-                        id: member.id,
-                        name: member.name,
-                        email: null,
-                    }))}
+                    users={projectManagers}
+                    isSubmitting={isAssigning}
                     onSelection={async (userId) => {
                     try {
+                        setIsAssigning(true)
                         const payload = [{
                             userId: userId,
                             add: ['project-manager'],
@@ -139,6 +139,7 @@ const SingleCharityCard: FC<IProps> = ({
                         if (res.ok) {
                             toast.success('Project manager assigned successfully!');
                             router.refresh(); // Refresh page to show updated team
+                            window.location.reload(); // Force full reload to fetch updated charity assignments
                             handleCloseModel();
                         } else {
                             toast.error(res.message || "Failed to assign project manager");
@@ -146,6 +147,8 @@ const SingleCharityCard: FC<IProps> = ({
                     } catch (error) {
                         console.error(error);
                         toast.error("An unexpected error occurred");
+                    } finally {
+                        setIsAssigning(false)
                     }
 
                     }}

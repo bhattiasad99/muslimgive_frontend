@@ -33,12 +33,17 @@ const INITIAL_FORM_DATA: FormDataType = {}
 type CoreArea1Props = {
     charityId: string;
     country?: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
+    currentUserRoles?: string[];
+    status?: string;
 }
 
-const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }) => {
+const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', currentUserRoles = [], status }) => {
     const router = useRouter()
     const [formData, setFormData] = useState<FormDataType>(INITIAL_FORM_DATA)
     const [isEditable, setIsEditable] = useState(true)
+
+    const isManager = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
+    const canEdit = isEditable || isManager;
 
     const currentForm = useMemo(() => {
         // Map app country codes to form definition country codes
@@ -84,22 +89,42 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                     setIsEditable(res.payload.data.data.isEditable !== false);
                     const newFormData: FormDataType = {};
 
-                    // Helper to convert label to snake_case to match API keys
-                    const toSnakeCase = (str: string) =>
-                        str.toLowerCase()
-                            .replace(/[()]/g, '') // remove parens
-                            .replace(/\//g, ' ') // replace slashes with spaces
-                            .trim()
-                            .replace(/\s+/g, '_'); // replace spaces with underscore
+                    const getPayloadKey = (code: string, label: string) => {
+                        if (code === 'CS01') return 'charity_registration_number';
+                        if (code === 'CS02') {
+                            if (country === 'united-states' || country === 'usa' || country === 'us') return 'irs_profile_link';
+                            if (country === 'canada' || country === 'ca') return 'cra_profile_link';
+                            return 'charity_commission_profile_link';
+                        }
+                        if (code === 'CS03') return 'registrationStatus';
+                        if (code === 'CS04') {
+                            if (country === 'united-kingdom' || country === 'uk') return 'gift_aid_eligible';
+                            return 'tax_deductible';
+                        }
+                        if (code === 'CS05' && (country !== 'united-kingdom' && country !== 'uk')) return 'evidence_for_pending_registration_provided';
+                        if (code === 'CS06' && (country === 'united-kingdom' || country === 'uk')) return 'evidence_for_pending_registration_provided';
+                        
+                        if (code === 'CS07' && (country !== 'united-kingdom' && country !== 'uk')) return 'statusNotes';
+                        if (code === 'CS08' && (country === 'united-kingdom' || country === 'uk')) return 'statusNotes';
+                        
+                        if (code === 'CS09') return 'registrationDate';
+                        if (code === 'CS11') return 'statusEvidenceLink';
+                        
+                        return label.toLowerCase().replace(/[()]/g, '').trim().replace(/\s+/g, '_');
+                    };
 
                     currentForm.questions.forEach(q => {
-                        const key = toSnakeCase(q.label);
+                        const key = getPayloadKey(q.code, q.label);
                         // Check if we have a specific override for this question
                         let ans = answers[key];
 
-                        if (q.code === "CS11" && !ans) {
-                            // CS11 (Status Evidence Link) maps to 'evidence_link_if_applicable'
-                            ans = answers['evidence_link_if_applicable'];
+                        if (q.code === 'CS01' && !ans) {
+                            ans = answers['charity_number'];
+                        }
+
+                        const isUsOrCanada = country === 'united-states' || country === 'usa' || country === 'us' || country === 'canada' || country === 'ca';
+                        if (q.code === 'CS02' && isUsOrCanada && !ans) {
+                            ans = answers['charity_commission_profile_link'];
                         }
 
                         if (ans !== undefined && ans !== null) {
@@ -340,30 +365,39 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
         }
     }
 
-    // Helper to convert label to snake_case
-    const toSnakeCaseConverted = (str: string) =>
-        str.toLowerCase()
-            .replace(/[()]/g, '') // remove parens
-            .trim()
-            .replace(/\s+/g, '_'); // replace spaces with underscore
-
     const handleSaveDraft = async () => {
         const answers: Record<string, any> = {};
+
+        const getPayloadKey = (code: string, label: string) => {
+            if (code === 'CS01') return 'charity_registration_number';
+            if (code === 'CS02') {
+                if (country === 'united-states' || country === 'usa' || country === 'us') return 'irs_profile_link';
+                if (country === 'canada' || country === 'ca') return 'cra_profile_link';
+                return 'charity_commission_profile_link';
+            }
+            if (code === 'CS03') return 'registrationStatus';
+            if (code === 'CS04') {
+                if (country === 'united-kingdom' || country === 'uk') return 'gift_aid_eligible';
+                return 'tax_deductible';
+            }
+            if (code === 'CS05' && (country !== 'united-kingdom' && country !== 'uk')) return 'evidence_for_pending_registration_provided';
+            if (code === 'CS06' && (country === 'united-kingdom' || country === 'uk')) return 'evidence_for_pending_registration_provided';
+            
+            if (code === 'CS07' && (country !== 'united-kingdom' && country !== 'uk')) return 'statusNotes';
+            if (code === 'CS08' && (country === 'united-kingdom' || country === 'uk')) return 'statusNotes';
+            
+            if (code === 'CS09') return 'registrationDate';
+            if (code === 'CS11') return 'statusEvidenceLink';
+            
+            return label.toLowerCase().replace(/[()]/g, '').trim().replace(/\s+/g, '_');
+        };
+
         currentForm.questions.forEach(q => {
-            const key = toSnakeCaseConverted(q.label);
+            const key = getPayloadKey(q.code, q.label);
             const val = formData[q.code];
 
-            // Special handling for CS06 - always include it (even as null)
-            if (q.code === 'CS06') {
-                answers['evidence_for_pending_registration_provided_yes_no'] = val || null;
-                return;
-            }
-
             if (val !== undefined && val !== null && val !== "") {
-                if (q.code === 'CS11') {
-                    // Map to 'evidence_link_if_applicable' as requested
-                    answers['evidence_link_if_applicable'] = val;
-                } else if (q.type === 'file' && val?.fileInfo?.url) {
+                if (q.type === 'file' && val?.fileInfo?.url) {
                     // If it's a file and has a URL (already uploaded/prefilled), send the URL
                     answers[key] = val.fileInfo.url;
                 } else if (q.type === 'file' && val?.fileInfo?.file) {
@@ -377,6 +411,9 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                 } else {
                     answers[key] = val;
                 }
+            } else if ((q.code === 'CS05' && (country !== 'united-kingdom' && country !== 'uk')) || 
+                       (q.code === 'CS06' && (country === 'united-kingdom' || country === 'uk'))) {
+                answers[key] = val || null;
             }
         });
 
@@ -384,12 +421,23 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
 
         if (Object.keys(answers).length > 0) {
             try {
-                const { submitAssessmentAction } = await import('@/app/actions/assessments');
-                await submitAssessmentAction({
-                    charityId,
-                    coreArea: 1,
-                    answers
-                });
+                const { submitAssessmentAction, editAssessmentAction } = await import('@/app/actions/assessments');
+                
+                const isEdit = status === 'submitted' || status === 'completed';
+
+                if (isEdit) {
+                    await editAssessmentAction({
+                        charityId,
+                        coreArea: 1,
+                        answers
+                    });
+                } else {
+                    await submitAssessmentAction({
+                        charityId,
+                        coreArea: 1,
+                        answers
+                    });
+                }
             } catch (e) {
                 console.error("Failed to save draft", e);
             }
@@ -415,7 +463,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
     return (
         <>
             <div className="flex flex-col gap-4">
-                {isEditable === false && (
+                {!canEdit && (
                     <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium">
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
@@ -424,7 +472,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom' }
                 {reorderedQuestions.map(question => renderQuestion(question))}
             </div>
 
-            {!isEditable ? null : (
+            {!canEdit ? null : (
                 <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
                     <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
                         // Save to local storage for immediate preview usage

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from '../../Assessments/CoreArea1_CharityStatus/SubmittedSymbol';
-import { submitAssessmentAction, completeAssessmentAction, getAssessmentAction } from '@/app/actions/assessments';
+import { submitAssessmentAction, completeAssessmentAction, getAssessmentAction, editAssessmentAction } from '@/app/actions/assessments';
 import { toast } from 'sonner';
 import { MULTI_STEP_DEFS } from './MULTI_STEP_DEFS';
 
@@ -37,7 +37,8 @@ type StoredFormEntry = {
     commentsAdded: string;
 }
 
-const PreviewCoreArea3: FC<IProps> = ({ country, charityId, fetchFromAPI = false }) => {
+const PreviewCoreArea3: FC<IProps> = ({ country, status, charityId, fetchFromAPI = false }) => {
+    const isEditMode = status === 'submitted' || status === 'completed';
     void country;
     const [assessmentVals, setAssessmentVals] = useState<StoredFormEntry[] | null>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
@@ -56,7 +57,7 @@ const PreviewCoreArea3: FC<IProps> = ({ country, charityId, fetchFromAPI = false
                         // Component expects: [{ id: "key", selectedOptions, linksAdded, commentsAdded }, ...]
                         if (typeof answers === 'object' && !Array.isArray(answers)) {
                             const transformedArray: StoredFormEntry[] = Object.entries(answers).map(([key, value]: [string, any]) => ({
-                                id: key,
+                                id: key.replace(/_/g, '-'), // Map snake_case back to hyphenated IDs
                                 selectedOptions: value.selections || [],
                                 linksAdded: (value.links || []).map((link: string) => ({ label: link, url: link })),
                                 commentsAdded: value.note || ''
@@ -97,12 +98,45 @@ const PreviewCoreArea3: FC<IProps> = ({ country, charityId, fetchFromAPI = false
     const handleSubmit = async () => {
         if (!assessmentVals) return;
         setIsSubmitting(true);
+        console.log('[PreviewCoreArea3] handleSubmit triggered. isEditMode:', isEditMode);
         try {
-            const answers: Record<string, any> = {};
+            const ID_TO_API_KEY: Record<string, string> = {
+                'clear-public-zakat-policy-available': 'clear_public_zakat_policy_available',
+                'turnaround-time-for-zakat-distribution-disclosed': 'turnaround_time_for_zakat_distribution_disclosed',
+                'explanation-and-actions-outlined-for-zakat-undistributed-beyond-one-lunar-year': 'explanation_and_actions_outlined_for_zakat_undistributed_beyond_one_lunar_year',
+                'disclosure-of-zakat-management-administration-fees': 'disclosure_of_zakat_management_or_administration_fees',
+                'clear-separation-of-zakat-funds-from-general-donations': 'clear_separation_of_zakat_funds_from_general_donations',
+                'vetting-process-for-zakat-funds-application': 'vetting_process_for_zakat_funds_application',
+                'zakat-policy-clearly-labeled-and-accessible': 'zakat_policy_clearly_labeled_and_accessible',
+                'shariah-advisory-board-established': 'shariah_advisory_board_established_to_advise_set_policies_review_and_assessment',
+                'names-of-shariah-advisory-board-listed': 'names_of_shariah_advisory_board_listed',
+                'individuals-serving-on-the-governing-board': 'individuals_serving_on_the_governing_board',
+                'explanation-of-compliance-with-regulations': 'explanation_of_compliance_with_regulations_set_out_by_the_relevant_governmental_authority_e_g_cra_irs_charity_commission',
+                'explanation-why-zakat-funds-are-collected-and-distributed': 'explanation_why_zakat_funds_are_collected_and_distributed',
+                'clear-explanation-of-zakat-fund-flow': 'clear_explanation_of_zakat_fund_flow_and_transfer_of_ownership_tamlik',
+                'clear-mention-of-zakat-used-for-adults-and-minors': 'clear_mention_of_zakat_being_used_to_support_both_adults_and_minors_with_explanation',
+                'purpose-of-zakat-collection': 'purpose_of_zakat_collection_mention_of_whether_zakat_is_distributed_in_cash_or_other_forms',
+                'assessment-procedures': 'assessment_procedures_internal_or_external',
+                'mention-of-zakat-eligibility-criteria': 'mention_of_zakat_eligibility_criteria',
+                'disclosure-of-public-fundraising-costs': 'disclosure_of_public_fundraising_costs',
+                'zakat-calculator-on-website': 'zakat_calculator_on_the_website',
+                'zakat-education-bank': 'zakat_education_bank',
+                'live-zakat-calculation-support': 'live_zakat_calculation_support',
+                'formal-approval-on-zakat-campaigns': 'formal_approval_on_zakat_campaigns',
+                'details-on-the-fuqara-category': 'details_on_the_fuqara_category_and_its_recipients',
+                'details-on-the-masakin-category': 'details_on_the_masakin_category_and_its_recipients',
+                'details-on-the-amilin-alayha-category': 'details_on_the_amilin_alayha_category_in_zakat_distribution',
+                'details-on-the-al-muallafat-qulubuhum-category': 'details_on_the_al_muallafat_qulubuhum_category_and_its_recipients',
+                'details-on-the-fi-ar-riqab-category': 'details_on_the_fi_ar_riqab_category_and_its_recipients',
+                'details-on-the-al-gharimin-category': 'details_on_the_al_gharimin_category_and_its_recipients',
+                'details-on-the-fi-sabilillah-category': 'details_on_the_fi_sabilillahi_category_and_its_recipients',
+                'details-on-the-ibn-as-sabil-category': 'details_on_the_ibn_as_sabil_category_and_its_recipients',
+            };
 
+            const mappedAnswers: Record<string, any> = {};
             assessmentVals.forEach(entry => {
-                const key = entry.id.replace(/-/g, '_');
-                answers[key] = {
+                const key = ID_TO_API_KEY[entry.id] || entry.id.replace(/-/g, '_');
+                mappedAnswers[key] = {
                     selections: entry.selectedOptions || [],
                     links: entry.linksAdded?.map(l => l.url) || [],
                     note: entry.commentsAdded || ""
@@ -112,28 +146,37 @@ const PreviewCoreArea3: FC<IProps> = ({ country, charityId, fetchFromAPI = false
             const payload = {
                 charityId,
                 coreArea: 3,
-                answers: answers
+                answers: mappedAnswers
             };
+            console.log('[PreviewCoreArea3] Sending Payload:', JSON.stringify(payload, null, 2));
 
-            const res = await submitAssessmentAction(payload);
+            const res = isEditMode
+                ? await editAssessmentAction(payload)
+                : await submitAssessmentAction(payload);
+            
+            console.log('[PreviewCoreArea3] API Response:', JSON.stringify(res, null, 2));
 
             if (res.ok) {
-                const completePayload = {
-                    charityId,
-                    coreArea: 3
-                };
-                const completeRes = await completeAssessmentAction(completePayload);
+                if (!isEditMode) {
+                    const completePayload = {
+                        charityId,
+                        coreArea: 3
+                    };
+                    const completeRes = await completeAssessmentAction(completePayload);
 
-                if (completeRes.ok) {
-                    setShowSubmittedModel(true);
-
-                    setTimeout(() => {
-                        setShowSubmittedModel(false);
-                        router.push(`/charities/${charityId}`)
-                    }, 2000)
-                } else {
-                    toast.error(completeRes.message || "Failed to complete assessment");
+                    if (!completeRes.ok) {
+                        toast.error(completeRes.message || "Failed to complete assessment");
+                        setIsSubmitting(false);
+                        return;
+                    }
                 }
+                
+                setShowSubmittedModel(true);
+
+                setTimeout(() => {
+                    setShowSubmittedModel(false);
+                    router.push(`/charities/${charityId}`)
+                }, 2000)
             } else {
                 toast.error(res.message || "Failed to submit assessment");
             }
@@ -209,22 +252,28 @@ const PreviewCoreArea3: FC<IProps> = ({ country, charityId, fetchFromAPI = false
                 );
             })}
 
-            <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4 mt-4'>
-                <Button
-                    className="w-full sm:w-36 bg-[#266dd3] hover:bg-[#1f5bb5]"
-                    onClick={handleSubmit}
-                    loading={isSubmitting}
-                >
-                    Submit Assessment
-                </Button>
+            <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
+                {!fetchFromAPI && (
+                    <Button
+                        className="w-full sm:w-36 bg-[#266dd3] hover:bg-[#1f5bb5]"
+                        onClick={handleSubmit}
+                        loading={isSubmitting}
+                    >
+                        {isEditMode ? 'Submit Edit' : 'Submit Assessment'}
+                    </Button>
+                )}
                 <Button
                     className="w-full sm:w-36"
                     variant={'outline'}
                     onClick={() => {
-                        router.push(`/charities/${charityId}/assessments/core-area-3`)
+                        if (fetchFromAPI) {
+                            router.push(`/charities/${charityId}/assessments/core-area-3`)
+                        } else {
+                            router.push(`/charities/${charityId}/assessments/core-area-3?preview-mode=false`)
+                        }
                     }}
                 >
-                    Cancel
+                    {fetchFromAPI ? 'Edit' : 'Cancel'}
                 </Button>
             </div>
 

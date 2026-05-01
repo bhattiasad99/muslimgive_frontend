@@ -46,7 +46,11 @@ const CATEGORY_KEYS = [
     { id: 'other', label: 'Other' },
 ]
 
-const CharitiesPageComponent = () => {
+type CharitiesPageComponentProps = {
+    projectManagers?: { id: string, name: string, email: string | null }[];
+}
+
+const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ projectManagers = [] }) => {
     const [queryInput, setQueryInput] = useState('')
     const [view, setView] = useState<ViewsType>('kanban');
     const [openBulkEmailModal, setOpenBulkEmailModal] = useState(false)
@@ -299,7 +303,7 @@ const CharitiesPageComponent = () => {
                 ) : (
                     <>
                         {view === "kanban" ? (
-                            <KanbanView charities={searchedRows} onCardNavigate={() => setIsNavigating(true)} />
+                            <KanbanView charities={searchedRows} onCardNavigate={() => setIsNavigating(true)} projectManagers={projectManagers} />
                         ) : null}
                         {view === "tabular" ? <TabularView charities={searchedRows} /> : null}
                     </>

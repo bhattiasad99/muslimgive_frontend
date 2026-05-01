@@ -19,6 +19,7 @@ type IProps = {
 const AccordionHeader: FC<IProps> = ({ title, subTitle, grade, result, score, status }) => {
     const statusClassName: Record<AssessmentStatus, string> = {
         'submitted': 'bg-[#5CF269] border-[#57de62]',
+        'completed': 'bg-[#5CF269] border-[#57de62]',
         'draft': 'bg-[#F2C94C] border-[#e5c24b]',
         'pending': 'bg-[#F2994A] border-[#e68f48]',
         'in-progress': 'bg-[#3B82F6] border-[#2563eb]'

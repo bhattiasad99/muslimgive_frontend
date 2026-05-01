@@ -44,7 +44,7 @@ export const listUsersAction = async (params?: ListUsersParams): Promise<Respons
     if (params?.search) query.append('search', params.search);
     if (params?.role) query.append('role', params.role); // e.g., 'project-manager'
 
-    const endpoint = `/admin/users?${query.toString()}`;
+    const endpoint = `/users?${query.toString()}`;
     return await _get(endpoint);
 }
 

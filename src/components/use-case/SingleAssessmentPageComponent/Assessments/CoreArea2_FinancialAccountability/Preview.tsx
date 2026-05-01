@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import ModelComponentWithExternalControl from '@/components/common/ModelComponent/ModelComponentWithExternalControl';
 import SubmittedSymbol from '../../Assessments/CoreArea1_CharityStatus/SubmittedSymbol';
-import { submitAssessmentAction, completeAssessmentAction, getAssessmentAction } from '@/app/actions/assessments';
+import { submitAssessmentAction, completeAssessmentAction, getAssessmentAction, editAssessmentAction } from '@/app/actions/assessments';
 import { toast } from 'sonner';
+import { CORE_AREA_2_FORMS } from '@/lib/assessment-forms/core-area-2';
 
 export type PreviewPageCommonProps = {
     country: CountryCode;
@@ -22,7 +23,7 @@ type IProps = PreviewPageCommonProps;
 
 
 const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI = false }) => {
-    void status;
+    const isEditMode = status === 'submitted' || status === 'completed';
     const [assessmentVals, setAssessmentVals] = useState<any>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,7 +35,43 @@ const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI
                 try {
                     const res = await getAssessmentAction(charityId, 2);
                     if (res.ok && res.payload?.data?.data?.answers) {
-                        setAssessmentVals(res.payload.data.data.answers);
+                        const answers = res.payload.data.data.answers;
+                        const { CORE_AREA_2_FORMS } = await import('@/lib/assessment-forms/core-area-2');
+
+                        const countryMap: Record<string, string> = {
+                            'united-kingdom': 'united-kingdom',
+                            'united-states': 'united-states',
+                            'canada': 'canada',
+                            'uk': 'united-kingdom',
+                            'usa': 'united-states',
+                            'us': 'united-states',
+                            'ca': 'canada'
+                        };
+                        const mappedCountry = countryMap[country] || 'united-states';
+                        const formDefinition = CORE_AREA_2_FORMS.find(f => f.countryCode === mappedCountry)
+                            || CORE_AREA_2_FORMS.find(f => f.countryCode === 'united-states');
+
+                        const toSnakeCase = (str: string) =>
+                            str.toLowerCase()
+                                .replace(/[?]/g, '') // remove question marks
+                                .replace(/[()]/g, '')
+                                .replace(/%/g, '') // remove %
+                                .replace(/\//g, '') // remove forward slashes
+                                .trim()
+                                .replace(/[\s-]+/g, '_'); // replace spaces and hyphens with underscore
+
+                        const mappedAnswers: any = {};
+                        if (formDefinition) {
+                            formDefinition.questions.forEach(q => {
+                                const key = toSnakeCase(q.label);
+                                const ans = answers[key];
+                                if (ans !== undefined && ans !== null) {
+                                    mappedAnswers[q.code] = ans;
+                                }
+                            });
+                        }
+
+                        setAssessmentVals(mappedAnswers);
                     } else {
                         console.error('Failed to fetch assessment data from API');
                     }
@@ -54,37 +91,71 @@ const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI
         };
 
         fetchData();
-    }, [charityId, fetchFromAPI]);
+    }, [charityId, fetchFromAPI, country]);
 
     const handleSubmit = async () => {
         if (!assessmentVals) return;
-        setIsSubmitting(true);
+        console.log('[PreviewCoreArea2] handleSubmit triggered. isEditMode:', isEditMode);
         try {
+            const toSnakeCaseConverted = (str: string) =>
+                str.toLowerCase()
+                    .replace(/[?]/g, '')
+                    .replace(/[()]/g, '')
+                    .replace(/%/g, '')
+                    .replace(/\//g, '')
+                    .trim()
+                    .replace(/[\s-]+/g, '_');
+
+            const normalizedCountry = country as 'united-kingdom' | 'united-states' | 'canada';
+
+            const mappedAnswers: Record<string, any> = {};
+            const currentFormDef = CORE_AREA_2_FORMS.find(f => f.countryCode === normalizedCountry);
+            const questions = currentFormDef?.questions || [];
+
+            if (assessmentVals) {
+                Object.entries(assessmentVals).forEach(([code, val]) => {
+                    const q = questions.find((question: any) => question.code === code);
+                    if (q) {
+                        const key = toSnakeCaseConverted(q.label);
+                        mappedAnswers[key] = val;
+                    }
+                });
+            }
+
             const payload = {
                 charityId,
                 coreArea: 2,
-                answers: assessmentVals
+                answers: mappedAnswers
             };
+            console.log('[PreviewCoreArea2] Sending Payload:', JSON.stringify(payload, null, 2));
 
-            const res = await submitAssessmentAction(payload);
+            const res = isEditMode
+                ? await editAssessmentAction(payload)
+                : await submitAssessmentAction(payload);
+            
+            console.log('[PreviewCoreArea2] API Response:', JSON.stringify(res, null, 2));
 
             if (res.ok) {
-                const completePayload = {
-                    charityId,
-                    coreArea: 2
-                };
-                const completeRes = await completeAssessmentAction(completePayload);
+                if (!isEditMode) {
+                    const completePayload = {
+                        charityId,
+                        coreArea: 2
+                    };
+                    const completeRes = await completeAssessmentAction(completePayload);
 
-                if (completeRes.ok) {
-                    setShowSubmittedModel(true);
-
-                    setTimeout(() => {
-                        setShowSubmittedModel(false);
-                        router.push(`/charities/${charityId}`)
-                    }, 2000)
-                } else {
-                    toast.error(completeRes.message || "Failed to complete assessment");
+                    if (!completeRes.ok) {
+                        toast.error(completeRes.message || "Failed to complete assessment");
+                        setIsSubmitting(false);
+                        return;
+                    }
                 }
+                
+                setShowSubmittedModel(true);
+
+                setTimeout(() => {
+                    setShowSubmittedModel(false);
+                    router.push(`/charities/${charityId}`)
+                }, 2000)
             } else {
                 toast.error(res.message || "Failed to submit assessment");
             }
@@ -163,21 +234,28 @@ const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI
             <PreviewValueLayout orientation='vertical' label='Notes' result={getValue('F15') || '-'} />
 
             <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
-                <Button
-                    className="w-full sm:w-36 bg-[#266dd3] hover:bg-[#1f5bb5]"
-                    onClick={handleSubmit}
-                    loading={isSubmitting}
-                >
-                    Submit Assessment
-                </Button>
+                {!fetchFromAPI && (
+                    <Button
+                        className="w-full sm:w-36 bg-[#266dd3] hover:bg-[#1f5bb5]"
+                        onClick={handleSubmit}
+                        loading={isSubmitting}
+                    >
+                        {isEditMode ? 'Submit Edit' : 'Submit Assessment'}
+                    </Button>
+                )}
                 <Button
                     className="w-full sm:w-36"
                     variant={'outline'}
                     onClick={() => {
-                        router.push(`/charities/${charityId}/assessments/core-area-2?country=${country}`)
+                        if (fetchFromAPI) {
+                            router.push(`/charities/${charityId}/assessments/core-area-2?country=${country}`)
+                        } else {
+                            localStorage.removeItem(`assessment-form-data-${charityId}-core-area-2`);
+                            router.push(`/charities/${charityId}/assessments/core-area-2?preview-mode=false&country=${country}`)
+                        }
                     }}
                 >
-                    Cancel
+                    {fetchFromAPI ? 'Edit' : 'Cancel'}
                 </Button>
             </div>
 

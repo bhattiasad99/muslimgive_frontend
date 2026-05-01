@@ -194,10 +194,10 @@ const SingleCharityPageComponent: FC<IProps> = ({
             return
         }
         if (role === 'finance-assessor' || role === 'finance-auditor') {
-            handleOpenModel(role === 'finance-auditor' ? 'assign-finance-auditor' as any : 'assign-finance-assessor')
+            handleOpenModel('assign-finance-assessor')
             return
         }
-        handleOpenModel(role === 'zakat-auditor' ? 'assign-zakat-auditor' as any : 'assign-zakat-assessor')
+        handleOpenModel('assign-zakat-assessor')
     }
 
     useEffect(() => {
@@ -218,13 +218,17 @@ const SingleCharityPageComponent: FC<IProps> = ({
         startTaskTransition(() => router.push(`/charities/${charityId}/assessments/${taskId}?country=${resolvedCountry}`))
     }
 
-    const canAssignPM = isAllowed({ anyOf: [PERMISSIONS.ASSIGN_PM_CHARITY] })
+    const hasGlobalManageAccess = isAllowed({ anyOf: [PERMISSIONS.CHARITY_MANAGE] })
+    const isLocallyAssignedPM = currentUserRoles.includes('project-manager')
+    const canManageCharity = hasGlobalManageAccess || isLocallyAssignedPM
+
+    const canAssignPMRole = isAllowed({ anyOf: [PERMISSIONS.ASSIGN_PM_CHARITY] }) || currentUserRoles.includes('operation-manager')
+    const canAssignAssessorRole = canAssignPMRole || canManageCharity
     const canViewEmailLogs = isAllowed({ anyOf: [PERMISSIONS.SEND_EMAIL_CHARITY_OWNER] })
     const canDeleteCharity = isAllowed({ anyOf: [PERMISSIONS.DELETE_CHARITY] })
     const canSubmitAssessment = isAllowed({
         anyOf: [PERMISSIONS.AUDIT_SUBMISSION_CREATE, PERMISSIONS.AUDIT_SUBMISSION_COMPLETE],
     })
-    const canManageCharity = isAllowed({ anyOf: [PERMISSIONS.CHARITY_MANAGE] })
 
     const roleAliasesByCanonical: Record<'project-manager' | 'finance-auditor' | 'zakat-auditor' | 'admin', string[]> = {
         'project-manager': ['project-manager'],
@@ -333,7 +337,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const getAssessmentStatus = (key: typeof assessmentMeta[number]['statusKey'], reviewKey: typeof assessmentMeta[number]['reviewKey']) => {
         const review = getReview(reviewKey)?.status;
         if (review) return review;
-        
+
         const summaryStatus = (verificationSummary?.assessments as any)?.[key];
         if (typeof summaryStatus === 'object' && summaryStatus !== null) {
             return summaryStatus.status;
@@ -864,7 +868,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 </TypographyComponent>
                                                                 <TypographyComponent variant="caption" className="flex items-center gap-1 text-[#666E76]">
                                                                     <span>Assigned to: {assignedNames}</span>
-                                                                    {isAssigned && canAssignPM ? (
+                                                                    {isAssigned && (roleByAssessment[item.id] === 'project-manager' ? canAssignPMRole : canAssignAssessorRole) ? (
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="icon"
@@ -889,6 +893,19 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 <LinkComponent to={`/charities/${charityId}/assessments`}>
                                                                     <Button variant="outline">View</Button>
                                                                 </LinkComponent>
+                                                                {(() => {
+                                                                    const hasManagerRole = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase())) || (me?.roles || []).some(r => typeof r === 'string' && ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
+                                                                    const isCore2Or3Assessor = (item.id === 'core-area-2' || item.id === 'core-area-3') && isCurrentUserAssignedToRole(roleByAssessment[item.id]);
+                                                                    
+                                                                    if (hasManagerRole || isCore2Or3Assessor) {
+                                                                        return (
+                                                                            <Button variant="primary" onClick={() => handleTask(item.id as TaskIds)}>
+                                                                                Edit
+                                                                            </Button>
+                                                                        );
+                                                                    }
+                                                                    return null;
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     )
@@ -918,30 +935,33 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                     const requiredRole = roleByAssessment[item.id]
                                                     const assignedNames = getAssignedNamesForAssessment(item.id)
                                                     const isAssigned = assignedNames !== 'Unassigned'
-                                                    
+
                                                     // Allow starting if isEditable is explicitly true or implicitly true due to role
                                                     // but definitely block if isLocked is true.
-                                                    // Allow starting if isEditable is explicitly true or implicitly true due to role
-                                                    // but definitely block if isLocked is true.
-                                                    const canStartAssessment = (isEditable === true) || (isEditable !== false && !isLocked && isCurrentUserAssignedToRole(requiredRole))
-                                                    
+                                                    const hasManagerRole = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase())) || (me?.roles || []).some(r => typeof r === 'string' && ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
+                                                    const isCore2Or3Assessor = (item.id === 'core-area-2' || item.id === 'core-area-3') && isCurrentUserAssignedToRole(requiredRole)
+                                                    const canStartAssessment = (isEditable === true) || hasManagerRole || isCore2Or3Assessor || (isEditable !== false && !isLocked && (canManageCharity || isCurrentUserAssignedToRole(requiredRole)))
+
                                                     const assignmentAction = needsProjectManager
                                                         ? {
                                                             label: 'Assign Project Manager',
                                                             onClick: () => openAssignmentModal('project-manager', 'assign'),
-                                                            disabled: !canAssignPM
+                                                            disabled: !canAssignPMRole,
+                                                            roleType: 'pm' as const
                                                         }
                                                         : needsFinanceAssessor
                                                             ? {
                                                                 label: 'Assign Financial Assessor',
                                                                 onClick: () => openAssignmentModal('finance-assessor', 'assign'),
-                                                                disabled: !canAssignPM
+                                                                disabled: !canAssignAssessorRole,
+                                                                roleType: 'assessor' as const
                                                             }
                                                             : needsZakatAssessor
                                                                 ? {
                                                                     label: 'Add Zakat Assessor',
                                                                     onClick: () => openAssignmentModal('zakat-assessor', 'assign'),
-                                                                    disabled: !canAssignPM
+                                                                    disabled: !canAssignAssessorRole,
+                                                                    roleType: 'assessor' as const
                                                                 }
                                                                 : null
                                                     return (
@@ -953,7 +973,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 {isLocked && <div className="text-red-500 font-bold text-xs mt-1">LOCKED</div>}
                                                                 <TypographyComponent variant="caption" className="flex items-center gap-1 text-[#666E76]">
                                                                     <span>Assigned to: {assignedNames}</span>
-                                                                    {isAssigned && canAssignPM ? (
+                                                                    {isAssigned && (roleByAssessment[item.id] === 'project-manager' ? canAssignPMRole : canAssignAssessorRole) ? (
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="icon"
@@ -970,7 +990,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                                                 </TypographyComponent>
                                                             </div>
                                                             <div className="flex gap-2">
-                                                                {assignmentAction && canAssignPM ? (
+                                                                {assignmentAction && (assignmentAction.roleType === 'pm' ? canAssignPMRole : canAssignAssessorRole) ? (
                                                                     <Button
                                                                         variant="outline"
                                                                         onClick={assignmentAction.onClick}
@@ -1043,7 +1063,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 onOpenChange={handleCloseModel}
                 open={modelState.nameOfModel === 'assign-project-manager'}
             >
-                {canAssignPM ? (
+                {canAssignPMRole ? (
                     <AssignProjectManager onSelection={async (userId) => {
                         await handleRoleSelection(userId, 'project-manager')
                     }} users={projectManagerCandidates} onCancel={() => {
@@ -1057,7 +1077,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 onOpenChange={handleCloseModel}
                 open={modelState.nameOfModel === 'assign-finance-assessor'}
             >
-                {canAssignPM ? (
+                {canAssignAssessorRole ? (
                     <AssignProjectManager
                         roleLabel="financial assessor"
                         actionLabel="Assign Financial Assessor"
@@ -1076,7 +1096,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 onOpenChange={handleCloseModel}
                 open={modelState.nameOfModel === 'assign-zakat-assessor'}
             >
-                {canAssignPM ? (
+                {canAssignAssessorRole ? (
                     <AssignProjectManager
                         roleLabel="zakat assessor"
                         actionLabel="Add Zakat Assessor"
@@ -1151,7 +1171,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 open={modelState.nameOfModel === 'manage-team'}
                 dialogContentClassName='md:min-w-[800px]'
             >
-                {canAssignPM ? (
+                {canAssignAssessorRole ? (
                     <ManageTeamModal
                         members={members}
                         onCancel={handleCloseModel}
@@ -1178,7 +1198,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                 open={modelState.nameOfModel === 'configure-role'}
                 dialogContentClassName='sm:max-w-[425px]'
             >
-                {selectedMemberForRoleEdit && canAssignPM && (
+                {selectedMemberForRoleEdit && canAssignAssessorRole && (
                     <ConfigureRoleModal
                         member={selectedMemberForRoleEdit}
                         onCancel={() => handleOpenModel('manage-team')}

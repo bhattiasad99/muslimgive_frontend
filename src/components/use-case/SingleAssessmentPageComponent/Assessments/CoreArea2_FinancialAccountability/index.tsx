@@ -12,12 +12,21 @@ import { formatDateToYYYYMMDD } from '@/lib/helpers'
 type IProps = {
     location: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
     charityId: string;
+    currentUserRoles?: string[];
+    status?: string;
 }
 
-const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
+const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentUserRoles = [], status }) => {
     const router = useRouter();
     const [formData, setFormData] = useState<Record<string, any>>({});
     const [isEditable, setIsEditable] = useState(true);
+
+    const isFinanceAssessor = currentUserRoles.some(r => 
+        ['finance-assessor', 'financial-assessor', 'financial-auditor', 'finance-auditor'].includes(r.toLowerCase())
+    );
+    const isManager = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
+    
+    const canEdit = isEditable || isFinanceAssessor || isManager;
 
     const formDefinition = useMemo(() => {
         const normalized = location === 'uk' ? 'united-kingdom'
@@ -205,12 +214,23 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
 
         if (Object.keys(answers).length > 0) {
             try {
-                const { submitAssessmentAction } = await import('@/app/actions/assessments');
-                await submitAssessmentAction({
-                    charityId,
-                    coreArea: 2,
-                    answers
-                });
+                const { submitAssessmentAction, editAssessmentAction } = await import('@/app/actions/assessments');
+                
+                const isEdit = status === 'submitted' || status === 'completed';
+
+                if (isEdit) {
+                    await editAssessmentAction({
+                        charityId,
+                        coreArea: 2,
+                        answers
+                    });
+                } else {
+                    await submitAssessmentAction({
+                        charityId,
+                        coreArea: 2,
+                        answers
+                    });
+                }
             } catch (e) {
                 console.error("Failed to save draft", e);
             }
@@ -220,7 +240,7 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
     return (
         <>
             <div className='flex flex-col gap-6'>
-                {isEditable === false && (
+                {canEdit === false && (
                     <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium">
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
@@ -229,7 +249,7 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId }) => {
             </div>
 
             {/* Action Buttons */}
-            {!isEditable ? null : (
+            {!canEdit ? null : (
                 <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
                     <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
                         if (typeof window !== 'undefined') {

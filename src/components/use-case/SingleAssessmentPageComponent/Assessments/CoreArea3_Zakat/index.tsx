@@ -52,11 +52,17 @@ const ID_TO_API_KEY: Record<string, string> = {
     'details-on-the-ibn-as-sabil-category': 'details_on_the_ibn_as_sabil_category_and_its_recipients',
 };
 
-const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
+const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: string }> = ({ charityId, currentUserRoles = [], status }) => {
     const router = useRouter();
     const [step, setStep] = useState<Steps>(0);
     const [formEntries, setFormEntries] = useState<FormEntry[]>([]);
     const [isEditable, setIsEditable] = useState(true);
+
+    const isZakatAssessor = currentUserRoles.some(r => 
+        ['zakat-assessor', 'zakat-auditor'].includes(r.toLowerCase())
+    );
+    const isManager = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
+    const canEdit = isEditable || isZakatAssessor || isManager;
     const scrollToTop = () => {
         if (typeof window !== 'undefined') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -138,13 +144,24 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
         // Only save if we have data
         if (Object.keys(answers).length > 0) {
             try {
-                const { submitAssessmentAction } = await import('@/app/actions/assessments');
+                const { submitAssessmentAction, editAssessmentAction } = await import('@/app/actions/assessments');
                 console.log("Submitting CA3 Draft Payload:", JSON.stringify(answers, null, 2));
-                await submitAssessmentAction({
-                    charityId,
-                    coreArea: 3,
-                    answers
-                });
+
+                const isEdit = status === 'submitted' || status === 'completed';
+
+                if (isEdit) {
+                    await editAssessmentAction({
+                        charityId,
+                        coreArea: 3,
+                        answers
+                    });
+                } else {
+                    await submitAssessmentAction({
+                        charityId,
+                        coreArea: 3,
+                        answers
+                    });
+                }
             } catch (e) {
                 console.error("Failed to save draft", e);
             }
@@ -154,7 +171,7 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
     return (
         <>
             <div className="flex flex-col gap-2 max-w-[350px]">
-                {isEditable === false && (
+                {canEdit === false && (
                     <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium w-full max-w-[600px] mb-2">
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
@@ -182,7 +199,7 @@ const CoreArea3: FC<{ charityId: string }> = ({ charityId }) => {
             </div>
             
             <div className='flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:gap-4'>
-                {!isEditable ? null : (
+                {!canEdit ? null : (
                     <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
                         if (step < 4) {
                             handleNext()

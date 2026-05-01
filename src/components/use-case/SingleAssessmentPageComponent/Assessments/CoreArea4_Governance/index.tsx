@@ -9,9 +9,11 @@ import { TypographyComponent } from '@/components/common/TypographyComponent';
 type CoreArea4Props = {
     charityId: string;
     country?: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
+    currentUserRoles?: string[];
+    status?: string;
 }
 
-const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }) => {
+const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom', currentUserRoles = [], status }) => {
     const router = useRouter();
 
     const currentForm = React.useMemo(() => {
@@ -31,6 +33,9 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }
     // State for form data
     const [formVals, setFormVals] = React.useState<Record<string, any>>({});
     const [isEditable, setIsEditable] = React.useState(true);
+
+    const isManager = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
+    const canEdit = isEditable || isManager;
 
     const updateFormData = (field: string, value: any) => {
         setFormVals(prev => ({
@@ -130,12 +135,23 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }
 
         if (Object.keys(answers).length > 0) {
             try {
-                const { submitAssessmentAction } = await import('@/app/actions/assessments');
-                await submitAssessmentAction({
-                    charityId,
-                    coreArea: 4,
-                    answers
-                });
+                const { submitAssessmentAction, editAssessmentAction } = await import('@/app/actions/assessments');
+                
+                const isEdit = status === 'submitted' || status === 'completed';
+
+                if (isEdit) {
+                    await editAssessmentAction({
+                        charityId,
+                        coreArea: 4,
+                        answers
+                    });
+                } else {
+                    await submitAssessmentAction({
+                        charityId,
+                        coreArea: 4,
+                        answers
+                    });
+                }
             } catch (e) {
                 console.error("Failed to save draft", e);
             }
@@ -145,7 +161,7 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }
     return (
         <>
             <div className="flex flex-col gap-4">
-                {isEditable === false && (
+                {!canEdit && (
                     <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-md mb-4 text-sm font-medium">
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
@@ -155,7 +171,7 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom' }
             </div>
 
             <div className='flex gap-4 mb-8 mt-8'>
-                {!isEditable ? null : (
+                {!canEdit ? null : (
                     <Button className="w-36" variant='primary'
                         disabled={currentForm.questions.some(q => q.required && !formVals[q.code])}
                         onClick={async () => {

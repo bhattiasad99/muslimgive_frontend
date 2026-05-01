@@ -2,6 +2,7 @@
 
 import { _post, _patch, _get } from "@/auth";
 import { ResponseType } from "../lib/definitions";
+import { revalidatePath } from 'next/cache';
 
 export type SubmitAssessmentPayload = {
     charityId: string;
@@ -14,12 +15,19 @@ export type SubmitAssessmentPayload = {
  * Submits an assessment for a charity
  */
 export const submitAssessmentAction = async (payload: SubmitAssessmentPayload): Promise<ResponseType> => {
-    return await _post('/audits/submissions', payload);
+    console.log('[submitAssessmentAction] Payload:', JSON.stringify(payload, null, 2));
+    const res = await _post('/audits/submissions', payload);
+    console.log('[submitAssessmentAction] Response:', JSON.stringify(res, null, 2));
+    if (res.ok) {
+        revalidatePath(`/charities/${payload.charityId}`, 'layout');
+    }
+    return res;
 }
 
 export type CompleteAssessmentPayload = {
     charityId: string;
     coreArea: number;
+    answers?: Record<string, any>;
 }
 
 /**
@@ -27,7 +35,11 @@ export type CompleteAssessmentPayload = {
  * Marks an assessment submission as complete
  */
 export const completeAssessmentAction = async (payload: CompleteAssessmentPayload): Promise<ResponseType> => {
-    return await _patch('/audits/submissions/complete', payload);
+    const res = await _patch('/audits/submissions/complete', payload);
+    if (res.ok) {
+        revalidatePath(`/charities/${payload.charityId}`, 'layout');
+    }
+    return res;
 }
 
 /**
@@ -36,4 +48,18 @@ export const completeAssessmentAction = async (payload: CompleteAssessmentPayloa
  */
 export const getAssessmentAction = async (charityId: string, coreArea: number): Promise<ResponseType> => {
     return await _get(`/audits/charities/${charityId}?core-area=${coreArea}`);
+}
+
+/**
+ * PATCH /audits/submissions/edit
+ * Allows editing an already-submitted/completed audit.
+ */
+export const editAssessmentAction = async (payload: SubmitAssessmentPayload): Promise<ResponseType> => {
+    console.log('[editAssessmentAction] Payload:', JSON.stringify(payload, null, 2));
+    const res = await _patch('/audits/submissions/edit', payload);
+    console.log('[editAssessmentAction] Response:', JSON.stringify(res, null, 2));
+    if (res.ok) {
+        revalidatePath(`/charities/${payload.charityId}`, 'layout');
+    }
+    return res;
 }

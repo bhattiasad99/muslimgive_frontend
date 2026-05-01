@@ -66,6 +66,9 @@ const CharityAssessmentPage = async ({ params, searchParams }: {
 
     const charityTitle = `${charity.charityTitle} (${resolvedCountryName} Version)`
 
+    const coreAreaId = Object.keys(AUDIT_DEFINITIONS).indexOf(assessment) + 1;
+    const assessmentStatus = c.reviews?.[`core${coreAreaId}`]?.status || 'pending';
+
     if (previewMode) {
         return <Preview assessmentedBy={{
             name: "Rahima Issa",
@@ -75,9 +78,11 @@ const CharityAssessmentPage = async ({ params, searchParams }: {
             charityId={charity.id}
             assessmentSlug={assessment}
             country={resolvedCountry}
+            status={assessmentStatus}
         />
     }
 
+    const currentUserRoles = res.payload.data.data.currentUserRoles || [];
     return (
         <AssessmentPageContent
             assessmentSlug={assessment}
@@ -86,6 +91,8 @@ const CharityAssessmentPage = async ({ params, searchParams }: {
             charityId={charity.id}
             charityTitle={charityTitle}
             location={resolvedCountry}
+            status={assessmentStatus}
+            currentUserRoles={currentUserRoles}
         />
     )
 }

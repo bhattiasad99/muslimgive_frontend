@@ -19,14 +19,18 @@ type AssessmentPageContentProps = {
     assessmentSlug: AssessmentSlug;
     assessmentTitle: string;
     assessmentDescription: string;
-    location: 'united-kingdom' | 'united-states' | 'canada'
+    location: 'united-kingdom' | 'united-states' | 'canada';
+    status?: string;
+    currentUserRoles?: string[];
 }
 
 const AssessmentPageContent: React.FC<AssessmentPageContentProps> = ({
     charityId,
     charityTitle,
     assessmentSlug,
-    location
+    location,
+    status,
+    currentUserRoles = []
 }) => {
     const router = useRouter()
 
@@ -75,17 +79,16 @@ const AssessmentPageContent: React.FC<AssessmentPageContentProps> = ({
     const renderAssessment = (assessmentId: AssessmentSlug) => {
         switch (assessmentId) {
             case "core-area-1": {
-                return <CoreArea1 charityId={charityId} country={location} />
+                return <CoreArea1 charityId={charityId} country={location} currentUserRoles={currentUserRoles} status={status} />
             }
             case "core-area-2": {
-                return <CoreArea2 charityId={charityId} location={location} />
+                return <CoreArea2 charityId={charityId} location={location} currentUserRoles={currentUserRoles} status={status} />
             }
             case "core-area-3": {
-                return <CoreArea3 charityId={charityId} />
+                return <CoreArea3 charityId={charityId} currentUserRoles={currentUserRoles} status={status} />
             }
             case 'core-area-4': {
-
-                return <CoreArea4 charityId={charityId} country={location} />
+                return <CoreArea4 charityId={charityId} country={location} currentUserRoles={currentUserRoles} status={status} />
             }
         }
     }

@@ -5,7 +5,7 @@ export type AssessmentIds = 'core-area-1' | 'core-area-2' | 'core-area-3' | 'cor
 
 export type GradeType = "A" | "B" | "C" | "D" | "F";
 
-export type AssessmentStatus = 'submitted' | 'draft' | 'pending' | 'in-progress';
+export type AssessmentStatus = 'submitted' | 'draft' | 'pending' | 'in-progress' | 'completed';
 
 type AssessmentValueCommonExtension = {
     score: number,
