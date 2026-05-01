@@ -14,8 +14,10 @@ import { toast } from 'sonner'
 import AssignProjectManager from '../../SingleCharityPageComponent/models/AssignProjectManager'
 import { usePermissions } from '@/components/common/permissions-provider'
 import { PERMISSIONS } from '@/lib/permissions-config'
-import { assignRolesToCharityAction } from '@/app/actions/charities'
+import { assignRolesToCharityAction, deleteCharityAction } from '@/app/actions/charities'
 import LinkComponent from '@/components/common/LinkComponent'
+import ConfirmActionModal from '@/components/common/ConfirmActionModal'
+import { Trash2 } from 'lucide-react'
 type IProps = Omit<SingleCharityType, 'category'> & {
     onNavigate?: () => void
     projectManagers?: { id: string, name: string, email: string | null }[]
@@ -37,6 +39,9 @@ const SingleCharityCard: FC<IProps> = ({
 }) => {
     const [assignPMModelOpen, setAssignPMModelOpen] = React.useState<null | string>(null)
     const [isAssigning, setIsAssigning] = React.useState(false)
+    const [showDeleteModal, setShowDeleteModal] = React.useState(false)
+    const [isDeleting, setIsDeleting] = React.useState(false)
+
     const handleOpenModel = (modelName: string) => {
         setAssignPMModelOpen(modelName)
     }
@@ -44,7 +49,30 @@ const SingleCharityCard: FC<IProps> = ({
         setAssignPMModelOpen(null)
     }
     const router = useRouter()
-    const { isAllowed } = usePermissions()
+    const { isAllowed, me } = usePermissions()
+    const currentUserRoles = me?.roles?.map((r: any) => r.slug || r) || []
+    const canDeleteCharity = isAllowed({ anyOf: [PERMISSIONS.DELETE_CHARITY] }) || currentUserRoles.includes('operation-manager')
+
+    const handleDeleteCharity = async () => {
+        setIsDeleting(true)
+        try {
+            const res = await deleteCharityAction(id)
+            if (res.ok) {
+                toast.success("Charity deleted successfully")
+                setShowDeleteModal(false)
+                router.refresh()
+                window.location.reload()
+            } else {
+                toast.error(res.message || "Failed to delete charity")
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error("An unexpected error occurred while deleting")
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
     const truncatedDesc =
         charityDesc.length > 100
             ? charityDesc.slice(0, 100) + '...'
@@ -60,9 +88,23 @@ const SingleCharityCard: FC<IProps> = ({
             >
                 <Card className='relative p-3 flex flex-col gap-1.5 shadow-none bg-white'>
                     <div className="flex flex-col gap-1">
-                        <TypographyComponent variant='h6'>
-                            {charityTitle}
-                        </TypographyComponent>
+                        <div className="flex justify-between items-start gap-2">
+                            <TypographyComponent variant='h6' className="flex-1 overflow-hidden truncate">
+                                {charityTitle}
+                            </TypographyComponent>
+                            {canDeleteCharity && (
+                                <button 
+                                    onClick={(e) => { 
+                                        e.preventDefault(); 
+                                        e.stopPropagation(); 
+                                        setShowDeleteModal(true); 
+                                    }} 
+                                    className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded flex-shrink-0"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
                         <div className="text-[11px] text-[#000000]">{charityOwnerName}</div>
                         <div className="text-[11px] text-[#666E76] text-justify">
                             {truncatedDesc}
@@ -157,6 +199,19 @@ const SingleCharityCard: FC<IProps> = ({
                     }}
                 />
             </ModelComponentWithExternalControl>
+            {showDeleteModal && (
+                <ConfirmActionModal
+                    open={showDeleteModal}
+                    onOpenChange={(choice) => {
+                        if (!choice) setShowDeleteModal(false)
+                    }}
+                    title="Delete Charity"
+                    description={`Are you sure you want to delete ${charityTitle}? This action cannot be undone.`}
+                    onConfirm={handleDeleteCharity}
+                    isLoading={isDeleting}
+                    confirmText="Delete"
+                />
+            )}
         </>
     )
 }

@@ -5,7 +5,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Mail, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Mail, ExternalLink, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import {
     Select,
@@ -17,6 +17,11 @@ import {
 import type { SingleCharityType } from '../kanban/KanbanView'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
+import ConfirmActionModal from '@/components/common/ConfirmActionModal'
+import { deleteCharityAction } from '@/app/actions/charities'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { usePermissions } from '@/components/common/permissions-provider'
 
 type Props = {
     charities: SingleCharityType[]
@@ -44,6 +49,36 @@ function parseMonths(totalDuration?: string) {
 const TabularView: FC<Props> = ({ charities }) => {
     const [page, setPage] = React.useState(1)
     const [rowsPerPage, setRowsPerPage] = React.useState(10)
+    
+    // Delete states
+    const [showDeleteModal, setShowDeleteModal] = React.useState<string | null>(null)
+    const [isDeleting, setIsDeleting] = React.useState(false)
+
+    const router = useRouter()
+    const { isAllowed, me } = usePermissions()
+    const currentUserRoles = me?.roles?.map((r: any) => r.slug || r) || []
+    const canDeleteCharity = isAllowed({ anyOf: [PERMISSIONS.DELETE_CHARITY] }) || currentUserRoles.includes('operation-manager')
+
+    const handleDeleteCharity = async () => {
+        if (!showDeleteModal) return;
+        setIsDeleting(true)
+        try {
+            const res = await deleteCharityAction(showDeleteModal)
+            if (res.ok) {
+                toast.success("Charity deleted successfully")
+                setShowDeleteModal(null)
+                router.refresh()
+                window.location.reload()
+            } else {
+                toast.error(res.message || "Failed to delete charity")
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error("An unexpected error occurred while deleting")
+        } finally {
+            setIsDeleting(false)
+        }
+    }
 
     const total = charities.length
     const totalPages = Math.max(1, Math.ceil(total / rowsPerPage))
@@ -162,6 +197,16 @@ const TabularView: FC<Props> = ({ charities }) => {
                                                 <ExternalLink className="h-4 w-4" />
                                             </Button>
                                         </Link>
+                                        {canDeleteCharity && (
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                onClick={() => setShowDeleteModal(c.id)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -197,6 +242,19 @@ const TabularView: FC<Props> = ({ charities }) => {
                     </Button>
                 </div>
             </div>
+            {showDeleteModal && (
+                <ConfirmActionModal
+                    open={!!showDeleteModal}
+                    onOpenChange={(choice) => {
+                        if (!choice) setShowDeleteModal(null)
+                    }}
+                    title="Delete Charity"
+                    description={`Are you sure you want to delete this charity? This action cannot be undone.`}
+                    onConfirm={handleDeleteCharity}
+                    isLoading={isDeleting}
+                    confirmText="Delete"
+                />
+            )}
         </div>
     )
 }
