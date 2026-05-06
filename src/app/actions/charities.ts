@@ -45,8 +45,8 @@ export type CreateCharityPayload = {
     usEin?: string | null;
     usIrsUrl?: string | null;
     ceoName: string;
-    submittedByName: string;
-    submittedByEmail: string;
+    submittedByName?: string | null;
+    submittedByEmail?: string | null;
     annualRevenue: number;
     isEligible: boolean;
 }

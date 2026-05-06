@@ -166,10 +166,7 @@ const CreateCharityStandalonePage = () => {
         }
 
         if (!ceoName.trim()) next.ceoName = 'CEO name is required'
-        if (!submittedByName.trim()) next.submittedByName = 'Submitted by name is required'
-        if (!submittedByEmail.trim()) {
-            next.submittedByEmail = 'Submitted by email is required'
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submittedByEmail)) {
+        if (submittedByEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submittedByEmail)) {
             next.submittedByEmail = 'Invalid email address'
         }
 
@@ -203,8 +200,8 @@ const CreateCharityStandalonePage = () => {
             usEin: isUs ? usEin : null,
             usIrsUrl: isUs ? usIrsUrl || null : null,
             ceoName,
-            submittedByName,
-            submittedByEmail,
+            submittedByName: submittedByName.trim() || null,
+            submittedByEmail: submittedByEmail.trim() || null,
             isIslamic: isIslamic === 'yes',
             doesCharityGiveZakat: paysZakat === 'yes',
             annualRevenue: Number(annualRevenue),
@@ -371,15 +368,15 @@ const CreateCharityStandalonePage = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="submitted-by-name" className="text-sm">Submitted by name <span className="text-red-500">*</span></Label>
+                            <Label htmlFor="submitted-by-name" className="text-sm">Submitted by name (optional)</Label>
                             <ControlledTextFieldComponent id="submitted-by-name" value={submittedByName} onChange={(e) => setSubmittedByName(e.target.value)} placeholder="" />
                             {errors.submittedByName ? <div className="text-xs text-red-500 mt-1">{errors.submittedByName}</div> : null}
                         </div>
 
                         <div>
-                            <Label htmlFor="submitted-by-email" className="text-sm">Submitted by email <span className="text-red-500">*</span></Label>
+                            <Label htmlFor="submitted-by-email" className="text-sm">Submitted by email (optional)</Label>
                             <ControlledTextFieldComponent id="submitted-by-email" value={submittedByEmail} onChange={(e) => setSubmittedByEmail(e.target.value)} placeholder="" type="email" />
-                            <p className="text-xs text-muted-foreground mt-1">This person will recieve emails from MuslimGive</p>
+                            <p className="text-xs text-muted-foreground mt-1">If provided, this person will receive emails from MuslimGive.</p>
                             {errors.submittedByEmail ? <div className="text-xs text-red-500 mt-1">{errors.submittedByEmail}</div> : null}
                         </div>
 
