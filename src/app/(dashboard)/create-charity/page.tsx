@@ -241,7 +241,7 @@ const CreateCharityStandalonePage = () => {
 
                         <div className="flex items-center gap-3">
                             <Checkbox id="assessment-requested" checked={assessmentRequested} onCheckedChange={(v) => setAssessmentRequested(Boolean(v))} />
-                            <Label htmlFor="assessment-requested" className="text-sm">Did the charity themselves requested the assessment?</Label>
+                            <Label htmlFor="assessment-requested" className="text-sm">Assessment requested by charity?</Label>
                         </div>
 
                         <div className="max-w-sm">

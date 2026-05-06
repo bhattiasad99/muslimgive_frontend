@@ -15,7 +15,7 @@ import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
 
 
-import { listCharitiesAction } from '@/app/actions/charities'
+import { listCharitiesAction, restoreCharityAction } from '@/app/actions/charities'
 import { toast } from 'sonner'
 
 import DashboardSkeleton from '../DashboardSkeleton'
@@ -57,6 +57,10 @@ const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ project
     const [charities, setCharities] = useState<SingleCharityType[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isNavigating, setIsNavigating] = useState(false)
+    const [openDeletedModal, setOpenDeletedModal] = useState(false)
+    const [deletedCharities, setDeletedCharities] = useState<SingleCharityType[]>([])
+    const [isDeletedLoading, setIsDeletedLoading] = useState(false)
+    const [restoringId, setRestoringId] = useState<string | null>(null)
 
     // Filter states
     const [statusFilters, setStatusFilters] = useState<string[]>([])
@@ -68,6 +72,57 @@ const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ project
     // Sort states
     const [sortBy, setSortBy] = useState<'createdAt' | 'name' | 'updatedAt'>('createdAt')
     const [order, setOrder] = useState<'ASC' | 'DESC'>('DESC')
+
+    const mapCharity = (c: any): SingleCharityType => ({
+        id: c.id,
+        charityTitle: c.name,
+        logoUrl: c.logoUrl ?? null,
+        charityOwnerName: c.submittedByName || [c.owner?.firstName, c.owner?.lastName].filter(Boolean).join(' ') || "-",
+        charityDesc: c.description || "",
+        members: (c.assignments || []).map((a: any) => ({
+            id: a.user?.id,
+            name: `${a.user?.firstName} ${a.user?.lastName}`,
+            profilePicture: null,
+            role: a.roles?.[0]?.slug || 'project-manager'
+        })),
+        comments: c.commentsCount || 0,
+        assessmentsCompleted: (c.reviews?.summary?.completed || 0) as any,
+        status: c.status || 'unassigned',
+        category: c.category ?? null,
+        reassessmentCycle: c.reassessmentCycle ?? 0,
+        overallScorePercent: c.overallScorePercent ?? null,
+        overallScoreResult: c.overallScoreResult ?? null,
+        country: c.countryCode || c.country,
+        website: c.countryCode === 'united-kingdom'
+            ? (c.ukCharityCommissionUrl || c.charityCommissionWebsiteUrl)
+            : c.countryCode === 'canada'
+                ? (c.caCraUrl || c.charityCommissionWebsiteUrl)
+                : (c.usIrsUrl || c.charityCommissionWebsiteUrl),
+        isThisMuslimCharity: c.isIslamic,
+        doTheyPayZakat: c.doesCharityGiveZakat,
+        pendingEligibilitySource:
+            c.pendingEligibilitySource ||
+            c.pendingEligibility?.source ||
+            c.eligibilityPendingSource ||
+            c.eligibility?.pendingSource ||
+            null,
+        pendingEligibilityReason:
+            c.pendingEligibilityReason ||
+            c.pendingEligibility?.reason ||
+            c.eligibilityPendingReason ||
+            c.eligibility?.pendingReason ||
+            null,
+        pendingEligibilityDetectedAt:
+            c.pendingEligibilityDetectedAt ||
+            c.pendingEligibility?.detectedAt ||
+            c.pendingEligibility?.createdAt ||
+            null,
+        totalDuration: c.startDate
+            ? `${Math.max(1, Math.floor((Date.now() - new Date(c.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365)))} years`
+            : c.startYear
+                ? `${Math.max(1, new Date().getFullYear() - Number(c.startYear))} years`
+                : undefined
+    })
 
     const fetchCharities = async (search: string, filters: any = {}) => {
         setIsLoading(true)
@@ -86,56 +141,7 @@ const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ project
             if (res.ok && res.payload?.data?.data?.charities) {
                 // Map backend data to SingleCharityType
                 const rawCharities = res.payload.data.data.charities;
-                const mapped: SingleCharityType[] = Array.isArray(rawCharities) ? rawCharities.map((c: any) => ({
-                    id: c.id,
-                    charityTitle: c.name,
-                    logoUrl: c.logoUrl ?? null,
-                    charityOwnerName: c.submittedByName || [c.owner?.firstName, c.owner?.lastName].filter(Boolean).join(' ') || "-",
-                    charityDesc: c.description || "",
-                    members: (c.assignments || []).map((a: any) => ({
-                        id: a.user?.id,
-                        name: `${a.user?.firstName} ${a.user?.lastName}`,
-                        profilePicture: null,
-                        role: a.roles?.[0]?.slug || 'project-manager'
-                    })),
-                    comments: c.commentsCount || 0,
-                    assessmentsCompleted: (c.reviews?.summary?.completed || 0) as any,
-                    status: c.status || 'unassigned',
-                    category: c.category ?? null,
-                    reassessmentCycle: c.reassessmentCycle ?? 0,
-                    overallScorePercent: c.overallScorePercent ?? null,
-                    overallScoreResult: c.overallScoreResult ?? null,
-                    country: c.countryCode || c.country,
-                    website: c.countryCode === 'united-kingdom'
-                        ? (c.ukCharityCommissionUrl || c.charityCommissionWebsiteUrl)
-                        : c.countryCode === 'canada'
-                            ? (c.caCraUrl || c.charityCommissionWebsiteUrl)
-                            : (c.usIrsUrl || c.charityCommissionWebsiteUrl),
-                    isThisMuslimCharity: c.isIslamic,
-                    doTheyPayZakat: c.doesCharityGiveZakat,
-                    pendingEligibilitySource:
-                        c.pendingEligibilitySource ||
-                        c.pendingEligibility?.source ||
-                        c.eligibilityPendingSource ||
-                        c.eligibility?.pendingSource ||
-                        null,
-                    pendingEligibilityReason:
-                        c.pendingEligibilityReason ||
-                        c.pendingEligibility?.reason ||
-                        c.eligibilityPendingReason ||
-                        c.eligibility?.pendingReason ||
-                        null,
-                    pendingEligibilityDetectedAt:
-                        c.pendingEligibilityDetectedAt ||
-                        c.pendingEligibility?.detectedAt ||
-                        c.pendingEligibility?.createdAt ||
-                        null,
-                    totalDuration: c.startDate
-                        ? `${Math.max(1, Math.floor((Date.now() - new Date(c.startDate).getTime()) / (1000 * 60 * 60 * 24 * 365)))} years`
-                        : c.startYear
-                            ? `${Math.max(1, new Date().getFullYear() - Number(c.startYear))} years`
-                            : undefined
-                })) : [];
+                const mapped: SingleCharityType[] = Array.isArray(rawCharities) ? rawCharities.map(mapCharity) : [];
                 setCharities(mapped)
             } else {
                 toast.error(res.message || "Failed to fetch charities")
@@ -147,6 +153,57 @@ const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ project
             toast.error("An error occurred while fetching charities")
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const fetchDeletedCharities = async () => {
+        setIsDeletedLoading(true)
+        try {
+            const res = await listCharitiesAction({
+                isActive: false,
+                limit: 100,
+                sortBy: 'updatedAt',
+                order: 'DESC',
+            })
+            if (res.ok && res.payload?.data?.data?.charities) {
+                const rawCharities = res.payload.data.data.charities
+                const mapped: SingleCharityType[] = Array.isArray(rawCharities) ? rawCharities.map(mapCharity) : []
+                setDeletedCharities(mapped)
+            } else {
+                toast.error(res.message || 'Failed to fetch deleted charities')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An error occurred while fetching deleted charities')
+        } finally {
+            setIsDeletedLoading(false)
+        }
+    }
+
+    const handleRestoreCharity = async (id: string) => {
+        if (restoringId) return
+        setRestoringId(id)
+        try {
+            const res = await restoreCharityAction(id)
+            if (res.ok) {
+                toast.success('Charity restored successfully')
+                await fetchDeletedCharities()
+                fetchCharities(queryInput, {
+                    status: statusFilters,
+                    categories: categoryFilters,
+                    zakat: zakatFilter,
+                    islamic: islamicFilter,
+                    sortBy,
+                    order,
+                })
+            } else {
+                toast.error(res.message || 'Failed to restore charity')
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error('An unexpected error occurred while restoring charity')
+        } finally {
+            setRestoringId(null)
         }
     }
 
@@ -294,6 +351,17 @@ const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ project
                             Send Bulk Email
                         </Button>
                     </Can>
+                    <Can anyOf={[PERMISSIONS.DELETE_CHARITY]}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setOpenDeletedModal(true)
+                                fetchDeletedCharities()
+                            }}
+                        >
+                            Deleted Charities
+                        </Button>
+                    </Can>
                     <KanbanTabularToggle view={view} setView={setView} />
                 </div>
             </div>
@@ -326,6 +394,45 @@ const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ project
                         })}
                         onClose={() => setOpenBulkEmailModal(false)}
                     />
+                </ModelComponentWithExternalControl>
+            </Can>
+            <Can anyOf={[PERMISSIONS.DELETE_CHARITY]}>
+                <ModelComponentWithExternalControl
+                    dialogContentClassName='max-w-[90vw] md:min-w-[720px] max-h-[90vh] overflow-y-auto'
+                    open={openDeletedModal}
+                    onOpenChange={setOpenDeletedModal}
+                    title='Deleted Charities'
+                    description='Restore charities that were previously deleted.'
+                >
+                    <div className="flex flex-col gap-3">
+                        {isDeletedLoading ? (
+                            <div className="text-sm text-[#667085]">Loading deleted charities...</div>
+                        ) : deletedCharities.length === 0 ? (
+                            <div className="text-sm text-[#667085]">No deleted charities found.</div>
+                        ) : (
+                            deletedCharities.map((charity) => (
+                                <div key={charity.id} className="flex flex-col gap-2 rounded-lg border border-[#E7EEF8] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-semibold text-[#101928]">{charity.charityTitle}</span>
+                                        <span className="text-xs text-[#667085]">Submitted by {charity.charityOwnerName || '-'}</span>
+                                    </div>
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => handleRestoreCharity(charity.id)}
+                                        loading={restoringId === charity.id}
+                                        disabled={restoringId === charity.id}
+                                    >
+                                        Restore
+                                    </Button>
+                                </div>
+                            ))
+                        )}
+                        <div className="flex justify-end">
+                            <Button variant="outline" onClick={() => setOpenDeletedModal(false)}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
                 </ModelComponentWithExternalControl>
             </Can>
 

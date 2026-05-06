@@ -3,7 +3,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import clsx from 'clsx';
@@ -33,16 +32,18 @@ const IconDropdownMenuComponent: React.FC<IProps> = ({ className, icon, options,
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-            {options.map(eachOpt => <DropdownMenuLabel
-
-                key={eachOpt.value}>
-                <DropdownMenuItem onClick={() => {
-                    if (onSelect) {
-                        onSelect(eachOpt.value)
-                    }
-                }}>{eachOpt.label}</DropdownMenuItem>
-
-            </DropdownMenuLabel>)}
+            {options.map(eachOpt => (
+                <DropdownMenuItem
+                    key={eachOpt.value}
+                    onClick={() => {
+                        if (onSelect) {
+                            onSelect(eachOpt.value)
+                        }
+                    }}
+                >
+                    {eachOpt.label}
+                </DropdownMenuItem>
+            ))}
         </DropdownMenuContent>
     </DropdownMenu>
 };

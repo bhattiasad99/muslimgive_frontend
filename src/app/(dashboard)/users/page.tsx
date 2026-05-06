@@ -7,7 +7,7 @@ import React from 'react'
 const UsersPage = async () => {
     const meRes = await getMeAction(true)
     const me = meRes.ok ? meRes.payload?.data : null
-    if (!me || !me.isAdmin) {
+    if (!me) {
         redirect('/unauthorized')
     }
 

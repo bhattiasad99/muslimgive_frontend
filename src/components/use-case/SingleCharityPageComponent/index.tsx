@@ -37,6 +37,7 @@ import TabsComponent from '@/components/common/TabsComponent'
 import { Progress } from '@/components/ui/progress'
 import { AUDIT_DEFINITIONS } from '../SingleAssessmentPageComponent/ASSESSMENT_DEFINITIONS'
 import { BadgeCheck, CalendarDays, CheckCircle2, CircleDashed, Globe, Mail, MapPin, Pencil, UserCircle2, UserCheck, XCircle } from 'lucide-react'
+import EditCharityDetailsModal from './models/EditCharityDetailsModal'
 
 type Member = SingleCharityType['members'][0]
 type IProps = SingleCharityType & {
@@ -44,7 +45,7 @@ type IProps = SingleCharityType & {
 };
 
 type ModelControl = {
-    nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor' | 'assign-finance-auditor' | 'assign-zakat-auditor';
+    nameOfModel: null | TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor' | 'assign-finance-auditor' | 'assign-zakat-auditor' | 'edit-charity-details';
 }
 type AssignmentMode = 'assign' | 'reassign'
 
@@ -177,7 +178,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
 
     const resolvedCountry = resolveCountry(country)
 
-    const handleOpenModel = (nameOfModel: TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor') => {
+    const handleOpenModel = (nameOfModel: TaskIds | 'manage-team' | 'configure-role' | 'eligibility-override' | 'eligibility-test' | 'assign-finance-assessor' | 'assign-zakat-assessor' | 'edit-charity-details') => {
         setModelState(prevState => ({ ...prevState, nameOfModel }));
     }
 
@@ -226,6 +227,8 @@ const SingleCharityPageComponent: FC<IProps> = ({
     const canAssignAssessorRole = canAssignPMRole || canManageCharity
     const canViewEmailLogs = isAllowed({ anyOf: [PERMISSIONS.SEND_EMAIL_CHARITY_OWNER] })
     const canDeleteCharity = isAllowed({ anyOf: [PERMISSIONS.DELETE_CHARITY] }) || currentUserRoles.includes('operation-manager')
+    const canEditCharity = isAllowed({ anyOf: [PERMISSIONS.UPDATE_CHARITY, PERMISSIONS.CHARITY_MANAGE] })
+        || currentUserRoles.includes('operation-manager')
     const canSubmitAssessment = isAllowed({
         anyOf: [PERMISSIONS.AUDIT_SUBMISSION_CREATE, PERMISSIONS.AUDIT_SUBMISSION_COMPLETE],
     })
@@ -538,17 +541,42 @@ const SingleCharityPageComponent: FC<IProps> = ({
         }
     }
 
+    const handleDropdownSelect = (selection: string) => {
+        if (selection === 'edit-charity-details') {
+            handleOpenModel('edit-charity-details')
+            return
+        }
+        if (selection === 'view-email-logs') {
+            router.push(`/email-logs?charity=${encodeURIComponent(charityTitle)}`)
+            return
+        }
+        if (selection === 'delete-charity') {
+            setShowDeleteModal(true)
+        }
+    }
+
     const dropdownOptions = [
+        canEditCharity
+            ? {
+                value: 'edit-charity-details',
+                label: (
+                    <div className='flex gap-1 items-center'>
+                        <Pencil className="h-4 w-4 text-[#666E76]" />
+                        <span>Edit Charity Details</span>
+                    </div>
+                )
+            }
+            : null,
         canViewEmailLogs
             ? {
                 value: 'view-email-logs',
-                label: <div className='flex gap-1 items-center cursor-pointer' onClick={() => router.push(`/email-logs?charity=${encodeURIComponent(charityTitle)}`)}><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
+                label: <div className='flex gap-1 items-center'><EmailIcon color='#666E76' /><span>View Email Logs</span></div>
             }
             : null,
         canDeleteCharity
             ? {
                 value: 'delete-charity',
-                label: <div className='flex gap-1 items-center text-red-600 cursor-pointer' onClick={() => setShowDeleteModal(true)}>
+                label: <div className='flex gap-1 items-center text-red-600'>
                     <Trash2 className="h-4 w-4" /><span>Delete Charity</span>
                 </div>
             }
@@ -596,6 +624,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                 className='rounded-full border-[#E6E6E6] shadow-none border bg-white'
                                 icon={<ThreeDotIcon />}
                                 options={dropdownOptions}
+                                onSelect={handleDropdownSelect}
                             />
                         </div>
                         <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -649,7 +678,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                 <div className="flex items-center gap-2">
                                     <Globe className="h-4 w-4 text-[#667085]" />
                                     <a href={website.startsWith('http') ? website : `https://${website}`} target='_blank' className='text-blue-600 underline text-sm font-medium'>
-                                        Visit website
+                                        website address
                                     </a>
                                 </div>
                             ) : null}
@@ -1129,6 +1158,35 @@ const SingleCharityPageComponent: FC<IProps> = ({
                             startYear: startYear ?? null,
                             countryCode: country,
                         }}
+                        onCancel={handleCloseModel}
+                        onUpdated={() => {
+                            handleCloseModel()
+                            router.refresh()
+                        }}
+                    />
+                ) : null}
+            </ModelComponentWithExternalControl>
+
+            <ModelComponentWithExternalControl
+                title="Edit Charity Details"
+                onOpenChange={handleCloseModel}
+                open={modelState.nameOfModel === 'edit-charity-details'}
+                dialogContentClassName='md:min-w-[720px]'
+            >
+                {canEditCharity ? (
+                    <EditCharityDetailsModal
+                        charityId={charityId}
+                        charityTitle={charityTitle}
+                        charityOwnerName={charityOwnerName}
+                        logoUrl={logoUrl}
+                        countryCode={country}
+                        startDate={startDate ?? null}
+                        startYear={startYear ?? null}
+                        ceoName={ceoName ?? null}
+                        submittedByEmail={submittedByEmail ?? null}
+                        ukCharityCommissionUrl={ukCharityCommissionUrl ?? null}
+                        caCraUrl={caCraUrl ?? null}
+                        usIrsUrl={usIrsUrl ?? null}
                         onCancel={handleCloseModel}
                         onUpdated={() => {
                             handleCloseModel()

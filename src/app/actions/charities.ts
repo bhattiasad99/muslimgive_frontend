@@ -127,11 +127,41 @@ export const createCharityAction = async (payload: CreateCharityPayload): Promis
 }
 
 /**
+ * PATCH /charities/{id}
+ * Updates charity details
+ */
+export type UpdateCharityPayload = {
+    name?: string | null;
+    logoUrl?: string | null;
+    countryCode?: CountriesInKebab | null;
+    startDate?: string | null;
+    startYear?: number | null;
+    ceoName?: string | null;
+    submittedByName?: string | null;
+    submittedByEmail?: string | null;
+    ukCharityCommissionUrl?: string | null;
+    caCraUrl?: string | null;
+    usIrsUrl?: string | null;
+}
+
+export const updateCharityAction = async (id: string, payload: UpdateCharityPayload): Promise<ResponseType> => {
+    return await _patch(`/charities/${id}`, payload);
+}
+
+/**
  * DELETE /charities/{id}
  * Deletes a charity
  */
 export const deleteCharityAction = async (id: string): Promise<ResponseType> => {
     return await _delete(`/charities/${id}`);
+}
+
+/**
+ * PATCH /charities/{id}/restore
+ * Restores a deleted charity
+ */
+export const restoreCharityAction = async (id: string): Promise<ResponseType> => {
+    return await _patch(`/charities/${id}/restore`, {});
 }
 
 /**

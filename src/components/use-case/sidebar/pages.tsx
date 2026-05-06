@@ -50,7 +50,7 @@ export const PAGES: Page[] = [
         icon: <Profile />,
         type: 'admin',
         show: true,
-        permissions: { adminOnly: true, anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
+        permissions: { anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
     },
     {
         name: 'config',

@@ -24,6 +24,7 @@ export const PERMISSIONS = {
     VIEW_USERS_MG: "view:users_mg",
     CREATE_USER_MG: "create:user_mg",
     CHARITY_MANAGE: "charity:manage",
+    UPDATE_CHARITY: "charity:update",
     CREATE_CHARITY: "create:charity",
     AUDIT_CHARITY_SUMMARY_VIEW: "assessment:charity:summary:view",
     AUDIT_CHARITY_VIEW: "assessment:charity:view",
@@ -65,7 +66,7 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     },
     {
         pattern: /^\/users$/,
-        requirement: { adminOnly: true, anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
+        requirement: { anyOf: [PERMISSIONS.USER_VIEW, PERMISSIONS.USER_MANAGE, PERMISSIONS.VIEW_USERS_MG] },
     },
     {
         pattern: /^\/config$/,
