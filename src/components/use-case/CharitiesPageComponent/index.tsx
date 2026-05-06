@@ -15,7 +15,7 @@ import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
 
 
-import { listCharitiesAction, restoreCharityAction } from '@/app/actions/charities'
+import { listCharitiesAction, listDeletedCharitiesAction, restoreCharityAction } from '@/app/actions/charities'
 import { toast } from 'sonner'
 
 import DashboardSkeleton from '../DashboardSkeleton'
@@ -159,8 +159,7 @@ const CharitiesPageComponent: React.FC<CharitiesPageComponentProps> = ({ project
     const fetchDeletedCharities = async () => {
         setIsDeletedLoading(true)
         try {
-            const res = await listCharitiesAction({
-                isActive: false,
+            const res = await listDeletedCharitiesAction({
                 limit: 100,
                 sortBy: 'updatedAt',
                 order: 'DESC',

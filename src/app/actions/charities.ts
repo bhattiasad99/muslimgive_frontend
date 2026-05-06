@@ -16,6 +16,7 @@ export type ListCharitiesParams = {
     order?: 'ASC' | 'DESC';
     status?: string[];
     isActive?: boolean;
+    isDeleted?: boolean;
     startDate?: string;
     endDate?: string;
     createdByUserId?: string;
@@ -64,6 +65,7 @@ export const listCharitiesAction = async (params: ListCharitiesParams, useCache 
     if (params.sortBy) query.append('sortBy', params.sortBy);
     if (params.order) query.append('order', params.order);
     if (params.isActive !== undefined) query.append('isActive', params.isActive.toString());
+    if (params.isDeleted !== undefined) query.append('isDeleted', params.isDeleted.toString());
     if (params.startDate) query.append('startDate', params.startDate);
     if (params.endDate) query.append('endDate', params.endDate);
     if (params.createdByUserId) query.append('createdByUserId', params.createdByUserId);
@@ -97,6 +99,39 @@ export const listCharitiesAction = async (params: ListCharitiesParams, useCache 
         return await getCachedPendingCount(accessToken);
     }
 
+    return await _get(endpoint);
+}
+
+/**
+ * GET /charities/deleted
+ * Lists deleted charities with pagination and filters
+ */
+export const listDeletedCharitiesAction = async (params: ListCharitiesParams): Promise<ResponseType> => {
+    const query = new URLSearchParams();
+
+    if (params.page) query.append('page', params.page.toString());
+    if (params.limit) query.append('limit', params.limit.toString());
+    if (params.search) query.append('search', params.search);
+    if (params.sortBy) query.append('sortBy', params.sortBy);
+    if (params.order) query.append('order', params.order);
+    if (params.startDate) query.append('startDate', params.startDate);
+    if (params.endDate) query.append('endDate', params.endDate);
+    if (params.createdByUserId) query.append('createdByUserId', params.createdByUserId);
+    if (params.doesCharityGiveZakat !== undefined) query.append('doesCharityGiveZakat', params.doesCharityGiveZakat.toString());
+    if (params.isIslamic !== undefined) query.append('isIslamic', params.isIslamic.toString());
+
+    if (params.status && params.status.length > 0) {
+        query.append('status', params.status.join(','));
+    }
+
+    if (params.categories && params.categories.length > 0) {
+        query.append('categories', params.categories.join(','));
+    }
+    if (params.pendingEligibilitySource) {
+        query.append('pendingEligibilitySource', params.pendingEligibilitySource);
+    }
+
+    const endpoint = `/charities/deleted?${query.toString()}`;
     return await _get(endpoint);
 }
 
