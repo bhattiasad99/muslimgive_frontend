@@ -13,6 +13,7 @@ import CoreArea3 from './Assessments/CoreArea3_Zakat'
 import CoreArea4 from './Assessments/CoreArea4_Governance'
 import RatingBandBadge from '@/components/common/RatingBandBadge'
 import { computeCoreArea1RatingBandFromReview, RatingBand } from '@/lib/audit-scoring'
+import { computeCoreArea2RatingBandFromReview } from '@/lib/audit-score-display'
 import { useCharityAssessmentNavigationDismiss } from '@/hooks/use-page-navigation'
 
 
@@ -65,7 +66,11 @@ const AssessmentPageContent: React.FC<AssessmentPageContentProps> = ({
                 if (res.ok && res.payload?.data?.data) {
                     const data = res.payload.data.data;
                     setScore(data.score);
-                    const defaultTotal = coreAreaId === 4 && location === 'united-kingdom' ? 12.5 : 10;
+                    const defaultTotal = coreAreaId === 2
+                        ? 40
+                        : coreAreaId === 4 && location === 'united-kingdom'
+                            ? 12.5
+                            : 10;
                     const resolvedTotalScore = data.totalScore ?? defaultTotal;
                     setTotalScore(resolvedTotalScore);
                     if (coreAreaId === 1) {
@@ -73,6 +78,14 @@ const AssessmentPageContent: React.FC<AssessmentPageContentProps> = ({
                             computeCoreArea1RatingBandFromReview(
                                 typeof data.score === 'number' ? data.score : null,
                                 resolvedTotalScore,
+                            ),
+                        );
+                    } else if (coreAreaId === 2) {
+                        setRatingBand(
+                            computeCoreArea2RatingBandFromReview(
+                                typeof data.score === 'number' ? data.score : null,
+                                resolvedTotalScore,
+                                data.ratingBand,
                             ),
                         );
                     } else if (coreAreaId === 4) {

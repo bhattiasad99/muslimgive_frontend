@@ -5,10 +5,11 @@ import RadioGroupComponent from '@/components/common/RadioGroupComponent'
 import DatePicker from '@/components/common/ControlledDatePickerComponent'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CORE_AREA_2_FORMS } from '@/lib/assessment-forms/core-area-2'
+import { CORE_AREA_2_FORMS, getQuestionFieldKey, labelToSnakeCase } from '@/lib/assessment-forms/core-area-2'
 import { Question } from '@/lib/assessment-forms/types'
 import { formatDateToYYYYMMDD } from '@/lib/helpers'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import {
     getAssessmentTargetElementId,
     useAssessmentContentReveal,
@@ -89,18 +90,12 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
                     setIsEditable(res.payload.data.data.isEditable !== false);
                     const newFormData: Record<string, any> = {};
 
-                    const toSnakeCase = (str: string) =>
-                        str.toLowerCase()
-                            .replace(/[?]/g, '') // remove question marks
-                            .replace(/[()]/g, '')
-                            .replace(/%/g, '') // remove %
-                            .replace(/\//g, '') // remove forward slashes
-                            .trim()
-                            .replace(/[\s-]+/g, '_'); // replace spaces and hyphens with underscore
-
                     formDefinition.questions.forEach(q => {
-                        const key = toSnakeCase(q.label);
-                        const ans = answers[key];
+                        const primaryKey = getQuestionFieldKey(q);
+                        const legacyKey = labelToSnakeCase(q.label);
+                        const ans = answers[primaryKey] ?? answers[legacyKey]
+                            ?? (q.code === 'F01' ? answers.assessmented_financial_statements_available_on_website : undefined)
+                            ?? (q.code === 'F02' ? answers.previous_year_assessmented_financial_statements_available_on_website : undefined);
                         if (ans !== undefined && ans !== null) {
                             if (q.type === 'date' && typeof ans === 'string') {
                                 const dateObj = new Date(ans);
@@ -173,7 +168,11 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
                         onInputChange={(_name, value) => updateFormData(fieldCode, value)}
                         inputProps={{
                             type: question.type === 'number' ? 'number' : 'text',
-                            value: formData[fieldCode] || ''
+                            value: formData[fieldCode] ?? '',
+                            ...(fieldCode === 'F17' ? { min: 0, max: 100, step: 'any' } : {}),
+                            ...(fieldCode === 'F18' ? { min: 0, step: 'any' } : {}),
+                            ...(fieldCode === 'F16' ? { min: 0, step: 'any' } : {}),
+                            ...(fieldCode === 'F04' || fieldCode === 'F05' || fieldCode === 'F06' ? { min: 0, max: 100, step: 'any' } : {}),
                         }}
                     />
                 )
@@ -229,32 +228,42 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
         }
     }
 
-    // Helper to convert label to snake_case
-    const toSnakeCaseConverted = (str: string) =>
-        str.toLowerCase()
-            .replace(/[?]/g, '') // remove question marks
-            .replace(/[()]/g, '')
-            .replace(/%/g, '') // remove %
-            .replace(/\//g, '') // remove forward slashes
-            .trim()
-            .replace(/[\s-]+/g, '_'); // replace spaces and hyphens with underscore
+    const validateRequiredAnswers = () => {
+        if (!formDefinition) return false;
+
+        const missing = formDefinition.questions.filter((q) => {
+            if (!q.required) return false;
+            const val = formData[q.code];
+            if (val === undefined || val === null || val === '') return true;
+            if (q.type === 'number' && Number.isNaN(Number(val))) return true;
+            return false;
+        });
+
+        if (missing.length > 0) {
+            toast.error(`Please complete required fields: ${missing.map((q) => q.label).slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}`);
+            const first = missing[0];
+            document.getElementById(getAssessmentTargetElementId('question', first.code))
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return false;
+        }
+
+        return true;
+    };
 
     const handleSaveDraft = async () => {
         const answers: Record<string, any> = {};
         if (!formDefinition) return;
 
         formDefinition.questions.forEach(q => {
-            const key = toSnakeCaseConverted(q.label);
+            const key = getQuestionFieldKey(q);
             const val = formData[q.code];
             if (val !== undefined && val !== null && val !== "") {
                 if (q.type === 'number') {
-                    // Ensure we send a number, parse float/int
                     const num = Number(val);
                     if (!isNaN(num)) {
                         answers[key] = num;
                     }
                 } else if (q.type === 'date' && val instanceof Date) {
-                    // Format date as YYYY-MM-DD
                     answers[key] = formatDateToYYYYMMDD(val);
                 } else {
                     answers[key] = val;
@@ -304,6 +313,15 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
                 )}
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
+                    <p className="font-semibold">Airtable / scoring inputs</p>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-amber-800">
+                        <li>Complete all required finance fields so backend can fill Airtable columns on CA2 completion.</li>
+                        <li>Fundraising % + Administrative % should stay under 30% combined (mandatory gate).</li>
+                        <li>Reserves of 36 months or more will fail the mandatory reserves gate.</li>
+                        <li>Current-year audited financials must be available on the website.</li>
+                    </ul>
+                </div>
                 {formDefinition.questions.map(q => renderQuestion(q))}
             </div>
 
@@ -311,6 +329,8 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
             {!canEdit ? null : (
                 <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
                     <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
+                        if (!validateRequiredAnswers()) return;
+
                         if (typeof window !== 'undefined') {
                             localStorage.setItem(`assessment-form-data-${charityId}-core-area-2`, JSON.stringify(formData));
                         }

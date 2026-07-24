@@ -26,6 +26,30 @@ export type AuditReviewLike = {
     weightageScore?: number | null
 }
 
+export type CoreArea2RatingBand = 'Strong' | 'Needs Improvement' | 'Concern'
+
+/** CA2 bands are on the /40 scale (no Moderate). Prefer API `ratingBand` when present. */
+export function computeCoreArea2RatingBand(score: number): CoreArea2RatingBand {
+    if (score >= 33) return 'Strong'
+    if (score >= 26) return 'Needs Improvement'
+    return 'Concern'
+}
+
+export function computeCoreArea2RatingBandFromReview(
+    score: number | null,
+    totalScore: number,
+    ratingBand?: string | null,
+): CoreArea2RatingBand | null {
+    if (ratingBand === 'Strong' || ratingBand === 'Needs Improvement' || ratingBand === 'Concern') {
+        return ratingBand
+    }
+    if (score === null) return null
+    const scoreOutOfForty = totalScore > 0 && totalScore !== AUDIT_DISPLAY_MAX.core2
+        ? (score / totalScore) * AUDIT_DISPLAY_MAX.core2
+        : score
+    return computeCoreArea2RatingBand(scoreOutOfForty)
+}
+
 export function formatAuditScore(score: number | null | undefined): string {
     if (score === null || score === undefined) return '—'
     const rounded = Number(score.toFixed(1))

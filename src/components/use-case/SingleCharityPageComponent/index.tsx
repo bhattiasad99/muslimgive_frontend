@@ -11,6 +11,7 @@ import IconDropdownMenuComponent from '@/components/common/IconDropdownMenuCompo
 import { TaskIds } from '@/types/assessments'
 import {
     AUDIT_DISPLAY_MAX,
+    computeCoreArea2RatingBandFromReview,
     formatAuditScore,
     getAreaDisplayScore,
     getOverallDisplayScore,
@@ -395,9 +396,11 @@ const SingleCharityPageComponent: FC<IProps> = ({
         const coreAreaBand =
             assessmentId === 'core-area-1'
                 ? computeCoreArea1RatingBandFromReview(review.score, review.totalScore)
-                : assessmentId === 'core-area-4'
-                    ? review.ratingBand
-                    : null
+                : assessmentId === 'core-area-2'
+                    ? computeCoreArea2RatingBandFromReview(review.score, review.totalScore, review.ratingBand)
+                    : assessmentId === 'core-area-4'
+                        ? review.ratingBand
+                        : null
         const bandSuffix = coreAreaBand ? ` · ${coreAreaBand}` : ''
 
         return `Score: ${formatAuditScore(displayScore)}/${displayMax}${bandSuffix}`

@@ -29,6 +29,7 @@ import { computeCoreArea1RatingBandFromReview, RatingBand } from '@/lib/audit-sc
 import {
     AUDIT_AREA_LABELS,
     AUDIT_DISPLAY_MAX,
+    computeCoreArea2RatingBandFromReview,
     formatAuditScore,
     getAreaDisplayScore,
     getOverallDisplayScore,
@@ -594,9 +595,11 @@ const TabularView: FC<Props> = ({ charities, onRefresh, assignmentCandidatesByRo
                                                                 const statusStyle = getCoreAreaStatusMeta(area.status)
                                                                 const coreAreaBand = key === 'core1'
                                                                     ? computeCoreArea1RatingBandFromReview(area.score, area.totalScore)
-                                                                    : key === 'core4'
-                                                                        ? area.ratingBand
-                                                                        : null
+                                                                    : key === 'core2'
+                                                                        ? computeCoreArea2RatingBandFromReview(area.score, area.totalScore, area.ratingBand)
+                                                                        : key === 'core4'
+                                                                            ? area.ratingBand
+                                                                            : null
                                                                 const isPending = area.status === 'pending'
                                                                 const displayScore = getAreaDisplayScore(area, meta.displayMax)
                                                                 const zakatScores = key === 'core3' ? getZakatDisplayScores(area) : null
@@ -667,7 +670,7 @@ const TabularView: FC<Props> = ({ charities, onRefresh, assignmentCandidatesByRo
                                                                                     </div>
                                                                                 )}
                                                                                 <div className="flex items-center justify-between gap-2 border-t border-[#EEF2F6] pt-2">
-                                                                                    {(key === 'core1' || key === 'core4') && coreAreaBand ? (
+                                                                                    {(key === 'core1' || key === 'core2' || key === 'core4') && coreAreaBand ? (
                                                                                         <RatingBandBadge ratingBand={coreAreaBand as RatingBand} className="text-[10px]" />
                                                                                     ) : (
                                                                                         <span />

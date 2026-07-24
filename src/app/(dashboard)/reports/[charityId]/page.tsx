@@ -6,6 +6,7 @@ import { computeCoreArea1RatingBandFromReview, RatingBand } from '@/lib/audit-sc
 import {
     AUDIT_AREA_LABELS,
     AUDIT_DISPLAY_MAX,
+    computeCoreArea2RatingBandFromReview,
     formatAuditScore,
     getAreaDisplayScore,
     getOverallDisplayScore,
@@ -107,9 +108,11 @@ const ReportPage = async ({ params }: { params: Promise<{ charityId: string }> }
                         : null
                     const coreAreaBand = area.coreArea === 1
                         ? computeCoreArea1RatingBandFromReview(review.score, review.totalScore)
-                        : area.coreArea === 4
-                            ? area.ratingBand
-                            : null
+                        : area.coreArea === 2
+                            ? computeCoreArea2RatingBandFromReview(review.score, review.totalScore, area.ratingBand)
+                            : area.coreArea === 4
+                                ? area.ratingBand
+                                : null
 
                     return (
                         <div key={area.coreArea} className="rounded-xl border border-[#E4E7EC] bg-white p-5">
@@ -133,7 +136,7 @@ const ReportPage = async ({ params }: { params: Promise<{ charityId: string }> }
                                     Score: {formatAuditScore(displayScore)}/{CORE_AREA_DISPLAY_MAX[area.coreArea] ?? area.totalScore ?? 'N/A'}
                                 </TypographyComponent>
                             )}
-                            {(area.coreArea === 1 || area.coreArea === 4) && coreAreaBand ? (
+                            {(area.coreArea === 1 || area.coreArea === 2 || area.coreArea === 4) && coreAreaBand ? (
                                 <div className="mt-1">
                                     <RatingBandBadge ratingBand={coreAreaBand as RatingBand} />
                                 </div>

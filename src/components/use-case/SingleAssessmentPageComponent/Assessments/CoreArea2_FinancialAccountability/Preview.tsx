@@ -11,7 +11,7 @@ import ModelComponentWithExternalControl from '@/components/common/ModelComponen
 import SubmittedSymbol from '../../Assessments/CoreArea1_CharityStatus/SubmittedSymbol';
 import { submitAssessmentAction, completeAssessmentAction, getAssessmentAction, editAssessmentAction } from '@/app/actions/assessments';
 import { toast } from 'sonner';
-import { CORE_AREA_2_FORMS } from '@/lib/assessment-forms/core-area-2';
+import { CORE_AREA_2_FORMS, getQuestionFieldKey, labelToSnakeCase } from '@/lib/assessment-forms/core-area-2';
 import { useAssessmentHistoryNavigation } from '@/hooks/use-assessment-navigation';
 
 export type PreviewPageCommonProps = {
@@ -82,20 +82,14 @@ const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI
                         const formDefinition = CORE_AREA_2_FORMS.find(f => f.countryCode === mappedCountry)
                             || CORE_AREA_2_FORMS.find(f => f.countryCode === 'united-states');
 
-                        const toSnakeCase = (str: string) =>
-                            str.toLowerCase()
-                                .replace(/[?]/g, '') // remove question marks
-                                .replace(/[()]/g, '')
-                                .replace(/%/g, '') // remove %
-                                .replace(/\//g, '') // remove forward slashes
-                                .trim()
-                                .replace(/[\s-]+/g, '_'); // replace spaces and hyphens with underscore
-
                         const mappedAnswers: any = {};
                         if (formDefinition) {
                             formDefinition.questions.forEach(q => {
-                                const key = toSnakeCase(q.label);
-                                const ans = answers[key];
+                                const primaryKey = getQuestionFieldKey(q);
+                                const legacyKey = labelToSnakeCase(q.label);
+                                const ans = answers[primaryKey] ?? answers[legacyKey]
+                                    ?? (q.code === 'F01' ? answers.assessmented_financial_statements_available_on_website : undefined)
+                                    ?? (q.code === 'F02' ? answers.previous_year_assessmented_financial_statements_available_on_website : undefined);
                                 if (ans !== undefined && ans !== null) {
                                     mappedAnswers[q.code] = ans;
                                 }
@@ -128,15 +122,6 @@ const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI
         if (!assessmentVals) return;
         console.log('[PreviewCoreArea2] handleSubmit triggered. isEditMode:', isEditMode);
         try {
-            const toSnakeCaseConverted = (str: string) =>
-                str.toLowerCase()
-                    .replace(/[?]/g, '')
-                    .replace(/[()]/g, '')
-                    .replace(/%/g, '')
-                    .replace(/\//g, '')
-                    .trim()
-                    .replace(/[\s-]+/g, '_');
-
             const normalizedCountry = country as 'united-kingdom' | 'united-states' | 'canada';
 
             const mappedAnswers: Record<string, any> = {};
@@ -147,8 +132,10 @@ const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI
                 Object.entries(assessmentVals).forEach(([code, val]) => {
                     const q = questions.find((question: any) => question.code === code);
                     if (q) {
-                        const key = toSnakeCaseConverted(q.label);
-                        mappedAnswers[key] = val;
+                        const key = getQuestionFieldKey(q);
+                        mappedAnswers[key] = q.type === 'number' && val !== '' && val != null
+                            ? Number(val)
+                            : val;
                     }
                 });
             }
@@ -211,20 +198,23 @@ const PreviewCoreArea2: FC<IProps> = ({ country, status, charityId, fetchFromAPI
     const getValue = (code: string) => assessmentVals[code];
 
     const questionRows = [
-        previewRow(1, 'F01', 'Assessmented financial statements available on website', `${getValue('F01') || '-'}`),
-        previewRow(2, 'F02', 'Previous year assessmented financial statements available on website', `${getValue('F02') || '-'}`),
+        previewRow(1, 'F01', 'Audited financial statements available on website', `${getValue('F01') || '-'}`),
+        previewRow(2, 'F02', 'Previous year audited financial statements available on website', `${getValue('F02') || '-'}`),
         previewRow(3, 'F03', 'Impact report with financial information available on website', `${getValue('F03') || '-'}`),
-        previewRow(4, 'F04', '% of Total Revenue spent on Charitable Programs and Qualified Distributions', `${getValue('F04') || '-'}`),
-        previewRow(5, 'F05', '% of Total Revenue spent on Fundraising', `${getValue('F05') || '-'}`),
-        previewRow(6, 'F06', '% of Total Revenue spent on Administrative Expenses', `${getValue('F06') || '-'}`),
-        previewRow(7, 'F07', '% of Revenue Spent / Year Spent Revenue', `${getValue('F07') || '-'}`),
-        ...(getValue('F08') ? [previewRow(8, 'F08', 'Financials Link', <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F08')}>{getValue('F08')}</LinkComponent>)] : []),
-        ...(getValue('F09') ? [previewRow(9, 'F09', 'Tax Return Link (UK)', <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F09')}>{getValue('F09')}</LinkComponent>)] : []),
-        ...(getValue('F10') ? [previewRow(10, 'F10', 'IRS Returns Link (US)', <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F10')}>{getValue('F10')}</LinkComponent>)] : []),
-        ...(getValue('F11') ? [previewRow(11, 'F11', "CRA's Returns Link (Canada)", <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F11')}>{getValue('F11')}</LinkComponent>)] : []),
-        previewRow(12, 'F12', 'End of fiscal year', `${getValue('F12') ? new Date(getValue('F12')).toLocaleDateString() : '-'}`),
-        ...(getValue('F13') ? [previewRow(13, 'F13', 'Charitable Registration since', `${new Date(getValue('F13')).toLocaleDateString()}`)] : []),
-        previewRow(14, 'F15', 'Notes', getValue('F15') || '-', 'vertical'),
+        previewRow(4, 'F16', 'Total Revenue', `${getValue('F16') ?? '-'}`),
+        previewRow(5, 'F04', '% of Total Revenue spent on Charitable Programs and Qualified Distributions', `${getValue('F04') || '-'}`),
+        previewRow(6, 'F05', '% of Total Revenue spent on Fundraising', `${getValue('F05') || '-'}`),
+        previewRow(7, 'F06', '% of Total Revenue spent on Administrative Expenses', `${getValue('F06') || '-'}`),
+        previewRow(8, 'F17', 'Compensation %', `${getValue('F17') ?? '-'}`),
+        previewRow(9, 'F07', '% of Revenue Spent / Year Spent Revenue', `${getValue('F07') || '-'}`),
+        previewRow(10, 'F18', 'Reserves (months)', `${getValue('F18') ?? '-'}`),
+        ...(getValue('F08') ? [previewRow(11, 'F08', 'Financials Link', <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F08')}>{getValue('F08')}</LinkComponent>)] : []),
+        ...(getValue('F09') ? [previewRow(12, 'F09', 'Tax Return Link (UK)', <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F09')}>{getValue('F09')}</LinkComponent>)] : []),
+        ...(getValue('F10') ? [previewRow(13, 'F10', 'IRS Returns Link (US)', <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F10')}>{getValue('F10')}</LinkComponent>)] : []),
+        ...(getValue('F11') ? [previewRow(14, 'F11', "CRA's Returns Link (Canada)", <LinkComponent openInNewTab className='font-semibold text-[#266DD3] hover:underline' to={getValue('F11')}>{getValue('F11')}</LinkComponent>)] : []),
+        previewRow(15, 'F12', 'End of fiscal year', `${getValue('F12') ? new Date(getValue('F12')).toLocaleDateString() : '-'}`),
+        ...(getValue('F13') ? [previewRow(16, 'F13', 'Charitable Registration since', `${new Date(getValue('F13')).toLocaleDateString()}`)] : []),
+        previewRow(17, 'F15', 'Notes', getValue('F15') || '-', 'vertical'),
     ];
 
     return (
