@@ -4,25 +4,27 @@ import LinkComponent from '@/components/common/LinkComponent'
 import { ImageComponent } from '@/components/common/ImageComponent'
 import { useSidebarNavigation } from '@/hooks/use-sidebar-navigation'
 
+const LOGO_SRC = '/zakat-advisory-logos/logo-transparent.png'
+
 const SidebarLogoLink = () => {
     const { navigate } = useSidebarNavigation()
 
     return (
         <LinkComponent
             to="/charities"
-            className="group/logo flex h-11 items-center"
+            className="group/logo flex h-9 items-center overflow-hidden"
             onClick={(event) => {
                 event.preventDefault()
                 navigate('/charities', 'Charities')
             }}
         >
             <ImageComponent
-                source="/logo__white.png"
-                alt="MuslimGive Logo"
-                height={48}
-                width={192}
+                source={LOGO_SRC}
+                alt="Zakah Advisor Logo"
+                height={36}
+                width={114}
                 priority
-                className="h-11 w-auto max-w-[180px] object-contain object-left"
+                className="h-8 w-auto max-w-[140px] object-contain object-left"
             />
         </LinkComponent>
     )
