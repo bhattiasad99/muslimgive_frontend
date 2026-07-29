@@ -48,6 +48,7 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
     const [assessmentVals, setAssessmentVals] = useState<Record<string, string> | null>(null);
     const [showSubmittedModel, setShowSubmittedModel] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const router = useRouter();
     const { isNavigating, navigateToTarget, navigateToEditor } = useAssessmentHistoryNavigation({
         charityId,
@@ -190,18 +191,24 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
                     className="w-full sm:w-36 bg-[#266dd3] hover:bg-[#1f5bb5]"
                     onClick={handleSubmit}
                     loading={isSubmitting}
+                    disabled={isSubmitting || isCancelling}
                 >
-                    {isEditMode ? 'Submit Edit' : 'Submit Assessment'}
+                    {isSubmitting
+                        ? 'Submitting...'
+                        : (isEditMode ? 'Submit Edit' : 'Submit Assessment')}
                 </Button>
                 <Button
                     className="w-full sm:w-36"
                     variant={'outline'}
-                    disabled={isNavigating}
+                    disabled={isNavigating || isSubmitting || isCancelling}
+                    loading={isCancelling}
                     onClick={() => {
-                        router.push(`/charities/${charityId}/assessments/core-area-1?country=${country}`)
+                        if (isSubmitting || isCancelling) return;
+                        setIsCancelling(true);
+                        router.push(`/charities/${charityId}`)
                     }}
                 >
-                    Cancel
+                    {isCancelling ? 'Leaving...' : 'Cancel'}
                 </Button>
             </div>
             ) : null}

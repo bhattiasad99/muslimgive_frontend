@@ -783,6 +783,7 @@ const SingleCharityPageComponent: FC<IProps> = ({
                                             variant="outline"
                                             className="w-full rounded-xl"
                                             onClick={handleSendReportEmail}
+                                            loading={isSendingReportEmail}
                                             disabled={isSendingReportEmail}
                                         >
                                             {isSendingReportEmail ? 'Sending...' : 'Send Report Email'}

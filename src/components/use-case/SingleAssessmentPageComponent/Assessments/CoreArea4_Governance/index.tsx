@@ -15,6 +15,7 @@ import {
     useAssessmentScrollDismiss,
 } from '@/hooks/use-assessment-navigation';
 import { useRouteLoader } from '@/components/common/route-loader-provider';
+import AssessmentResetButton from '../../UI/AssessmentResetButton';
 
 const mapCountry = (country: string): 'united-kingdom' | 'united-states' | 'canada' => {
     const countryMap: Record<string, 'united-kingdom' | 'united-states' | 'canada'> = {
@@ -53,6 +54,8 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom', 
     const [formVals, setFormVals] = React.useState<Record<string, string>>({});
     const [isEditable, setIsEditable] = React.useState(true);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [isPreviewing, setIsPreviewing] = React.useState(false);
+    const [isCancelling, setIsCancelling] = React.useState(false);
     const [scrollTargetId, setScrollTargetId] = React.useState<string | null>(null);
 
     const isManager = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
@@ -193,6 +196,13 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom', 
         }
     }
 
+    const handleResetAssessment = () => {
+        setFormVals({});
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(`assessment-form-data-${charityId}-core-area-4`);
+        }
+    };
+
     const allRequiredFilled = currentForm.questions
         .filter(q => q.required)
         .every(q => Boolean(formVals[getQuestionFieldKey(q)]));
@@ -214,7 +224,15 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom', 
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
                 )}
-                <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
+                    {canEdit ? (
+                        <AssessmentResetButton
+                            onReset={handleResetAssessment}
+                            disabled={isPreviewing || isCancelling}
+                        />
+                    ) : null}
+                </div>
                 {Object.keys(formVals).length > 0 && (
                     <div className="flex items-center gap-2">
                         <TypographyComponent className="text-sm font-medium">Live score preview:</TypographyComponent>
@@ -232,19 +250,39 @@ const CoreArea4: FC<CoreArea4Props> = ({ charityId, country = 'united-kingdom', 
                     <Button
                         className="w-36"
                         variant='primary'
-                        disabled={!allRequiredFilled}
+                        disabled={!allRequiredFilled || isPreviewing || isCancelling}
+                        loading={isPreviewing}
                         onClick={async () => {
-                            if (typeof window !== 'undefined') {
-                                localStorage.setItem(`assessment-form-data-${charityId}-core-area-4`, JSON.stringify(formVals));
+                            if (isPreviewing || isCancelling) return;
+                            setIsPreviewing(true);
+                            try {
+                                if (typeof window !== 'undefined') {
+                                    localStorage.setItem(`assessment-form-data-${charityId}-core-area-4`, JSON.stringify(formVals));
+                                }
+                                await handleSaveDraft();
+                                router.push(`/charities/${charityId}/assessments/core-area-4?preview-mode=true&country=${country}`)
+                            } catch (e) {
+                                console.error('Failed to open preview', e);
+                                setIsPreviewing(false);
                             }
-                            await handleSaveDraft();
-                            router.push(`/charities/${charityId}/assessments/core-area-4?preview-mode=true&country=${country}`)
                         }}
                     >
-                        Preview
+                        {isPreviewing ? 'Saving...' : 'Preview'}
                     </Button>
                 )}
-                <Button className="w-36" variant={'outline'}>Cancel</Button>
+                <Button
+                    className="w-36"
+                    variant={'outline'}
+                    disabled={isPreviewing || isCancelling}
+                    loading={isCancelling}
+                    onClick={() => {
+                        if (isPreviewing || isCancelling) return;
+                        setIsCancelling(true);
+                        router.push(`/charities/${charityId}`);
+                    }}
+                >
+                    {isCancelling ? 'Leaving...' : 'Cancel'}
+                </Button>
             </div>
         </>
     );

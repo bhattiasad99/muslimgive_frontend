@@ -20,6 +20,7 @@ import {
 } from './scoring';
 import { cn } from '@/lib/utils';
 import { useRouteLoader } from '@/components/common/route-loader-provider';
+import AssessmentResetButton from '../../UI/AssessmentResetButton';
 import {
     useAssessmentContentReveal,
     useAssessmentNavigationDismiss,
@@ -123,6 +124,7 @@ const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: s
     const [optionalSkipped, setOptionalSkipped] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [openSidebarSections, setOpenSidebarSections] = useState<string[]>([]);
     const [scrollTargetId, setScrollTargetId] = useState<string | null>(null);
     const isReady = Boolean(rubric?.sections);
@@ -334,6 +336,14 @@ const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: s
 
     const isEditMode = status === 'submitted' || status === 'completed';
 
+    const handleResetAssessment = () => {
+        setAnswers({});
+        setOptionalSkipped(false);
+        setStep(0);
+        setScrollTargetId(null);
+        setOpenSidebarSections([]);
+    };
+
     const handleNext = () => {
         if (step < sections.length - 1) {
             goToStep(step + 1);
@@ -528,6 +538,14 @@ const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: s
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
                 )}
+                {canEdit ? (
+                    <div className="mb-4 flex justify-end">
+                        <AssessmentResetButton
+                            onReset={handleResetAssessment}
+                            disabled={isSubmitting || isCancelling}
+                        />
+                    </div>
+                ) : null}
                 <div className="mb-6 flex flex-col gap-2">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="text-sm font-medium text-gray-500">Page {step + 1} of {sections.length}</div>
@@ -724,7 +742,8 @@ const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: s
                             <Button
                                 className="w-full sm:w-36"
                                 variant="primary"
-                                disabled={isSubmitting || isNextDisabled}
+                                disabled={isSubmitting || isNextDisabled || isCancelling}
+                                loading={isSubmitting}
                                 onClick={handlePreview}
                             >
                                 {isSubmitting ? 'Saving...' : 'Preview'}
@@ -733,7 +752,7 @@ const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: s
                                 <Button
                                     className="w-full sm:w-36"
                                     variant="secondary"
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || isCancelling}
                                     onClick={handleNext}
                                 >
                                     Next
@@ -744,23 +763,31 @@ const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: s
                         <Button
                             className="w-full sm:w-36"
                             variant="primary"
-                            disabled={isSubmitting || isNextDisabled}
+                            disabled={isSubmitting || isNextDisabled || isCancelling}
+                            loading={isSubmitting && step === sections.length - 1}
                             onClick={handleNextOrPreview}
                         >
-                            {isSubmitting ? 'Saving...' : (step === sections.length - 1 ? 'Preview' : 'Next')}
+                            {isSubmitting && step === sections.length - 1
+                                ? 'Saving...'
+                                : (step === sections.length - 1 ? 'Preview' : 'Next')}
                         </Button>
                     )}
                     <Button
                         className="w-full sm:w-36"
                         variant={'outline'}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isCancelling}
+                        loading={isCancelling && step === 0}
                         onClick={() => {
+                            if (isSubmitting || isCancelling) return;
                             if (step > 0) {
                                 goToStep(step - 1);
+                                return;
                             }
+                            setIsCancelling(true);
+                            router.push(`/charities/${charityId}`);
                         }}
                     >
-                        {step === 0 ? 'Cancel' : 'Back'}
+                        {step === 0 ? (isCancelling ? 'Leaving...' : 'Cancel') : 'Back'}
                     </Button>
                 </div>
             </div>

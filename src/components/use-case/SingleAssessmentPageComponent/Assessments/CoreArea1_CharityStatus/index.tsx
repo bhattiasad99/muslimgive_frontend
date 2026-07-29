@@ -16,6 +16,7 @@ import {
     useAssessmentScrollDismiss,
 } from '@/hooks/use-assessment-navigation'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
+import AssessmentResetButton from '../../UI/AssessmentResetButton'
 
 type FormDataType = Record<string, string>;
 
@@ -48,6 +49,8 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', 
     const [formData, setFormData] = useState<FormDataType>({})
     const [isEditable, setIsEditable] = useState(true)
     const [isLoading, setIsLoading] = useState(true)
+    const [isPreviewing, setIsPreviewing] = useState(false)
+    const [isCancelling, setIsCancelling] = useState(false)
     const [scrollTargetId, setScrollTargetId] = useState<string | null>(null)
 
     const isManager = currentUserRoles.some(r => ['operation-manager', 'operations-manager', 'project-manager'].includes(r.toLowerCase()));
@@ -195,6 +198,13 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', 
         }
     }
 
+    const handleResetAssessment = () => {
+        setFormData({})
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(`assessment-form-data-${charityId}-core-area-1`)
+        }
+    }
+
     const allRequiredFilled = currentForm.questions
         .filter(q => q.required)
         .every(q => Boolean(formData[getQuestionFieldKey(q)]));
@@ -216,7 +226,15 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', 
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
                 )}
-                <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <TypographyComponent variant="h3">{currentForm.title}</TypographyComponent>
+                    {canEdit ? (
+                        <AssessmentResetButton
+                            onReset={handleResetAssessment}
+                            disabled={isPreviewing || isCancelling}
+                        />
+                    ) : null}
+                </div>
                 {Object.keys(formData).length > 0 && (
                     <div className="flex items-center gap-2">
                         <TypographyComponent className="text-sm font-medium">Live score preview:</TypographyComponent>
@@ -232,18 +250,38 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', 
                     <Button
                         className="w-full sm:w-36"
                         variant='primary'
-                        disabled={!allRequiredFilled}
+                        disabled={!allRequiredFilled || isPreviewing || isCancelling}
+                        loading={isPreviewing}
                         onClick={async () => {
-                            if (typeof window !== 'undefined') {
-                                localStorage.setItem(`assessment-form-data-${charityId}-core-area-1`, JSON.stringify(formData));
+                            if (isPreviewing || isCancelling) return;
+                            setIsPreviewing(true);
+                            try {
+                                if (typeof window !== 'undefined') {
+                                    localStorage.setItem(`assessment-form-data-${charityId}-core-area-1`, JSON.stringify(formData));
+                                }
+                                await handleSaveDraft();
+                                router.push(`/charities/${charityId}/assessments/core-area-1?preview-mode=true&country=${country}`)
+                            } catch (e) {
+                                console.error('Failed to open preview', e);
+                                setIsPreviewing(false);
                             }
-                            await handleSaveDraft();
-                            router.push(`/charities/${charityId}/assessments/core-area-1?preview-mode=true&country=${country}`)
                         }}
                     >
-                        Preview
+                        {isPreviewing ? 'Saving...' : 'Preview'}
                     </Button>
-                    <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
+                    <Button
+                        className="w-full sm:w-36"
+                        variant={'outline'}
+                        disabled={isPreviewing || isCancelling}
+                        loading={isCancelling}
+                        onClick={() => {
+                            if (isPreviewing || isCancelling) return;
+                            setIsCancelling(true);
+                            router.push(`/charities/${charityId}`);
+                        }}
+                    >
+                        {isCancelling ? 'Leaving...' : 'Cancel'}
+                    </Button>
                 </div>
             )}
         </>

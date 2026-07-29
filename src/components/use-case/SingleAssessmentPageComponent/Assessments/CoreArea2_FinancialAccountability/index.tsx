@@ -17,6 +17,7 @@ import {
     useAssessmentScrollDismiss,
 } from '@/hooks/use-assessment-navigation'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
+import AssessmentResetButton from '../../UI/AssessmentResetButton'
 
 type IProps = {
     location: 'united-kingdom' | 'united-states' | 'canada' | 'uk' | 'usa' | 'us' | 'ca';
@@ -34,6 +35,8 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
     const [formData, setFormData] = useState<Record<string, any>>({});
     const [isEditable, setIsEditable] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
+    const [isPreviewing, setIsPreviewing] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [scrollTargetId, setScrollTargetId] = useState<string | null>(null);
 
     const isFinanceAssessor = currentUserRoles.some(r => 
@@ -296,6 +299,13 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
         }
     }
 
+    const handleResetAssessment = () => {
+        setFormData({})
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(`assessment-form-data-${charityId}-core-area-2`)
+        }
+    }
+
     if (isLoading) {
         return <div className="p-8 text-center text-gray-500">Loading assessment...</div>;
     }
@@ -313,6 +323,15 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
                         View Only Mode: You are not authorized to edit this core area.
                     </div>
                 )}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-xl font-bold text-gray-900">Financial Accountability</h2>
+                    {canEdit ? (
+                        <AssessmentResetButton
+                            onReset={handleResetAssessment}
+                            disabled={isPreviewing || isCancelling}
+                        />
+                    ) : null}
+                </div>
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
                     <p className="font-semibold">Airtable / scoring inputs</p>
                     <ul className="mt-1 list-disc space-y-1 pl-5 text-amber-800">
@@ -328,18 +347,45 @@ const CoreArea2: FC<IProps> = ({ location = 'united-states', charityId, currentU
             {/* Action Buttons */}
             {!canEdit ? null : (
                 <div className='flex flex-col gap-3 mb-8 mt-8 sm:flex-row sm:items-center sm:gap-4'>
-                    <Button className="w-full sm:w-36" variant='primary' onClick={async () => {
-                        if (!validateRequiredAnswers()) return;
+                    <Button
+                        className="w-full sm:w-36"
+                        variant='primary'
+                        loading={isPreviewing}
+                        disabled={isPreviewing || isCancelling}
+                        onClick={async () => {
+                            if (isPreviewing || isCancelling) return;
+                            if (!validateRequiredAnswers()) return;
 
-                        if (typeof window !== 'undefined') {
-                            localStorage.setItem(`assessment-form-data-${charityId}-core-area-2`, JSON.stringify(formData));
-                        }
+                            setIsPreviewing(true);
+                            try {
+                                if (typeof window !== 'undefined') {
+                                    localStorage.setItem(`assessment-form-data-${charityId}-core-area-2`, JSON.stringify(formData));
+                                }
 
-                        await handleSaveDraft();
+                                await handleSaveDraft();
 
-                        router.push(`/charities/${charityId}/assessments/core-area-2?preview-mode=true&country=${location}`)
-                    }}>Preview</Button>
-                    <Button className="w-full sm:w-36" variant={'outline'}>Cancel</Button>
+                                router.push(`/charities/${charityId}/assessments/core-area-2?preview-mode=true&country=${location}`)
+                            } catch (e) {
+                                console.error('Failed to open preview', e);
+                                setIsPreviewing(false);
+                            }
+                        }}
+                    >
+                        {isPreviewing ? 'Saving...' : 'Preview'}
+                    </Button>
+                    <Button
+                        className="w-full sm:w-36"
+                        variant={'outline'}
+                        disabled={isPreviewing || isCancelling}
+                        loading={isCancelling}
+                        onClick={() => {
+                            if (isPreviewing || isCancelling) return;
+                            setIsCancelling(true);
+                            router.push(`/charities/${charityId}`);
+                        }}
+                    >
+                        {isCancelling ? 'Leaving...' : 'Cancel'}
+                    </Button>
                 </div>
             )}
         </>
