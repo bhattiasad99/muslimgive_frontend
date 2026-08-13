@@ -12,6 +12,12 @@ export function normalizeScore(score: number, totalScore: number): number {
     return (score / totalScore) * 10;
 }
 
+/**
+ * Charity Legitimacy Metrics (/10) — mirrors MG Scoring matrix.
+ * Registered Yes(4)/No(0) · Regulatory no concerns(4)/suspended-revoked-investigation(0)
+ * Charity number clearly(1)/partial(0.5)/not(0) · Contact easily(1)/limited(0.5)/not(0)
+ * Mandatory: registered + regulatory. Failing either caps max at 6 → Concern.
+ */
 export function computeCoreArea1Score(answers: Record<string, string | undefined | null>): number {
     let score = 0;
 
@@ -31,6 +37,7 @@ export function computeCoreArea1Score(answers: Record<string, string | undefined
     return score;
 }
 
+/** Strong 10/10 · Moderate 8–9/10 · Concern below 8/10 */
 export function computeCoreArea1RatingBand(score: number): Exclude<RatingBand, 'Needs Improvement'> {
     if (score >= 10) return 'Strong';
     if (score >= 8) return 'Moderate';
@@ -90,19 +97,19 @@ export const CORE_AREA_1_FIELD_LABELS: Record<string, string> = {
     registered_in_country_collecting_funds: 'Registered in country collecting funds',
     regulatory_status: 'Regulatory status',
     charity_number_visible_on_website: 'Charity number visible on website',
-    contact_info_accessible_on_website: 'Contact info accessible on website',
+    contact_info_accessible_on_website: 'Contact information easily accessible on website',
 };
 
 export const CORE_AREA_1_VALUE_LABELS: Record<string, string> = {
     yes: 'Yes',
     no: 'No',
-    no_concerns: 'No concerns',
-    suspended_revoked_under_investigation: 'Suspended / Revoked / Under investigation',
+    no_concerns: 'No regulatory concerns identified',
+    suspended_revoked_under_investigation: 'Suspended, revoked, or under active investigation',
     clearly_visible: 'Clearly visible',
-    partially_visible: 'Partially visible',
+    partially_visible: 'Partially visible/difficult to find',
     not_visible: 'Not visible',
     easily_accessible: 'Easily accessible',
-    limited: 'Limited',
+    limited: 'Limited/difficult to find',
     not_available: 'Not available',
 };
 

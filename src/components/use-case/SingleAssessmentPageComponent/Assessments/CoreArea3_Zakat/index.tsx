@@ -643,7 +643,8 @@ const CoreArea3: FC<{ charityId: string; currentUserRoles?: string[]; status?: s
                                         {criterion.isDiscretionary && ans.rating === 'moderate' && (
                                             <div className="flex flex-col gap-1 mt-2 bg-amber-50 border border-amber-200 rounded-md p-3">
                                                 <Label className="text-sm font-medium text-amber-900">
-                                                    At Assessor&apos;s Discretion <span className="text-red-500">*</span>
+                                                    {CRITERIA_OPTION_TEXT[criterion.id]?.moderate || "At Assessor's Discretion"}{' '}
+                                                    <span className="text-red-500">*</span>
                                                 </Label>
                                                 <p className="text-xs text-amber-700 mb-1">Enter points (0–{criterion.pointsPossible})</p>
                                                 <Input
