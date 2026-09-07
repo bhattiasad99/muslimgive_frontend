@@ -10,6 +10,11 @@ import { toast } from 'sonner'
 import { createCharityAction } from '@/app/actions/charities'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
+import {
+    clearCharityCreateDraft,
+    resolveCharityCreateDraft,
+    saveCharityCreateDraft,
+} from '@/lib/charity-create-draft'
 
 import { SingleCharityType } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
 
@@ -19,15 +24,17 @@ const PreviewCharityPage = () => {
     const raw = searchParams.get('data')
     const [isPublishing, setIsPublishing] = useState(false)
 
-    const parsed = useMemo(() => {
-        if (!raw) return null
-        try {
-            return JSON.parse(decodeURIComponent(raw))
-        } catch (e) {
-            console.error('Failed to parse preview data', e)
-            return null
+    const parsed = useMemo(() => resolveCharityCreateDraft(raw), [raw])
+
+    const goBackToEditing = () => {
+        if (parsed) {
+            saveCharityCreateDraft(parsed)
+            router.push(`/create-charity?data=${encodeURIComponent(JSON.stringify(parsed))}`)
+            return
         }
-    }, [raw])
+
+        router.push('/create-charity')
+    }
 
     const charity = useMemo((): SingleCharityType | null => {
         if (!parsed) return null
@@ -77,7 +84,7 @@ const PreviewCharityPage = () => {
                 <div className="mb-4 text-2xl font-bold italic text-gray-500">Preview Mode</div>
                 <div className="mb-4">No preview data provided.</div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="text-blue-600 border-gray-200" onClick={() => router.push(`/create-charity?data=${encodeURIComponent(JSON.stringify(parsed))}`)}>
+                    <Button variant="outline" className="text-blue-600 border-gray-200" onClick={goBackToEditing}>
                         <span className="mr-2"><ArrowIcon /></span>
                         <span className="text-blue-600">Back to Editing</span>
                     </Button>
@@ -90,7 +97,7 @@ const PreviewCharityPage = () => {
         <div className="p-6">
             <div className="mb-4 text-2xl font-bold italic text-gray-500">Preview Mode</div>
             <div className="mb-4">
-                <Button variant="outline" className="mr-2 text-blue-600 border-gray-200 flex items-center" onClick={() => router.push(`/create-charity?data=${encodeURIComponent(JSON.stringify(parsed))}`)}>
+                <Button variant="outline" className="mr-2 text-blue-600 border-gray-200 flex items-center" onClick={goBackToEditing}>
                     <span className="mr-2"><ArrowIcon /></span>
                     <span className="text-blue-600">Back to Editing</span>
                 </Button>
@@ -161,6 +168,7 @@ const PreviewCharityPage = () => {
 
                             const res = await createCharityAction(payload)
                             if (res.ok) {
+                                clearCharityCreateDraft()
                                 const charityData = res.payload?.data?.data
                                 const status = charityData?.status
                                 const formatStatus = (status: string) => {
@@ -183,7 +191,7 @@ const PreviewCharityPage = () => {
                         }
                     }}>Publish Charity</Button>
                 </Can>
-                <Button variant="outline" onClick={() => router.push(`/create-charity?data=${encodeURIComponent(JSON.stringify(parsed))}`)}>Cancel</Button>
+                <Button variant="outline" onClick={goBackToEditing}>Cancel</Button>
             </div>
         </div >
     )

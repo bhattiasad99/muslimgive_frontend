@@ -18,6 +18,71 @@ import { LogoUploadComponent } from '@/components/common/LogoUploadComponent'
 import { uploadCharityLogoAction } from '@/app/actions/charities'
 import { toast } from 'sonner'
 import { getCurrencySymbol, getCurrencyCode } from '@/lib/utils'
+import {
+    clearCharityCreateDraft,
+    resolveCharityCreateDraft,
+    saveCharityCreateDraft,
+    type CharityCreateDraft,
+} from '@/lib/charity-create-draft'
+
+const FIELD_FOCUS_ORDER = [
+    'name',
+    'country',
+    'category',
+    'otherCategory',
+    'startDate',
+    'startYear',
+    'ukCharityNumber',
+    'ukCharityCommissionUrl',
+    'caRegistrationNumber',
+    'caCraUrl',
+    'usEin',
+    'ceoName',
+    'submittedByName',
+    'submittedByEmail',
+    'isIslamic',
+    'paysZakat',
+    'annualRevenue',
+    'isEligible',
+] as const
+
+const FIELD_ELEMENT_IDS: Record<(typeof FIELD_FOCUS_ORDER)[number], string> = {
+    name: 'charity-name',
+    country: 'field-country',
+    category: 'field-category',
+    otherCategory: 'other-category',
+    startDate: 'charity-startdate',
+    startYear: 'charity-startyear',
+    ukCharityNumber: 'uk-charity-number',
+    ukCharityCommissionUrl: 'uk-charity-commission',
+    caRegistrationNumber: 'ca-registration-number',
+    caCraUrl: 'ca-cra-link',
+    usEin: 'us-ein',
+    ceoName: 'ceo-name',
+    submittedByName: 'submitted-by-name',
+    submittedByEmail: 'submitted-by-email',
+    isIslamic: 'field-is-islamic',
+    paysZakat: 'field-pays-zakat',
+    annualRevenue: 'annual-revenue',
+    isEligible: 'field-is-eligible',
+}
+
+function scrollToFirstInvalidField(errors: Record<string, string>) {
+    const firstKey = FIELD_FOCUS_ORDER.find((key) => errors[key])
+    if (!firstKey) return
+
+    const el = document.getElementById(FIELD_ELEMENT_IDS[firstKey])
+    if (!el) return
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+    const focusTarget = (
+        el.matches('input, textarea, select, button, [tabindex]')
+            ? el
+            : el.querySelector<HTMLElement>('input, textarea, select, button, [tabindex]')
+    )
+    focusTarget?.focus({ preventScroll: true })
+}
 
 const CreateCharityStandalonePage = () => {
     const [name, setName] = useState('')
@@ -72,43 +137,36 @@ const CreateCharityStandalonePage = () => {
     const isUs = country === 'united-states'
 
     React.useEffect(() => {
-        const raw = searchParams.get('data')
-        if (raw) {
-            try {
-                const parsed = JSON.parse(decodeURIComponent(raw))
-                if (parsed.name) setName(parsed.name)
-                if (parsed.logoUrl) {
-                    setLogoUrl(parsed.logoUrl)
-                }
-                if (parsed.assessmentRequested) setAssessmentRequested(Boolean(parsed.assessmentRequested))
-                if (parsed.countryCode) setCountry(parsed.countryCode)
-                if (parsed.category) setCategory(parsed.category)
-                if (parsed.otherCategory) setOtherCategory(parsed.otherCategory)
-                if (parsed.startDate) {
-                    setStartDateType('date')
-                    setStartDate(new Date(parsed.startDate))
-                }
-                if (parsed.startYear) {
-                    setStartDateType('year')
-                    setStartYear(String(parsed.startYear))
-                }
-                if (parsed.ukCharityNumber) setUkCharityNumber(parsed.ukCharityNumber)
-                if (parsed.ukCharityCommissionUrl) setUkCharityCommissionUrl(parsed.ukCharityCommissionUrl)
-                if (parsed.caRegistrationNumber) setCaRegistrationNumber(parsed.caRegistrationNumber)
-                if (parsed.caCraUrl) setCaCraUrl(parsed.caCraUrl)
-                if (parsed.usEin) setUsEin(parsed.usEin)
-                if (parsed.usIrsUrl) setUsIrsUrl(parsed.usIrsUrl)
-                if (parsed.ceoName) setCeoName(parsed.ceoName)
-                if (parsed.submittedByName) setSubmittedByName(parsed.submittedByName)
-                if (parsed.submittedByEmail) setSubmittedByEmail(parsed.submittedByEmail)
-                if (parsed.isIslamic !== undefined) setIsIslamic(parsed.isIslamic ? 'yes' : 'no')
-                if (parsed.doesCharityGiveZakat !== undefined) setPaysZakat(parsed.doesCharityGiveZakat ? 'yes' : 'no')
-                if (parsed.annualRevenue !== undefined) setAnnualRevenue(String(parsed.annualRevenue))
-                if (parsed.isEligible !== undefined) setIsEligible(parsed.isEligible ? 'yes' : 'no')
-            } catch (error) {
-                console.error('Failed to parse data provided', error)
-            }
+        const parsed = resolveCharityCreateDraft(searchParams.get('data'))
+        if (!parsed) return
+
+        if (parsed.name) setName(parsed.name)
+        if (parsed.logoUrl) setLogoUrl(parsed.logoUrl)
+        if (parsed.assessmentRequested) setAssessmentRequested(Boolean(parsed.assessmentRequested))
+        if (parsed.countryCode) setCountry(parsed.countryCode as CountriesInKebab)
+        if (parsed.category) setCategory(parsed.category)
+        if (parsed.otherCategory) setOtherCategory(parsed.otherCategory)
+        if (parsed.startDate) {
+            setStartDateType('date')
+            setStartDate(new Date(parsed.startDate))
         }
+        if (parsed.startYear) {
+            setStartDateType('year')
+            setStartYear(String(parsed.startYear))
+        }
+        if (parsed.ukCharityNumber) setUkCharityNumber(parsed.ukCharityNumber)
+        if (parsed.ukCharityCommissionUrl) setUkCharityCommissionUrl(parsed.ukCharityCommissionUrl)
+        if (parsed.caRegistrationNumber) setCaRegistrationNumber(parsed.caRegistrationNumber)
+        if (parsed.caCraUrl) setCaCraUrl(parsed.caCraUrl)
+        if (parsed.usEin) setUsEin(parsed.usEin)
+        if (parsed.usIrsUrl) setUsIrsUrl(parsed.usIrsUrl)
+        if (parsed.ceoName) setCeoName(parsed.ceoName)
+        if (parsed.submittedByName) setSubmittedByName(parsed.submittedByName)
+        if (parsed.submittedByEmail) setSubmittedByEmail(parsed.submittedByEmail)
+        if (parsed.isIslamic !== undefined) setIsIslamic(parsed.isIslamic ? 'yes' : 'no')
+        if (parsed.doesCharityGiveZakat !== undefined) setPaysZakat(parsed.doesCharityGiveZakat ? 'yes' : 'no')
+        if (parsed.annualRevenue !== undefined) setAnnualRevenue(String(parsed.annualRevenue))
+        if (parsed.isEligible !== undefined) setIsEligible(parsed.isEligible ? 'yes' : 'no')
     }, [searchParams])
 
     const handleLogoUpload = async (file: File) => {
@@ -182,9 +240,13 @@ const CreateCharityStandalonePage = () => {
         if (!isEligible) next.isEligible = 'Eligibility selection is required'
 
         setErrors(next)
-        if (Object.keys(next).length > 0) return
+        if (Object.keys(next).length > 0) {
+            // Wait a tick so error messages are in the DOM before scrolling.
+            requestAnimationFrame(() => scrollToFirstInvalidField(next))
+            return
+        }
 
-        const payload = {
+        const payload: CharityCreateDraft = {
             name,
             logoUrl: logoUrl || null,
             assessmentRequested,
@@ -208,6 +270,7 @@ const CreateCharityStandalonePage = () => {
             isEligible: isEligible === 'yes',
         }
 
+        saveCharityCreateDraft(payload)
         const encoded = encodeURIComponent(JSON.stringify(payload))
         router.push(`/charities/preview?data=${encoded}`)
     }
@@ -219,7 +282,7 @@ const CreateCharityStandalonePage = () => {
                     <div className="grid grid-cols-1 gap-4">
                         <div>
                             <Label htmlFor="charity-name" className="text-sm">Name of Charity <span className="text-red-500">*</span></Label>
-                            <ControlledTextFieldComponent id="charity-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="" required />
+                            <ControlledTextFieldComponent id="charity-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="" />
                             {errors.name ? <div className="text-xs text-red-500 mt-1">{errors.name}</div> : null}
                         </div>
 
@@ -241,7 +304,7 @@ const CreateCharityStandalonePage = () => {
                             <Label htmlFor="assessment-requested" className="text-sm">Assessment requested by charity?</Label>
                         </div>
 
-                        <div className="max-w-sm">
+                        <div id="field-country" className="max-w-sm">
                             <Label className="text-sm">Select Country <span className="text-red-500">*</span></Label>
                             <CountrySelectComponent
                                 value={country || undefined}
@@ -252,7 +315,7 @@ const CreateCharityStandalonePage = () => {
                             {errors.country ? <div className="text-xs text-red-500 mt-1">{errors.country}</div> : null}
                         </div>
 
-                        <div className="max-w-sm">
+                        <div id="field-category" className="max-w-sm">
                             <Label className="text-sm">Select the category of this charity <span className="text-red-500">*</span></Label>
                             <Select key={category} value={category} onValueChange={(v) => setCategory(v)}>
                                 <SelectTrigger className="h-9 w-full">
@@ -279,7 +342,7 @@ const CreateCharityStandalonePage = () => {
                             </div>
                         ) : null}
 
-                        <div className="flex flex-col gap-3">
+                        <div id="field-start-date" className="flex flex-col gap-3">
                             <Label className="text-sm">Start date or Start Year <span className="text-red-500">*</span></Label>
                             <RadioGroup value={startDateType} onValueChange={(val) => setStartDateType(val as 'date' | 'year')} className="flex flex-col gap-2">
                                 <div className="flex items-center gap-2">
@@ -381,7 +444,7 @@ const CreateCharityStandalonePage = () => {
                         </div>
 
                         <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-2">
+                            <div id="field-is-islamic" className="flex flex-col gap-2">
                                 <Label className="text-sm">Is this an islamic charity <span className="text-red-500">*</span></Label>
                                 <RadioGroup value={isIslamic} onValueChange={(val) => setIsIslamic(val as 'yes' | 'no')} className="flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
@@ -396,7 +459,7 @@ const CreateCharityStandalonePage = () => {
                                 {errors.isIslamic ? <div className="text-xs text-red-500 mt-1">{errors.isIslamic}</div> : null}
                             </div>
 
-                            <div className="flex flex-col gap-2">
+                            <div id="field-pays-zakat" className="flex flex-col gap-2">
                                 <Label className="text-sm">Do they pay zakat <span className="text-red-500">*</span></Label>
                                 <RadioGroup value={paysZakat} onValueChange={(val) => setPaysZakat(val as 'yes' | 'no')} className="flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
@@ -421,7 +484,7 @@ const CreateCharityStandalonePage = () => {
                             {errors.annualRevenue ? <div className="text-xs text-red-500 mt-1">{errors.annualRevenue}</div> : null}
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div id="field-is-eligible" className="flex flex-col gap-2">
                             <Label className="text-sm">Is this charity eligible for review? <span className="text-red-500">*</span></Label>
                             <EligibilitySuggestionCard suggestion={eligibilitySuggestion} />
                             <RadioGroup value={isEligible} onValueChange={(val) => setIsEligible(val as 'yes' | 'no')} className="flex flex-col gap-2">
@@ -441,7 +504,7 @@ const CreateCharityStandalonePage = () => {
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <Button variant="primary" type="submit">Preview Charity</Button>
-                    <LinkComponent to="/charities">
+                    <LinkComponent to="/charities" onClick={clearCharityCreateDraft}>
                         <Button variant="outline" type="button">Cancel</Button>
                     </LinkComponent>
                 </div>
