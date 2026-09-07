@@ -267,8 +267,8 @@ const PreviewCoreArea3: FC<IProps> = ({ status, charityId, country, fetchFromAPI
                         </div>
                     ) : null}
 
-                    <div className="border-t border-[#EEF2F6] bg-white px-4 py-2 text-[10px] text-[#8B95A5]">
-                        Bands: Strong 66–76 · Moderate 51–65 · Needs Improvement 36–50 · Concern 0–35
+                    <div className="border-t border-[#EEF2F6] bg-white px-4 py-2 text-[10px] leading-relaxed text-[#8B95A5]">
+                        Bands (out of 40): Strong 34.74–40.00 · Moderate 26.84–34.73 · Needs Improvement 21.05–26.83 · Concern 0.00–21.04
                         {scoring.auto_concern ? ' · Mandatory gate override applies' : ''}
                     </div>
                 </div>
@@ -344,13 +344,17 @@ const PreviewCoreArea3: FC<IProps> = ({ status, charityId, country, fetchFromAPI
                                                 onClick={fetchFromAPI ? () => handleEditCriterion(c.id) : undefined}
                                                 className={cn(
                                                     'group relative transition-all duration-200',
+                                                    metricIndex % 2 === 1
+                                                        ? 'bg-[#E7F4EC]'
+                                                        : 'bg-white',
                                                     fetchFromAPI && [
                                                         'cursor-pointer',
-                                                        'hover:bg-[#F8FBFF]',
                                                         'hover:shadow-[inset_3px_0_0_0_#10B981]',
+                                                        metricIndex % 2 === 1
+                                                            ? 'hover:bg-[#DCEFE5]'
+                                                            : 'hover:bg-[#F0F7FF]',
                                                     ],
                                                     fetchFromAPI && isNavigating && 'pointer-events-none opacity-70',
-                                                    metricIndex % 2 === 1 ? 'bg-[#FAFBFC]' : 'bg-white',
                                                 )}
                                             >
                                                 <td className="border-b border-[#EEF2F6] px-3 py-2.5 align-top text-[11px] leading-snug text-[#344054]">
