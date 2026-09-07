@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { CORE_AREA_1_FORMS, getQuestionFieldKey } from '@/lib/assessment-forms/core-area-1';
 import { CORE_AREA_1_VALUE_LABELS } from '@/lib/audit-scoring';
 import { useAssessmentHistoryNavigation } from '@/hooks/use-assessment-navigation';
+import { useCharityNavigation } from '@/hooks/use-charity-navigation';
 
 export type PreviewPageCommonProps = {
     country: CountryCode;
@@ -50,6 +51,7 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const router = useRouter();
+    const { navigateToCharity } = useCharityNavigation();
     const { isNavigating, navigateToTarget, navigateToEditor } = useAssessmentHistoryNavigation({
         charityId,
         assessmentSlug: 'core-area-1',
@@ -198,14 +200,15 @@ const PreviewCoreArea1: FC<IProps> = ({ country, status, charityId, fetchFromAPI
                         : (isEditMode ? 'Submit Edit' : 'Submit Assessment')}
                 </Button>
                 <Button
+                    type="button"
                     className="w-full sm:w-36"
                     variant={'outline'}
-                    disabled={isNavigating || isSubmitting || isCancelling}
+                    disabled={isSubmitting || isCancelling}
                     loading={isCancelling}
                     onClick={() => {
                         if (isSubmitting || isCancelling) return;
                         setIsCancelling(true);
-                        router.push(`/charities/${charityId}`)
+                        navigateToCharity(charityId);
                     }}
                 >
                     {isCancelling ? 'Leaving...' : 'Cancel'}

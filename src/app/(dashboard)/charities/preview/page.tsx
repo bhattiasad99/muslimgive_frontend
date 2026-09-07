@@ -7,11 +7,12 @@ import { TypographyComponent } from '@/components/common/TypographyComponent'
 import { Button } from '@/components/ui/button'
 import SingleCharityDetails from '@/components/use-case/SingleCharityPageComponent/SingleCharityDetails'
 import { toast } from 'sonner'
-import { createCharityAction } from '@/app/actions/charities'
+import { createCharityAction, type CreateCharityPayload } from '@/app/actions/charities'
 import Can from '@/components/common/Can'
 import { PERMISSIONS } from '@/lib/permissions-config'
 import {
     clearCharityCreateDraft,
+    resolveCharityCreateCountryCode,
     resolveCharityCreateDraft,
     saveCharityCreateDraft,
 } from '@/lib/charity-create-draft'
@@ -70,7 +71,7 @@ const PreviewCharityPage = () => {
             assessmentsCompleted: 0 as const,
             status: parsed.isEligible ? 'unassigned' : 'ineligible',
             category: resolvedCategory,
-            country: parsed.countryCode,
+            country: resolveCharityCreateCountryCode(parsed.countryCode),
             totalDuration,
             website: website || undefined,
             isThisMuslimCharity: Boolean(parsed.isIslamic),
@@ -140,14 +141,21 @@ const PreviewCharityPage = () => {
                     <Button variant="primary" loading={isPublishing} onClick={async () => {
                         setIsPublishing(true)
                         try {
+                            const countryCode = resolveCharityCreateCountryCode(parsed.countryCode)
                             const resolvedCategory = parsed.category === 'other'
                                 ? (parsed.otherCategory || 'other')
                                 : parsed.category
-                            const payload = {
+
+                            if (!parsed.name || !countryCode || !resolvedCategory || !parsed.ceoName) {
+                                toast.error('Missing required charity details. Please go back and complete the form.')
+                                return
+                            }
+
+                            const payload: CreateCharityPayload = {
                                 name: parsed.name,
                                 logoUrl: parsed.logoUrl ?? null,
                                 assessmentRequested: Boolean(parsed.assessmentRequested),
-                                countryCode: parsed.countryCode,
+                                countryCode,
                                 category: resolvedCategory,
                                 startDate: parsed.startDate ? new Date(parsed.startDate).toISOString().split('T')[0] : null,
                                 startYear: parsed.startYear ? Number(parsed.startYear) : null,

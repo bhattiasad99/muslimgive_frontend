@@ -16,6 +16,7 @@ import {
     useAssessmentScrollDismiss,
 } from '@/hooks/use-assessment-navigation'
 import { useRouteLoader } from '@/components/common/route-loader-provider'
+import { useCharityNavigation } from '@/hooks/use-charity-navigation'
 import AssessmentResetButton from '../../UI/AssessmentResetButton'
 
 type FormDataType = Record<string, string>;
@@ -44,6 +45,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', 
     const router = useRouter()
     const searchParams = useSearchParams()
     const { isNavigating } = useRouteLoader()
+    const { navigateToCharity } = useCharityNavigation()
     const questionFromUrl = searchParams.get('question')
     const appliedDeepLinkRef = React.useRef(false)
     const [formData, setFormData] = useState<FormDataType>({})
@@ -270,6 +272,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', 
                         {isPreviewing ? 'Saving...' : 'Preview'}
                     </Button>
                     <Button
+                        type="button"
                         className="w-full sm:w-36"
                         variant={'outline'}
                         disabled={isPreviewing || isCancelling}
@@ -277,7 +280,7 @@ const CoreArea1: FC<CoreArea1Props> = ({ charityId, country = 'united-kingdom', 
                         onClick={() => {
                             if (isPreviewing || isCancelling) return;
                             setIsCancelling(true);
-                            router.push(`/charities/${charityId}`);
+                            navigateToCharity(charityId);
                         }}
                     >
                         {isCancelling ? 'Leaving...' : 'Cancel'}

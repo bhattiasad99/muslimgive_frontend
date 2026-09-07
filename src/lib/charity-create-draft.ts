@@ -1,10 +1,21 @@
+import type { CountriesInKebab } from '@/components/common/CountrySelectComponent/countries.types'
+import { CountryEnum } from '@/components/use-case/CharitiesPageComponent/kanban/KanbanView'
+
 const CHARITY_CREATE_DRAFT_KEY = 'muslimgive:charity-create-draft'
+
+export type CharityCreateCountryCode = keyof typeof CountryEnum
+
+const ALLOWED_COUNTRY_CODES: readonly CharityCreateCountryCode[] = [
+    'united-kingdom',
+    'canada',
+    'united-states',
+]
 
 export type CharityCreateDraft = {
     name?: string
     logoUrl?: string | null
     assessmentRequested?: boolean
-    countryCode?: string
+    countryCode?: CharityCreateCountryCode | string
     category?: string
     otherCategory?: string | null
     startDate?: string | null
@@ -22,6 +33,15 @@ export type CharityCreateDraft = {
     doesCharityGiveZakat?: boolean
     annualRevenue?: number
     isEligible?: boolean
+}
+
+export function resolveCharityCreateCountryCode(
+    countryCode: string | undefined | null,
+): CharityCreateCountryCode | undefined {
+    if (!countryCode) return undefined
+    return ALLOWED_COUNTRY_CODES.includes(countryCode as CharityCreateCountryCode)
+        ? (countryCode as CharityCreateCountryCode)
+        : undefined
 }
 
 /**
