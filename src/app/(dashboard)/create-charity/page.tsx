@@ -67,21 +67,61 @@ const FIELD_ELEMENT_IDS: Record<(typeof FIELD_FOCUS_ORDER)[number], string> = {
     isEligible: 'field-is-eligible',
 }
 
+const FOCUSABLE_SELECTOR = 'input:not([type="hidden"]), textarea, select, button, [role="combobox"], [tabindex]:not([tabindex="-1"])'
+const SCROLL_TOP_OFFSET_PX = 112
+
+function getScrollableAncestor(el: HTMLElement): HTMLElement | null {
+    let parent = el.parentElement
+    while (parent) {
+        const { overflowY } = window.getComputedStyle(parent)
+        const canScroll = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
+        if (canScroll && parent.scrollHeight > parent.clientHeight + 1) {
+            return parent
+        }
+        parent = parent.parentElement
+    }
+    return null
+}
+
+function scrollElementIntoView(el: HTMLElement) {
+    const scrollParent = getScrollableAncestor(el)
+
+    if (!scrollParent) {
+        const top = window.scrollY + el.getBoundingClientRect().top - SCROLL_TOP_OFFSET_PX
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+        return
+    }
+
+    const parentRect = scrollParent.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
+    const top = scrollParent.scrollTop + (elRect.top - parentRect.top) - SCROLL_TOP_OFFSET_PX
+    scrollParent.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+}
+
 function scrollToFirstInvalidField(errors: Record<string, string>) {
-    const firstKey = FIELD_FOCUS_ORDER.find((key) => errors[key])
+    const firstKey = FIELD_FOCUS_ORDER.find((key) => Boolean(errors[key]))
     if (!firstKey) return
 
     const el = document.getElementById(FIELD_ELEMENT_IDS[firstKey])
     if (!el) return
 
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-
     const focusTarget = (
-        el.matches('input, textarea, select, button, [tabindex]')
+        el.matches(FOCUSABLE_SELECTOR)
             ? el
-            : el.querySelector<HTMLElement>('input, textarea, select, button, [tabindex]')
-    )
-    focusTarget?.focus({ preventScroll: true })
+            : el.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+    ) ?? el
+
+    scrollElementIntoView(el)
+
+    // Native focus scroll as a fallback if custom scroll is ignored by the browser.
+    window.setTimeout(() => {
+        try {
+            focusTarget.focus({ preventScroll: false })
+        } catch {
+            focusTarget.focus()
+        }
+        scrollElementIntoView(el)
+    }, 50)
 }
 
 const CreateCharityStandalonePage = () => {
@@ -115,6 +155,7 @@ const CreateCharityStandalonePage = () => {
     const [isEligible, setIsEligible] = useState<'yes' | 'no' | ''>('')
 
     const [errors, setErrors] = useState<{ [k: string]: string }>({})
+    const shouldScrollToErrorRef = React.useRef(false)
 
     const categories = useMemo(() => Object.entries(CategoryEnum).map(([k, v]) => ({ id: k, label: v })), [])
     const eligibilitySuggestion = useMemo(() => {
@@ -168,6 +209,25 @@ const CreateCharityStandalonePage = () => {
         if (parsed.annualRevenue !== undefined) setAnnualRevenue(String(parsed.annualRevenue))
         if (parsed.isEligible !== undefined) setIsEligible(parsed.isEligible ? 'yes' : 'no')
     }, [searchParams])
+
+    React.useEffect(() => {
+        if (!shouldScrollToErrorRef.current) return
+        if (Object.keys(errors).length === 0) return
+
+        shouldScrollToErrorRef.current = false
+
+        let innerRaf = 0
+        const outerRaf = window.requestAnimationFrame(() => {
+            innerRaf = window.requestAnimationFrame(() => {
+                scrollToFirstInvalidField(errors)
+            })
+        })
+
+        return () => {
+            window.cancelAnimationFrame(outerRaf)
+            if (innerRaf) window.cancelAnimationFrame(innerRaf)
+        }
+    }, [errors])
 
     const handleLogoUpload = async (file: File) => {
         setIsUploadingLogo(true)
@@ -241,8 +301,7 @@ const CreateCharityStandalonePage = () => {
 
         setErrors(next)
         if (Object.keys(next).length > 0) {
-            // Wait a tick so error messages are in the DOM before scrolling.
-            requestAnimationFrame(() => scrollToFirstInvalidField(next))
+            shouldScrollToErrorRef.current = true
             return
         }
 
@@ -304,7 +363,7 @@ const CreateCharityStandalonePage = () => {
                             <Label htmlFor="assessment-requested" className="text-sm">Assessment requested by charity?</Label>
                         </div>
 
-                        <div id="field-country" className="max-w-sm">
+                        <div id="field-country" className="max-w-sm scroll-mt-28">
                             <Label className="text-sm">Select Country <span className="text-red-500">*</span></Label>
                             <CountrySelectComponent
                                 value={country || undefined}
@@ -315,7 +374,7 @@ const CreateCharityStandalonePage = () => {
                             {errors.country ? <div className="text-xs text-red-500 mt-1">{errors.country}</div> : null}
                         </div>
 
-                        <div id="field-category" className="max-w-sm">
+                        <div id="field-category" className="max-w-sm scroll-mt-28">
                             <Label className="text-sm">Select the category of this charity <span className="text-red-500">*</span></Label>
                             <Select key={category} value={category} onValueChange={(v) => setCategory(v)}>
                                 <SelectTrigger className="h-9 w-full">
@@ -444,7 +503,7 @@ const CreateCharityStandalonePage = () => {
                         </div>
 
                         <div className="flex flex-col gap-4">
-                            <div id="field-is-islamic" className="flex flex-col gap-2">
+                            <div id="field-is-islamic" className="flex flex-col gap-2 scroll-mt-28">
                                 <Label className="text-sm">Is this an islamic charity <span className="text-red-500">*</span></Label>
                                 <RadioGroup value={isIslamic} onValueChange={(val) => setIsIslamic(val as 'yes' | 'no')} className="flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
@@ -459,7 +518,7 @@ const CreateCharityStandalonePage = () => {
                                 {errors.isIslamic ? <div className="text-xs text-red-500 mt-1">{errors.isIslamic}</div> : null}
                             </div>
 
-                            <div id="field-pays-zakat" className="flex flex-col gap-2">
+                            <div id="field-pays-zakat" className="flex flex-col gap-2 scroll-mt-28">
                                 <Label className="text-sm">Do they pay zakat <span className="text-red-500">*</span></Label>
                                 <RadioGroup value={paysZakat} onValueChange={(val) => setPaysZakat(val as 'yes' | 'no')} className="flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
@@ -484,7 +543,7 @@ const CreateCharityStandalonePage = () => {
                             {errors.annualRevenue ? <div className="text-xs text-red-500 mt-1">{errors.annualRevenue}</div> : null}
                         </div>
 
-                        <div id="field-is-eligible" className="flex flex-col gap-2">
+                        <div id="field-is-eligible" className="flex flex-col gap-2 scroll-mt-28">
                             <Label className="text-sm">Is this charity eligible for review? <span className="text-red-500">*</span></Label>
                             <EligibilitySuggestionCard suggestion={eligibilitySuggestion} />
                             <RadioGroup value={isEligible} onValueChange={(val) => setIsEligible(val as 'yes' | 'no')} className="flex flex-col gap-2">
