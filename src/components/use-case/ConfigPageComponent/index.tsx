@@ -73,7 +73,7 @@ const ConfigPageComponent = async () => {
                             Control eligibility rules and team access from one place.
                         </h2>
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-[#667085]">
-                            Fine-tune deep-scan eligibility, manage role policies, and keep MuslimGive operations secure with a polished admin workspace.
+                            Fine-tune deep-scan eligibility, manage role policies, and keep Zakah Advisor operations secure with a polished admin workspace.
                         </p>
                     </div>
 
@@ -135,7 +135,7 @@ const ConfigPageComponent = async () => {
                     <div className="border-b border-[#E8EEF5] bg-gradient-to-br from-[#F8FBFF] to-white px-5 py-4">
                         <h3 className="text-lg font-semibold text-[#101928]">Manage Roles</h3>
                         <p className="mt-1 text-sm text-[#667085]">
-                            Control roles, permissions, and access policies for MG staff.
+                            Control roles, permissions, and access policies for ZA staff.
                         </p>
                     </div>
                     <div className="p-5">

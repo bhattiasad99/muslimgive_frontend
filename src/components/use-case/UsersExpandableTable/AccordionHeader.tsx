@@ -2,7 +2,7 @@ import StatusPill from '@/components/common/StatusPill'
 import { getUserRoleColor, USER_STATUS_COLORS } from '@/lib/chip-styles'
 import { Data } from './index'
 import { KeyRound, MapPin } from 'lucide-react'
-import { kebabToTitle } from '@/lib/helpers'
+import { formatRoleLabel } from '@/lib/brand'
 import React, { FC } from 'react'
 
 type IProps = {
@@ -60,7 +60,7 @@ const AccordionHeader: FC<IProps> = ({
                     roles.slice(0, 2).map((role) => (
                         <StatusPill
                             key={role}
-                            label={kebabToTitle(role)}
+                            label={formatRoleLabel(role)}
                             color={getUserRoleColor(role)}
                             className="max-w-[140px]"
                         />

@@ -114,7 +114,7 @@ const SingleCharityCard: FC<IProps> = ({
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[11px] text-[#666E76]">
-                                Assigned MG Members ({members.length})
+                                Assigned ZA Members ({members.length})
                             </span>
                             <div className="">
                                 <AvatarGroupComponent images={[...members.map(eachMember => {

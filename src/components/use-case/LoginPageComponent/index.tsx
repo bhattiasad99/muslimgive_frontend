@@ -22,7 +22,7 @@ export default function LoginPageComponent({ continueTo = '/' }: { continueTo?: 
     return (
         <AuthScreenLayoutComponent
             action={action}
-            heading="Log in to your account"
+            heading="Log in to Zakah Advisor"
             subHeading="Welcome back! Please enter your details"
         >
             <input type="hidden" name="continue" value={continueTo} />

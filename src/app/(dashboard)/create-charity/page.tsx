@@ -498,7 +498,7 @@ const CreateCharityStandalonePage = () => {
                         <div>
                             <Label htmlFor="submitted-by-email" className="text-sm">Submitted by email (optional)</Label>
                             <ControlledTextFieldComponent id="submitted-by-email" value={submittedByEmail} onChange={(e) => setSubmittedByEmail(e.target.value)} placeholder="" type="email" />
-                            <p className="text-xs text-muted-foreground mt-1">If provided, this person will receive emails from MuslimGive.</p>
+                            <p className="text-xs text-muted-foreground mt-1">If provided, this person will receive emails from Zakah Advisor.</p>
                             {errors.submittedByEmail ? <div className="text-xs text-red-500 mt-1">{errors.submittedByEmail}</div> : null}
                         </div>
 

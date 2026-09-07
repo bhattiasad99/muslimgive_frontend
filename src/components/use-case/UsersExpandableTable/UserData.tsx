@@ -2,6 +2,7 @@ import React, { FC } from 'react'
 import { Data } from './'
 import AvatarComponent from '@/components/common/AvatarComponent';
 import { capitalizeWords, kebabToTitle } from '@/lib/helpers'
+import { formatRoleLabel } from '@/lib/brand'
 import { cn } from '@/lib/utils';
 import { kanit } from '@/app/fonts';
 import UserCardLayout from './UserCardLayout';
@@ -141,7 +142,7 @@ const UserData: FC<IProps> = ({
                                     {roles.map((eachRole) => (
                                         <StatusPill
                                             key={eachRole}
-                                            label={kebabToTitle(eachRole)}
+                                            label={formatRoleLabel(eachRole)}
                                             color={getUserRoleColor(eachRole)}
                                         />
                                     ))}

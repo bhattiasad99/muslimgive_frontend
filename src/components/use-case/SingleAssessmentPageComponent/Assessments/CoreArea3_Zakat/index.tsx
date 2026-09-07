@@ -81,8 +81,8 @@ const isCriterionComplete = (criterion: RubricCriterion, ans?: AnswerItem): bool
 
 const isCriterionAttempted = (ans?: AnswerItem) => Boolean(ans?.rating);
 
-const getSectionDisplayTitle = (section: RubricSection, index: number) =>
-    index === 0 ? section.title : 'Metric';
+const getSectionDisplayTitle = (section: RubricSection, _index: number) =>
+    section.title;
 
 const getPointsProgress = (items: RubricCriterion[], answers: Record<string, AnswerItem>) => {
     const { max, earned } = getGroupScoreSummary(items, answers);

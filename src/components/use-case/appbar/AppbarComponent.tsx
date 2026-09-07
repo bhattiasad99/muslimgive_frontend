@@ -68,7 +68,7 @@ type PageHeaderMeta = {
 }
 
 const DEFAULT_HEADER_META: PageHeaderMeta = {
-    description: 'Manage your MuslimGive workspace.',
+    description: 'Manage your Zakah Advisor workspace.',
     icon: ShieldCheck,
     iconClassName: 'from-[#EEF4FD] to-[#EAFBFF] text-[#266DD3]',
 }
@@ -193,7 +193,7 @@ const AppbarComponent = ({ initialDeepScanCount = 0 }: AppbarProps) => {
                     onClick={handleProfileClick}
                     aria-label="Open profile"
                 >
-                    MG
+                    ZA
                 </button>
             </div>
         </header>

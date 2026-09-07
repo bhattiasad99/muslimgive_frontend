@@ -30,6 +30,7 @@ import { updateUserStatusAction } from '@/app/actions/admin'
 import { deleteUserAction } from '@/app/actions/users'
 import { toast } from 'sonner'
 import { kebabToTitle } from '@/lib/helpers'
+import { formatRoleLabel } from '@/lib/brand'
 import { usePageNavigationDismiss } from '@/hooks/use-page-navigation'
 import { cn } from '@/lib/utils'
 
@@ -293,7 +294,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                             Manage members, roles, and access with confidence.
                         </h2>
                         <p className="mt-2 max-w-xl text-sm leading-6 text-[#667085]">
-                            Search your team, review account status, and keep MuslimGive operations organized in one polished workspace.
+                            Search your team, review account status, and keep Zakah Advisor operations organized in one polished workspace.
                         </p>
                     </div>
 
@@ -304,7 +305,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                             onClick={() => setOpenNewUserModal(true)}
                         >
                             <AddUserIcon />
-                            Add new MG Member
+                            Add new ZA Member
                         </Button>
                     </Can>
                 </div>
@@ -393,7 +394,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                                         return (
                                             <div key={role} className="flex items-center justify-between gap-3 rounded-xl border border-[#EEF2F6] bg-[#FBFCFE] px-3 py-2">
                                                 <label htmlFor={id} className="text-sm font-medium text-[#344054]">
-                                                    {role}
+                                                    {formatRoleLabel(role)}
                                                 </label>
                                                 <Switch
                                                     id={id}
@@ -451,7 +452,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                         >
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="size-4 text-[#266DD3]" />
-                                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#98A2B3]">{role}</span>
+                                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#98A2B3]">{formatRoleLabel(role)}</span>
                             </div>
                             <div className="mt-2 text-xl font-semibold text-[#101928]">{stats.roleCounts[role]}</div>
                         </div>
@@ -529,7 +530,7 @@ const UsersPageComponent: FC<IProps> = ({ usersArr }) => {
                     dialogContentClassName="md:!w-[50vw] md:!max-w-[50vw] w-[90vw] max-w-[90vw]"
                     open={openNewUserModal}
                     onOpenChange={setOpenNewUserModal}
-                    title="Add new MG Member"
+                    title="Add new ZA Member"
                 >
                     <AddUserModel
                         onClose={() => setOpenNewUserModal(false)}

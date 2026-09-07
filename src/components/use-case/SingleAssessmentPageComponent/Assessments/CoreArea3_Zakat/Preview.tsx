@@ -283,7 +283,7 @@ const PreviewCoreArea3: FC<IProps> = ({ status, charityId, country, fetchFromAPI
                     return (
                         <div key={section.id} className="overflow-hidden rounded-2xl border border-[#E8EEF5] bg-[#FAFBFC] shadow-[0_4px_18px_rgba(15,23,42,0.03)]">
                             <div className="flex items-center justify-between border-b border-[#EEF2F6] bg-gradient-to-r from-[#FAFBFC] to-white px-4 py-3">
-                                <span className="text-sm font-semibold text-[#344054]">{sectionIndex === 0 ? section.title : 'Metric'}</span>
+                                <span className="text-sm font-semibold text-[#344054]">{section.title}</span>
                                 <span className="rounded-full border border-[#E8EEF5] bg-white px-2.5 py-0.5 text-[10px] font-medium italic text-[#667085]">Skipped (optional)</span>
                             </div>
                         </div>
@@ -293,12 +293,14 @@ const PreviewCoreArea3: FC<IProps> = ({ status, charityId, country, fetchFromAPI
                 const sectionScore = getSectionScore(section.id);
                 const answeredCount = sectionCriteria.filter((c: any) => answers[c.id]?.rating).length;
                 const metricIndexById = getMetricIndexById(sectionCriteria);
+                const isMandatorySection = sectionIndex === 0 || /mandatory/i.test(String(section.title ?? ''));
+                const criteriaColumnLabel = isMandatorySection ? 'Mandatory Metric' : 'Criteria';
 
                 return (
                     <div key={section.id} className="relative overflow-hidden rounded-2xl border border-[#E8EEF5] bg-white shadow-[0_4px_18px_rgba(15,23,42,0.04)]">
                         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#10B981] to-[#34D399]" />
                         <div className="flex items-center justify-between gap-3 border-b border-[#EEF2F6] bg-gradient-to-r from-[#FAFBFC] to-white px-4 py-3">
-                            <span className="text-sm font-semibold text-[#101928]">{sectionIndex === 0 ? section.title : 'Metric'}</span>
+                            <span className="text-sm font-semibold text-[#101928]">{section.title}</span>
                             <div className="flex items-center gap-3 text-[11px] text-[#667085] shrink-0">
                                 <span className="rounded-full border border-[#E8EEF5] bg-white px-2.5 py-0.5 font-medium">
                                     {answeredCount}/{sectionCriteria.length} rated
@@ -315,7 +317,7 @@ const PreviewCoreArea3: FC<IProps> = ({ status, charityId, country, fetchFromAPI
                             <table className="w-full min-w-0 border-collapse text-xs">
                                 <thead>
                                     <tr className="bg-[#FAFBFC] text-[10px] font-semibold uppercase tracking-[0.12em] text-[#98A2B3]">
-                                        <th className="border-b border-[#EEF2F6] px-3 py-2.5 text-left">Mandatory Metric</th>
+                                        <th className="border-b border-[#EEF2F6] px-3 py-2.5 text-left">{criteriaColumnLabel}</th>
                                         <th className="border-b border-[#EEF2F6] px-3 py-2.5 text-left">Subcriteria</th>
                                         <th className="border-b border-[#EEF2F6] px-3 py-2.5 text-left w-[120px]">Outcome</th>
                                         <th className={cn('border-b border-[#EEF2F6] px-3 py-2.5 text-left', fetchFromAPI && 'border-r')}>Descriptor</th>

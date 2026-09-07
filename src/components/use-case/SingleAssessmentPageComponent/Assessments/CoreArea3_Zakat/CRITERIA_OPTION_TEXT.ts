@@ -180,7 +180,7 @@ export const CRITERIA_OPTION_TEXT: Record<string, Record<string, string>> = {
   },
   "E1.3": {
     "strong": "Only the 8 Qur'an categories are listed, no additions",
-    "moderate": "One or more non-Qur'an categories added alongside the 8, with scholarly justification.",
+    "moderate": "One or more non-Quranic categories added alongside the 8, with scholarly justification.",
     "needs_improvement": "One or more non-Qur'an categories added alongside the 8, without scholarly justification",
     "concern": "Non-Qur'an categories used in place of or in addition to the 8 without any basis"
   },
